@@ -1,0 +1,368 @@
+<main
+  class="feed-root"
+  (scroll.passive)="onWindowScroll($any($event.target).scrollTop)"
+  aria-label="Bảng tin"
+>
+  <div class="feed-layout">
+    <aside class="feed-sidebar feed-sidebar--left" aria-label="Điều hướng">
+      <!-- User quick card -->
+      @if (me()) {
+        <a
+          class="sidebar-user-card"
+          [routerLink]="['/profile', me()!.id]"
+          [attr.aria-label]="'Trang cá nhân của ' + me()!.fullName"
+        >
+          <app-avatar
+            [src]="me()!.avatarUrl"
+            [name]="me()!.fullName"
+            [size]="44"
+          />
+          <div class="sidebar-user-info">
+            <span class="sidebar-user-name">{{ me()!.fullName }}</span>
+            <span class="sidebar-user-handle">
+              <i class="fa-solid fa-at" aria-hidden="true"></i>
+              {{ me()!.username }}
+            </span>
+          </div>
+          <i
+            class="fa-solid fa-chevron-right sidebar-user-chevron"
+            aria-hidden="true"
+          ></i>
+        </a>
+      }
+
+      <div class="sidebar-divider" aria-hidden="true"></div>
+
+      <!-- Nav links -->
+      <nav aria-label="Menu chính">
+        <ul class="sidebar-nav-list" role="list">
+          @for (link of navLinks; track link.route) {
+            <li>
+              <a
+                class="sidebar-nav-link"
+                [routerLink]="link.route"
+                routerLinkActive="sidebar-nav-link--active"
+                [routerLinkActiveOptions]="{ exact: link.route === '/home' }"
+                [attr.aria-label]="link.label"
+              >
+                <span
+                  class="sidebar-icon-box sidebar-icon-box--{{ link.color }}"
+                  aria-hidden="true"
+                >
+                  <i [class]="link.icon"></i>
+                </span>
+                <span class="sidebar-nav-label">{{ link.label }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </nav>
+
+      <!-- Friend requests section (data thật từ API) -->
+      @if (isLoadingRequests) {
+        <div class="sidebar-divider" aria-hidden="true"></div>
+        <div class="sidebar-skeleton-block" aria-busy="true">
+          <div class="sk-label-line"></div>
+          @for (sk of [0, 1]; track sk) {
+            <div class="sk-req-item">
+              <div class="sk-req-avatar"></div>
+              <div class="sk-req-lines">
+                <div class="sk-req-name"></div>
+                <div class="sk-req-btns"></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (pendingRequests.length > 0) {
+        <div class="sidebar-divider" aria-hidden="true"></div>
+        <section aria-label="Lời mời kết bạn">
+          <p class="sidebar-section-label">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+            Lời mời kết bạn
+            <span class="req-count-badge">{{ pendingRequests.length }}</span>
+          </p>
+          <ul class="request-list" role="list">
+            @for (req of pendingRequests; track req.requestId) {
+              <li class="request-item">
+                <a
+                  [routerLink]="['/profile', req.sender.id]"
+                  class="req-avatar-link"
+                >
+                  <app-avatar
+                    [src]="req.sender.avatarUrl"
+                    [name]="req.sender.fullName"
+                    [size]="38"
+                  />
+                </a>
+                <div class="request-info">
+                  <a
+                    [routerLink]="['/profile', req.sender.id]"
+                    class="request-name"
+                  >
+                    {{ req.sender.fullName }}
+                  </a>
+                  <span class="request-username">
+                    <i class="fa-solid fa-at" aria-hidden="true"></i>
+                    {{ req.sender.username }}
+                  </span>
+                  <div class="request-actions">
+                    <button
+                      class="req-btn req-btn--accept"
+                      (click)="onAcceptRequest(req)"
+                      [attr.aria-label]="
+                        'Chấp nhận lời mời của ' + req.sender.fullName
+                      "
+                    >
+                      <i class="fa-solid fa-check" aria-hidden="true"></i>
+                      Chấp nhận
+                    </button>
+                    <button
+                      class="req-btn req-btn--reject"
+                      (click)="onRejectRequest(req)"
+                      [attr.aria-label]="
+                        'Từ chối lời mời của ' + req.sender.fullName
+                      "
+                    >
+                      Từ chối
+                    </button>
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </aside>
+
+    <section class="feed-center" aria-label="Bảng tin chính">
+      <!-- Page header bar (hiện trên mobile thay sidebar) -->
+      <div class="feed-page-header">
+        <h1 class="feed-page-title">
+          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+          Bảng&nbsp;tin
+        </h1>
+        @if (me()) {
+          <a
+            class="feed-header-me"
+            [routerLink]="['/profile', me()!.id]"
+            [attr.aria-label]="'Trang cá nhân của ' + me()!.fullName"
+          >
+            <app-avatar
+              [src]="me()!.avatarUrl"
+              [name]="me()!.fullName"
+              [size]="34"
+            />
+          </a>
+        }
+      </div>
+
+      <!-- Feed list -->
+      <div class="feed-list" #feedList>
+        <!-- Create post -->
+        <app-create-post (postCreated)="onPostCreated($event)" />
+
+        <!-- Posts từ backend -->
+        @for (post of posts; track post.id) {
+          <div class="feed-post-wrap" #postRef>
+            <app-post-card
+              [post]="post"
+              (postDeleted)="onPostDeleted($event)"
+              (postUpdated)="onPostUpdated($event)"
+            ></app-post-card>
+          </div>
+        }
+
+        <!-- Skeleton loading -->
+        @if (isLoading) {
+          <div
+            class="feed-skeleton"
+            aria-busy="true"
+            aria-label="Đang tải bài viết..."
+          >
+            @for (sk of [0, 1, 2]; track sk) {
+              <div class="skeleton-card">
+                <div class="sk-header">
+                  <div class="sk-avatar"></div>
+                  <div class="sk-lines">
+                    <div class="sk-line sk-line--name"></div>
+                    <div class="sk-line sk-line--time"></div>
+                  </div>
+                  <div class="sk-line sk-line--menu"></div>
+                </div>
+                <div class="sk-body">
+                  <div class="sk-line sk-line--text"></div>
+                  <div class="sk-line sk-line--text sk-line--short"></div>
+                  <div class="sk-line sk-line--text sk-line--xshort"></div>
+                </div>
+                <div class="sk-image"></div>
+                <div class="sk-actions">
+                  <div class="sk-action-btn"></div>
+                  <div class="sk-action-btn"></div>
+                  <div class="sk-action-btn"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Load more button -->
+        @if (hasMore && !isLoading && posts.length > 0) {
+          <button
+            class="load-more-btn"
+            (click)="onLoadMore()"
+            aria-label="Tải thêm bài viết"
+          >
+            <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+            Xem thêm bài viết
+          </button>
+        }
+
+        <!-- Empty state: không có bài nào -->
+        @if (!isLoading && posts.length === 0) {
+          <div class="feed-empty" role="status">
+            <div class="feed-empty-icon" aria-hidden="true">
+              <i class="fa-solid fa-newspaper"></i>
+            </div>
+            <p class="feed-empty-title">Chưa có bài viết nào</p>
+            <p class="feed-empty-sub">
+              Kết bạn thêm để xem bài viết của họ nhé!
+            </p>
+            <a routerLink="/friends" class="feed-empty-cta sp-btn-primary">
+              <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+              Tìm bạn bè
+            </a>
+          </div>
+        }
+
+        <!-- End of feed -->
+        @if (!hasMore && !isLoading && posts.length > 0) {
+          <div class="feed-end" role="status">
+            <span class="feed-end-line" aria-hidden="true"></span>
+            <span class="feed-end-text">
+              <i class="fa-solid fa-check-circle" aria-hidden="true"></i>
+              Bạn đã xem hết bài viết mới nhất
+            </span>
+            <span class="feed-end-line" aria-hidden="true"></span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <aside class="feed-sidebar feed-sidebar--right" aria-label="Gợi ý kết bạn">
+      <!-- Friend suggestions (data thật từ API) -->
+      @if (isLoadingSuggestions) {
+        <section class="right-widget" aria-label="Đang tải gợi ý">
+          <p class="right-widget-label">Gợi ý kết bạn</p>
+          <ul class="suggestions-list" role="list">
+            @for (sk of [0, 1, 2, 3]; track sk) {
+              <li class="suggestion-item suggestion-item--skeleton">
+                <div class="sk-sugg-avatar"></div>
+                <div class="sk-sugg-info">
+                  <div class="sk-sugg-name"></div>
+                  <div class="sk-sugg-mutual"></div>
+                </div>
+                <div class="sk-sugg-btn"></div>
+              </li>
+            }
+          </ul>
+        </section>
+      } @else if (suggestions.length > 0) {
+        <section class="right-widget" aria-label="Gợi ý kết bạn">
+          <p class="right-widget-label">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+            Gợi ý kết bạn
+          </p>
+          <ul class="suggestions-list" role="list">
+            @for (sg of suggestions; track sg.user.id) {
+              <li class="suggestion-item">
+                <a
+                  [routerLink]="['/profile', sg.user.id]"
+                  class="suggestion-avatar-link"
+                  [attr.aria-label]="
+                    'Xem trang cá nhân của ' + sg.user.fullName
+                  "
+                >
+                  <app-avatar
+                    [src]="sg.user.avatarUrl"
+                    [name]="sg.user.fullName"
+                    [size]="42"
+                  />
+                </a>
+                <div class="suggestion-info">
+                  <a
+                    [routerLink]="['/profile', sg.user.id]"
+                    class="suggestion-name"
+                    >{{ sg.user.fullName }}</a
+                  >
+                  <span class="suggestion-username">
+                    <i class="fa-solid fa-at" aria-hidden="true"></i>
+                    {{ sg.user.username }}
+                  </span>
+                  @if (sg.mutualFriendsCount > 0) {
+                    <span class="suggestion-mutual">
+                      <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                      {{ sg.mutualFriendsCount }} bạn chung
+                    </span>
+                  }
+                </div>
+                <button
+                  class="suggestion-add-btn"
+                  [class.suggestion-add-btn--loading]="
+                    sendingRequestId === sg.user.id
+                  "
+                  [disabled]="sendingRequestId === sg.user.id"
+                  (click)="onSendRequest(sg)"
+                  [attr.aria-label]="'Kết bạn với ' + sg.user.fullName"
+                >
+                  @if (sendingRequestId === sg.user.id) {
+                    <i
+                      class="fa-solid fa-circle-notch fa-spin"
+                      aria-hidden="true"
+                    ></i>
+                  } @else {
+                    <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      } @else if (!isLoadingSuggestions) {
+        <!-- Không có gợi ý: hiện trạng thái trống -->
+        <section class="right-widget" aria-label="Không có gợi ý">
+          <p class="right-widget-label">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+            Gợi ý kết bạn
+          </p>
+          <p class="right-widget-empty">
+            Chưa có gợi ý nào.<br />Thêm bạn bè để có thêm gợi ý!
+          </p>
+        </section>
+      }
+
+      <!-- Footer links -->
+      <footer class="sidebar-footer">
+        <nav aria-label="Liên kết phụ">
+          <ul class="footer-links">
+            <li><a routerLink="/privacy">Quyền riêng tư</a></li>
+            <li><a routerLink="/terms">Điều khoản</a></li>
+            <li><a routerLink="/about">Giới thiệu</a></li>
+          </ul>
+        </nav>
+        <p class="footer-copy">SocialApp &copy; {{ year }}</p>
+      </footer>
+    </aside>
+  </div>
+  <!-- /feed-layout -->
+
+  <!-- Scroll-to-top FAB -->
+  @if (showScrollTop) {
+    <button
+      class="scroll-top-fab"
+      (click)="scrollToTop()"
+      aria-label="Cuộn lên đầu trang"
+    >
+      <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+    </button>
+  }
+</main>

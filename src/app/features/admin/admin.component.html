@@ -1,0 +1,634 @@
+<div class="adm-page">
+  <div class="adm-header" aria-label="Admin header">
+    <div class="adm-header-inner">
+      <div class="adm-header-left">
+        <div class="adm-shield-box" aria-hidden="true">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <h1 class="adm-title">Bảng quản trị</h1>
+          <p class="adm-subtitle">
+            Quản lý người dùng, nội dung và hệ thống SocialApp
+          </p>
+        </div>
+      </div>
+      <div class="adm-header-right">
+        <span
+          class="adm-sys-status"
+          role="status"
+          aria-label="Trạng thái: hệ thống hoạt động bình thường"
+        >
+          <span class="adm-pulse-dot" aria-hidden="true"></span>
+          Hệ thống hoạt động bình thường
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <section class="adm-stats-shell" aria-label="Thống kê tổng quan">
+    <div class="adm-stats-grid" role="list">
+      <!-- Skeleton khi chưa load xong -->
+      @if (!stats().length) {
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div
+            class="adm-stat-card adm-skel-card"
+            role="listitem"
+            aria-hidden="true"
+          >
+            <div class="adm-skel adm-skel--icon"></div>
+            <div style="flex: 1">
+              <div class="adm-skel adm-skel--value"></div>
+              <div
+                class="adm-skel adm-skel--label"
+                style="margin-top: 6px"
+              ></div>
+            </div>
+          </div>
+        }
+      }
+
+      @for (stat of stats(); track stat.key) {
+        <article class="adm-stat-card" role="listitem">
+          <div
+            class="adm-stat-icon"
+            [class]="'adm-stat-icon--' + stat.color"
+            aria-hidden="true"
+          >
+            <i [class]="stat.icon"></i>
+          </div>
+          <div class="adm-stat-info">
+            <span class="adm-stat-value">{{ stat.value | number }}</span>
+            <span class="adm-stat-label">{{ stat.label }}</span>
+          </div>
+          @if (stat.trend !== undefined) {
+            <span
+              class="adm-stat-trend"
+              [class.adm-stat-trend--up]="stat.trend > 0"
+              [class.adm-stat-trend--down]="stat.trend < 0"
+              [attr.aria-label]="
+                (stat.trend > 0 ? 'Tăng' : 'Giảm') +
+                ' ' +
+                Math.abs(stat.trend) +
+                '% so với tháng trước'
+              "
+            >
+              <i
+                [class]="
+                  stat.trend > 0
+                    ? 'fa-solid fa-arrow-trend-up'
+                    : 'fa-solid fa-arrow-trend-down'
+                "
+                aria-hidden="true"
+              ></i>
+              {{ Math.abs(stat.trend) }}%
+            </span>
+          }
+        </article>
+      }
+    </div>
+  </section>
+
+  <div class="adm-main">
+    <div class="adm-panel">
+      <div class="adm-tabs-bar" role="tablist" aria-label="Phân mục quản trị">
+        <button
+          class="adm-tab"
+          [class.adm-tab--active]="activeTab() === 'users'"
+          (click)="setTab('users')"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'users'"
+          id="tab-users"
+          aria-controls="panel-users"
+        >
+          <i class="fa-solid fa-users" aria-hidden="true"></i>
+          Người dùng
+        </button>
+
+        <button
+          class="adm-tab"
+          [class.adm-tab--active]="activeTab() === 'posts'"
+          (click)="setTab('posts')"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'posts'"
+          id="tab-posts"
+          aria-controls="panel-posts"
+        >
+          <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+          Bài viết
+        </button>
+
+        <button
+          class="adm-tab"
+          [class.adm-tab--active]="activeTab() === 'reports'"
+          (click)="setTab('reports')"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'reports'"
+          id="tab-reports"
+          aria-controls="panel-reports"
+        >
+          <i class="fa-solid fa-flag" aria-hidden="true"></i>
+          Báo cáo
+          @if (pendingReportsCount() > 0) {
+            <span
+              class="adm-tab-badge"
+              [attr.aria-label]="pendingReportsCount() + ' báo cáo chờ xử lý'"
+            >
+              {{ pendingReportsCount() }}
+            </span>
+          }
+        </button>
+
+        <button
+          class="adm-tab"
+          [class.adm-tab--active]="activeTab() === 'stats'"
+          (click)="setTab('stats')"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'stats'"
+          id="tab-stats"
+          aria-controls="panel-stats"
+        >
+          <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+          Thống kê
+        </button>
+      </div>
+
+      <div class="adm-toolbar" role="search">
+        <div class="adm-search-wrap">
+          <i
+            class="fa-solid fa-magnifying-glass adm-search-icon"
+            aria-hidden="true"
+          ></i>
+          <input
+            type="search"
+            class="adm-input adm-search"
+            [placeholder]="
+              activeTab() === 'posts'
+                ? 'Tìm kiếm bài viết...'
+                : 'Tìm kiếm người dùng...'
+            "
+            aria-label="Tìm kiếm"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+          />
+        </div>
+
+        @if (activeTab() === "users") {
+          <select
+            class="adm-input adm-select"
+            aria-label="Lọc theo vai trò và trạng thái"
+            [value]="userFilter()"
+            (change)="userFilter.set($any($event.target).value)"
+          >
+            <option value="all">Tất cả</option>
+            <option value="active">Đang hoạt động</option>
+            <option value="banned">Bị cấm</option>
+            <option value="admin">Admin</option>
+          </select>
+        }
+      </div>
+
+      @if (activeTab() === "users") {
+        <div
+          class="adm-tab-panel"
+          id="panel-users"
+          role="tabpanel"
+          aria-labelledby="tab-users"
+        >
+          <!-- Skeleton rows -->
+          @if (isLoadingUsers()) {
+            <div class="adm-table-wrap" aria-hidden="true">
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th style="width: 52px">STT</th>
+                    <th>Người dùng</th>
+                    <th>Email</th>
+                    <th>Vai trò</th>
+                    <th>Tham gia</th>
+                    <th>Trạng thái</th>
+                    <th style="text-align: right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                    <tr class="adm-tr">
+                      <td><div class="adm-skel adm-skel--xs"></div></td>
+                      <td>
+                        <div class="adm-user-cell">
+                          <div class="adm-skel adm-skel--avatar"></div>
+                          <div>
+                            <div class="adm-skel adm-skel--name"></div>
+                            <div class="adm-skel adm-skel--handle"></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td><div class="adm-skel adm-skel--md"></div></td>
+                      <td><div class="adm-skel adm-skel--xs"></div></td>
+                      <td><div class="adm-skel adm-skel--sm"></div></td>
+                      <td><div class="adm-skel adm-skel--sm"></div></td>
+                      <td style="text-align: right">
+                        <div
+                          class="adm-skel adm-skel--xs"
+                          style="margin-left: auto"
+                        ></div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <!-- Empty state -->
+          @if (!isLoadingUsers() && filteredUsers().length === 0) {
+            <div class="adm-empty" role="status">
+              <div class="adm-empty-icon" aria-hidden="true">
+                <i class="fa-solid fa-user-slash"></i>
+              </div>
+              <p class="adm-empty-title">Không tìm thấy người dùng</p>
+              <span class="adm-empty-sub"
+                >Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</span
+              >
+            </div>
+          }
+
+          <!-- Data table -->
+          @if (!isLoadingUsers() && filteredUsers().length > 0) {
+            <div
+              class="adm-table-wrap"
+              role="region"
+              aria-label="Bảng người dùng"
+              tabindex="0"
+            >
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th scope="col" style="width: 52px">STT</th>
+                    <th scope="col">Người dùng</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Vai trò</th>
+                    <th scope="col">Tham gia</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" style="text-align: right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (
+                    user of filteredUsers();
+                    track user.id;
+                    let idx = $index
+                  ) {
+                    <tr class="adm-tr">
+                      <td class="adm-cell-dim">
+                        {{ (currentPage() - 1) * 20 + idx + 1 }}
+                      </td>
+                      <td>
+                        <div class="adm-user-cell">
+                          <app-avatar
+                            [src]="user.avatarUrl"
+                            [name]="user.fullName"
+                            [size]="36"
+                          />
+                          <div class="adm-user-meta">
+                            <span class="adm-user-name">{{
+                              user.fullName
+                            }}</span>
+                            <span class="adm-user-handle">{{
+                              "@" + user.username
+                            }}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="adm-cell-text">{{ user.email }}</td>
+                      <td>
+                        <span
+                          class="adm-role-badge"
+                          [class.adm-role-badge--admin]="
+                            user.role === UserRole.Admin
+                          "
+                          [class.adm-role-badge--user]="
+                            user.role !== UserRole.Admin
+                          "
+                        >
+                          {{
+                            user.role === UserRole.Admin
+                              ? "Admin"
+                              : "Người dùng"
+                          }}
+                        </span>
+                      </td>
+                      <td class="adm-cell-dim">
+                        {{ user.createdAt | date: "dd/MM/yyyy" }}
+                      </td>
+                      <td>
+                        <span
+                          class="adm-status-badge"
+                          [class.adm-status-badge--active]="!user.isBanned"
+                          [class.adm-status-badge--banned]="user.isBanned"
+                        >
+                          <span
+                            class="adm-status-dot"
+                            aria-hidden="true"
+                          ></span>
+                          {{ user.isBanned ? "Bị cấm" : "Hoạt động" }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="adm-actions">
+                          <a
+                            [routerLink]="['/profile', user.id]"
+                            class="adm-icon-btn"
+                            [attr.aria-label]="'Xem hồ sơ ' + user.fullName"
+                            target="_blank"
+                          >
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                          </a>
+                          <button
+                            class="adm-icon-btn"
+                            [class.adm-icon-btn--amber]="!user.isBanned"
+                            [class.adm-icon-btn--teal]="user.isBanned"
+                            (click)="onToggleBan(user)"
+                            [attr.aria-label]="
+                              (user.isBanned ? 'Bỏ cấm' : 'Cấm') +
+                              ' ' +
+                              user.fullName
+                            "
+                          >
+                            <i
+                              [class]="
+                                user.isBanned
+                                  ? 'fa-solid fa-lock-open'
+                                  : 'fa-solid fa-ban'
+                              "
+                              aria-hidden="true"
+                            ></i>
+                          </button>
+                          <button
+                            class="adm-icon-btn adm-icon-btn--red"
+                            (click)="onDeleteUser(user)"
+                            [attr.aria-label]="'Xóa tài khoản ' + user.fullName"
+                          >
+                            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div
+              class="adm-pagination"
+              role="navigation"
+              aria-label="Phân trang"
+            >
+              <span class="adm-page-info">
+                Hiển thị {{ filteredUsers().length }} / {{ totalUsers() }} người
+                dùng
+              </span>
+              <div class="adm-page-ctrl">
+                <button
+                  class="adm-page-btn"
+                  (click)="prevPage()"
+                  [disabled]="currentPage() === 1"
+                  aria-label="Trang trước"
+                >
+                  <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                </button>
+                <span class="adm-page-label"
+                  >{{ currentPage() }} / {{ totalPages() }}</span
+                >
+                <button
+                  class="adm-page-btn"
+                  (click)="nextPage()"
+                  [disabled]="currentPage() === totalPages()"
+                  aria-label="Trang sau"
+                >
+                  <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (activeTab() === "posts") {
+        <div
+          class="adm-tab-panel"
+          id="panel-posts"
+          role="tabpanel"
+          aria-labelledby="tab-posts"
+        >
+          @if (isLoadingPosts()) {
+            <div class="adm-table-wrap" aria-hidden="true">
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th>Tác giả</th>
+                    <th>Nội dung</th>
+                    <th>Thích</th>
+                    <th>Bình luận</th>
+                    <th>Ngày đăng</th>
+                    <th style="text-align: right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (i of [1, 2, 3, 4, 5]; track i) {
+                    <tr class="adm-tr">
+                      <td>
+                        <div class="adm-user-cell">
+                          <div class="adm-skel adm-skel--avatar32"></div>
+                          <div class="adm-skel adm-skel--name"></div>
+                        </div>
+                      </td>
+                      <td><div class="adm-skel adm-skel--lg"></div></td>
+                      <td><div class="adm-skel adm-skel--xs"></div></td>
+                      <td><div class="adm-skel adm-skel--xs"></div></td>
+                      <td><div class="adm-skel adm-skel--sm"></div></td>
+                      <td style="text-align: right">
+                        <div
+                          class="adm-skel adm-skel--xs"
+                          style="margin-left: auto"
+                        ></div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          @if (!isLoadingPosts() && adminPosts().length === 0) {
+            <div class="adm-empty" role="status">
+              <div class="adm-empty-icon" aria-hidden="true">
+                <i class="fa-solid fa-file-lines"></i>
+              </div>
+              <p class="adm-empty-title">Không có bài viết nào</p>
+              <span class="adm-empty-sub"
+                >Tất cả bài viết sẽ hiển thị ở đây.</span
+              >
+            </div>
+          }
+
+          @if (!isLoadingPosts() && adminPosts().length > 0) {
+            <div
+              class="adm-table-wrap"
+              role="region"
+              aria-label="Bảng bài viết"
+              tabindex="0"
+            >
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Tác giả</th>
+                    <th scope="col">Nội dung</th>
+                    <th scope="col">Thích</th>
+                    <th scope="col">Bình luận</th>
+                    <th scope="col">Ngày đăng</th>
+                    <th scope="col" style="text-align: right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (post of adminPosts(); track post.id) {
+                    <tr class="adm-tr">
+                      <td>
+                        <div class="adm-user-cell">
+                          <app-avatar
+                            [src]="post.author.avatarUrl"
+                            [name]="post.author.fullName"
+                            [size]="32"
+                          />
+                          <span class="adm-user-name">{{
+                            post.author.fullName
+                          }}</span>
+                        </div>
+                      </td>
+                      <td class="adm-cell-text adm-cell-clamp">
+                        {{ post.content | truncate: 60 }}
+                      </td>
+                      <td class="adm-cell-dim">
+                        <i
+                          class="fa-solid fa-heart adm-ico-heart"
+                          aria-hidden="true"
+                        ></i>
+                        {{ post.likeCount }}
+                      </td>
+                      <td class="adm-cell-dim">
+                        <i
+                          class="fa-regular fa-comment adm-ico-comment"
+                          aria-hidden="true"
+                        ></i>
+                        {{ post.commentCount }}
+                      </td>
+                      <td class="adm-cell-dim">
+                        {{ post.createdAt | date: "dd/MM/yyyy" }}
+                      </td>
+                      <td>
+                        <div class="adm-actions">
+                          <button
+                            class="adm-icon-btn adm-icon-btn--red"
+                            (click)="onDeletePost(post)"
+                            aria-label="Xóa bài viết"
+                          >
+                            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+
+      @if (activeTab() === "reports") {
+        <div
+          class="adm-tab-panel"
+          id="panel-reports"
+          role="tabpanel"
+          aria-labelledby="tab-reports"
+        >
+          @if (reports().length === 0) {
+            <div class="adm-empty" role="status">
+              <div class="adm-empty-icon" aria-hidden="true">
+                <i class="fa-regular fa-flag"></i>
+              </div>
+              <p class="adm-empty-title">Không có báo cáo nào</p>
+              <span class="adm-empty-sub"
+                >Tuyệt vời! Không có nội dung nào bị báo cáo.</span
+              >
+            </div>
+          }
+          @if (reports().length > 0) {
+            @for (report of reports(); track report.id; let last = $last) {
+              <div class="adm-report-item">
+                <div class="adm-report-top">
+                  <span class="adm-role-badge adm-role-badge--report">{{
+                    report.type
+                  }}</span>
+                  <span class="adm-cell-dim">{{
+                    report.createdAt | date: "dd/MM/yyyy HH:mm"
+                  }}</span>
+                </div>
+                <p class="adm-report-reason">{{ report.reason }}</p>
+                <div class="adm-report-acts">
+                  <button
+                    class="adm-btn-ghost"
+                    (click)="onDismissReport(report)"
+                    aria-label="Bỏ qua báo cáo"
+                  >
+                    Bỏ qua
+                  </button>
+                  <button
+                    class="adm-btn-accent"
+                    (click)="onActOnReport(report)"
+                    aria-label="Xử lý báo cáo"
+                  >
+                    Xử lý
+                  </button>
+                </div>
+              </div>
+              @if (!last) {
+                <div class="adm-rule"></div>
+              }
+            }
+          }
+        </div>
+      }
+
+      @if (activeTab() === "stats") {
+        <div
+          class="adm-tab-panel"
+          id="panel-stats"
+          role="tabpanel"
+          aria-labelledby="tab-stats"
+        >
+          <div class="adm-empty">
+            <div
+              class="adm-empty-icon adm-empty-icon--purple"
+              aria-hidden="true"
+            >
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <p class="adm-empty-title">Thống kê nâng cao</p>
+            <span class="adm-empty-sub"
+              >Tính năng đang được phát triển và sẽ ra mắt trong thời gian
+              tới.</span
+            >
+            <span class="adm-coming-badge">
+              <i class="fa-solid fa-hammer" aria-hidden="true"></i>
+              Đang phát triển
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+    <!-- /.adm-panel -->
+  </div>
+  <!-- /.adm-main -->
+</div>
+<!-- /.adm-page -->

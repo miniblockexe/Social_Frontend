@@ -1,0 +1,537 @@
+<article
+  class="sp-post-card sp-card sp-fade-in"
+  [attr.aria-label]="'Bài viết của ' + post().author.fullName"
+>
+  <div class="sp-post-header">
+    <a
+      [routerLink]="['/profile', post().author.id]"
+      class="sp-post-author-link"
+      [attr.aria-label]="'Xem trang cá nhân của ' + post().author.fullName"
+    >
+      <app-avatar
+        [src]="post().author.avatarUrl"
+        [name]="post().author.fullName"
+        [size]="40"
+      />
+      <div class="sp-post-author-info">
+        <span class="sp-post-author-name">{{ post().author.fullName }}</span>
+        <div class="sp-post-meta">
+          <span class="sp-post-time">{{ post().createdAt | timeAgo }}</span>
+          <span class="sp-post-dot" aria-hidden="true">·</span>
+          @switch (post().privacy) {
+            @case (0) {
+              <i
+                class="fa-solid fa-earth-asia sp-privacy-icon"
+                title="Công khai"
+                aria-label="Công khai"
+              ></i>
+            }
+            @case (1) {
+              <i
+                class="fa-solid fa-user-group sp-privacy-icon"
+                title="Bạn bè"
+                aria-label="Bạn bè"
+              ></i>
+            }
+            @case (2) {
+              <i
+                class="fa-solid fa-lock sp-privacy-icon"
+                title="Chỉ mình tôi"
+                aria-label="Chỉ mình tôi"
+              ></i>
+            }
+          }
+        </div>
+      </div>
+    </a>
+
+    <!-- Options menu (chỉ owner) -->
+    @if (post().isOwner) {
+      <div class="sp-post-menu">
+        <button
+          class="sp-nav-icon-btn"
+          (click)="togglePostMenu($event)"
+          aria-label="Tùy chọn bài viết"
+          [attr.aria-expanded]="showMenu()"
+        >
+          <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+        </button>
+        @if (showMenu()) {
+          <div class="sp-dropdown sp-fade-in" role="menu">
+            <button class="sp-dropdown-item" (click)="onEdit()" role="menuitem">
+              <i class="fa-solid fa-pen" aria-hidden="true"></i>
+              Chỉnh sửa bài viết
+            </button>
+            <button
+              class="sp-dropdown-item sp-dropdown-item--danger"
+              (click)="onDelete()"
+              role="menuitem"
+            >
+              <i class="fa-solid fa-trash" aria-hidden="true"></i>
+              Xóa bài viết
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  @if (post().content) {
+    <p class="sp-post-content">{{ post().content }}</p>
+  }
+
+  @if (post().mediaFiles && post().mediaFiles.length > 0) {
+    <div
+      class="sp-media-grid"
+      [class]="'sp-media-grid--' + Math.min(post().mediaFiles.length, 4)"
+    >
+      @for (
+        media of post().mediaFiles.slice(0, 4);
+        track media.id;
+        let i = $index
+      ) {
+        <div
+          class="sp-media-item"
+          [class.sp-media-item--overlay]="
+            i === 3 && post().mediaFiles.length > 4
+          "
+          (click)="onOpenMedia(i)"
+          role="button"
+          [attr.aria-label]="
+            'Xem ' + (media.mediaType === 0 ? 'ảnh' : 'video') + ' ' + (i + 1)
+          "
+          tabindex="0"
+          (keyup.enter)="onOpenMedia(i)"
+        >
+          @if (media.mediaType === 0) {
+            <!-- Image -->
+            <img
+              [src]="media.mediaUrl"
+              [alt]="
+                'Ảnh ' +
+                (i + 1) +
+                ' trong bài viết của ' +
+                post().author.fullName
+              "
+              loading="lazy"
+              class="sp-media-img"
+            />
+          } @else {
+            <!-- Video -->
+            <div
+              class="sp-video-wrap"
+              [attr.data-video-index]="i"
+              (click)="$event.stopPropagation()"
+            >
+              <video
+                #videoEl
+                [src]="media.mediaUrl"
+                class="sp-media-img sp-media-video"
+                preload="metadata"
+                [attr.aria-label]="'Video ' + (i + 1)"
+                playsinline
+                muted
+                loop
+                (timeupdate)="onTimeUpdate(i, $event)"
+                (loadedmetadata)="onLoadedMeta(i, $event)"
+                (ended)="onVideoEnded(i)"
+              ></video>
+
+              <!-- Play overlay (chỉ khi pause) -->
+              <div
+                class="sp-video-center-btn"
+                [class.sp-video-center-btn--hidden]="playingIndex() === i"
+                (click)="onToggleVideo($event, i)"
+              >
+                <button aria-label="Phát video" tabindex="-1">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    width="32"
+                    height="32"
+                    aria-hidden="true"
+                  >
+                    <path d="M8 5.14v14l11-7-11-7z" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Controls bar -->
+              <div class="sp-video-controls" (click)="$event.stopPropagation()">
+                <!-- Play/Pause -->
+                <button
+                  class="sp-vc-btn"
+                  (click)="onToggleVideo($event, i)"
+                  [attr.aria-label]="playingIndex() === i ? 'Dừng' : 'Phát'"
+                >
+                  @if (playingIndex() === i) {
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      width="16"
+                      height="16"
+                      aria-hidden="true"
+                    >
+                      <rect x="6" y="4" width="4" height="16" rx="1" />
+                      <rect x="14" y="4" width="4" height="16" rx="1" />
+                    </svg>
+                  } @else {
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      width="16"
+                      height="16"
+                      aria-hidden="true"
+                    >
+                      <path d="M8 5.14v14l11-7-11-7z" />
+                    </svg>
+                  }
+                </button>
+
+                <!-- Seek bar -->
+                <div class="sp-vc-seek-wrap">
+                  <input
+                    type="range"
+                    class="sp-vc-seek"
+                    min="0"
+                    [max]="videoDurations()[i] || 100"
+                    [value]="videoTimes()[i] || 0"
+                    step="0.1"
+                    aria-label="Tua video"
+                    (input)="onSeek(i, $event)"
+                    (mousedown)="$event.stopPropagation()"
+                  />
+                </div>
+
+                <!-- Time display -->
+                <span class="sp-vc-time">
+                  {{ videoTimes()[i] || 0 | videoTime }} /
+                  {{ videoDurations()[i] || 0 | videoTime }}
+                </span>
+
+                <!-- Volume -->
+                <div class="sp-vc-volume-wrap">
+                  <div
+                    class="sp-vc-volume-popup"
+                    (click)="$event.stopPropagation()"
+                    (mousedown)="$event.stopPropagation()"
+                  >
+                    <span class="sp-vc-volume-pct">
+                      {{
+                        vol.muted()
+                          ? 0
+                          : (vol.volume() * 100 | number: "1.0-0")
+                      }}%
+                    </span>
+                    <div class="sp-vc-volume-slider-wrap">
+                      <input
+                        type="range"
+                        class="sp-vc-volume-slider"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        [value]="vol.muted() ? 0 : vol.volume()"
+                        [style.--vol-val]="
+                          (vol.muted() ? 0 : vol.volume()) * 100
+                        "
+                        aria-label="Âm lượng"
+                        (input)="onVolumeChange(i, $event)"
+                        (mousedown)="$event.stopPropagation()"
+                        (touchstart)="$event.stopPropagation()"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    class="sp-vc-btn"
+                    (click)="onToggleMute(i); $event.stopPropagation()"
+                    [attr.aria-label]="
+                      vol.muted() ? 'Bỏ tắt tiếng' : 'Tắt tiếng'
+                    "
+                  >
+                    @if (vol.muted()) {
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        width="16"
+                        height="16"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M16.5 12A4.5 4.5 0 0 0 14 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.796 8.796 0 0 0 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06A8.99 8.99 0 0 0 17.73 18L19 19.27 20.27 18 5.27 3 4.27 3zM12 4L9.91 6.09 12 8.18V4z"
+                        />
+                      </svg>
+                    } @else if (vol.volume() < 0.5) {
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        width="16"
+                        height="16"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M7 9v6h4l5 5V4L11 9H7zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"
+                        />
+                      </svg>
+                    } @else {
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        width="16"
+                        height="16"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
+                        />
+                      </svg>
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- +N overlay -->
+          @if (i === 3 && post().mediaFiles.length > 4) {
+            <div
+              class="sp-media-more"
+              [attr.aria-label]="post().mediaFiles.length - 4 + ' ảnh khác'"
+            >
+              +{{ post().mediaFiles.length - 4 }}
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (likeCount() > 0 || post().commentCount > 0) {
+    <div class="sp-post-stats">
+      @if (likeCount() > 0) {
+        <span class="sp-stat">
+          <span class="sp-stat-icon-wrap" aria-hidden="true">
+            <i class="fa-solid fa-heart sp-stat-icon--like"></i>
+          </span>
+          {{ likeCount() | number }}
+        </span>
+      }
+      @if (post().commentCount > 0) {
+        <button
+          class="sp-stat sp-stat--right sp-stat-btn"
+          (click)="onToggleComments()"
+          [attr.aria-label]="'Xem ' + post().commentCount + ' bình luận'"
+        >
+          {{ post().commentCount | number }} bình luận
+        </button>
+      }
+    </div>
+  }
+
+  <div class="sp-post-divider" role="separator"></div>
+
+  <div class="sp-post-actions" role="group" aria-label="Tương tác bài viết">
+    <button
+      class="sp-action-btn"
+      [class.sp-action-btn--liked]="isLiked()"
+      (click)="onLike()"
+      [attr.aria-label]="(isLiked() ? 'Bỏ thích' : 'Thích') + ' bài viết'"
+      [attr.aria-pressed]="isLiked()"
+    >
+      <i
+        [class]="isLiked() ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"
+        aria-hidden="true"
+      ></i>
+      <span>{{ isLiked() ? "Đã thích" : "Thích" }}</span>
+    </button>
+
+    <button
+      class="sp-action-btn"
+      (click)="onToggleComments()"
+      aria-label="Bình luận bài viết"
+      [attr.aria-expanded]="showComments()"
+    >
+      <i class="fa-regular fa-comment" aria-hidden="true"></i>
+      <span>Bình luận</span>
+    </button>
+
+    <button
+      class="sp-action-btn"
+      (click)="onShare()"
+      aria-label="Chia sẻ bài viết"
+    >
+      <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
+      <span>Chia sẻ</span>
+    </button>
+  </div>
+
+  @if (showComments()) {
+    <div class="sp-comments sp-fade-in">
+      <!-- Comment input row -->
+      <div class="sp-comment-input-row">
+        <app-avatar
+          [src]="currentUser()?.avatarUrl"
+          [name]="currentUser()?.fullName ?? ''"
+          [size]="32"
+        />
+        <div class="sp-comment-input-wrap">
+          <input
+            class="sp-input sp-comment-input"
+            type="text"
+            placeholder="Viết bình luận..."
+            [(ngModel)]="commentText"
+            (keyup.enter)="onSubmitComment()"
+            aria-label="Nhập bình luận"
+            [disabled]="isSubmittingComment()"
+          />
+          @if (commentText.trim().length > 0) {
+            <button
+              class="sp-comment-send"
+              (click)="onSubmitComment()"
+              [disabled]="isSubmittingComment()"
+              aria-label="Gửi bình luận"
+            >
+              @if (isSubmittingComment()) {
+                <span
+                  class="sp-spinner sp-spinner--sm sp-spinner--white"
+                ></span>
+              } @else {
+                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+              }
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Loading -->
+      @if (isLoadingComments()) {
+        <div
+          class="sp-comment-loading"
+          aria-live="polite"
+          aria-label="Đang tải bình luận"
+        >
+          <div class="sp-skeleton sp-skeleton-comment"></div>
+          <div
+            class="sp-skeleton sp-skeleton-comment sp-skeleton-comment--short"
+          ></div>
+        </div>
+      }
+
+      <!-- Comment list -->
+      @for (comment of comments(); track comment.id) {
+        <div class="sp-comment">
+          <a
+            [routerLink]="['/profile', comment.author.id]"
+            class="sp-comment-avatar-link"
+          >
+            <app-avatar
+              [src]="comment.author.avatarUrl"
+              [name]="comment.author.fullName"
+              [size]="32"
+            />
+          </a>
+          <div class="sp-comment-body">
+            <div class="sp-comment-bubble">
+              <a
+                [routerLink]="['/profile', comment.author.id]"
+                class="sp-comment-author"
+                >{{ comment.author.fullName }}</a
+              >
+              <p class="sp-comment-text">{{ comment.content }}</p>
+            </div>
+            <div class="sp-comment-meta">
+              <span>{{ comment.createdAt | timeAgo }}</span>
+              @if (comment.isOwner) {
+                <button
+                  class="sp-comment-delete"
+                  (click)="onDeleteComment(comment.id)"
+                  aria-label="Xóa bình luận này"
+                >
+                  Xóa
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Load more comments -->
+      @if (hasMoreComments()) {
+        <button
+          class="sp-load-more-comments"
+          (click)="onLoadMoreComments()"
+          [disabled]="isLoadingComments()"
+        >
+          @if (isLoadingComments()) {
+            <span class="sp-spinner sp-spinner--sm"></span>
+          } @else {
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            Xem thêm bình luận
+          }
+        </button>
+      }
+    </div>
+  }
+</article>
+
+@if (lightboxIndex() !== null) {
+  <div
+    class="sp-lightbox-backdrop"
+    (click)="onCloseLightbox()"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Xem ảnh/video phóng to"
+  >
+    <!-- Close button -->
+    <button
+      class="sp-lightbox-close"
+      (click)="onCloseLightbox()"
+      aria-label="Đóng"
+    >
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <!-- Prev / Next (chỉ hiện khi có nhiều hơn 1 media) -->
+    @if (post().mediaFiles.length > 1) {
+      <button
+        class="sp-lightbox-nav sp-lightbox-nav--prev"
+        (click)="$event.stopPropagation(); onLightboxPrev()"
+        aria-label="Ảnh trước"
+      >
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <button
+        class="sp-lightbox-nav sp-lightbox-nav--next"
+        (click)="$event.stopPropagation(); onLightboxNext()"
+        aria-label="Ảnh sau"
+      >
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    }
+
+    <!-- Media content -->
+    <div class="sp-lightbox-content" (click)="$event.stopPropagation()">
+      @if (post().mediaFiles[lightboxIndex()!].mediaType === 0) {
+        <img
+          [src]="post().mediaFiles[lightboxIndex()!].mediaUrl"
+          [alt]="'Ảnh ' + (lightboxIndex()! + 1)"
+          class="sp-lightbox-img"
+        />
+      } @else {
+        <video
+          [src]="post().mediaFiles[lightboxIndex()!].mediaUrl"
+          class="sp-lightbox-video"
+          controls
+          autoplay
+          playsinline
+        ></video>
+      }
+    </div>
+
+    <!-- Counter -->
+    @if (post().mediaFiles.length > 1) {
+      <div class="sp-lightbox-counter" aria-live="polite">
+        {{ lightboxIndex()! + 1 }} / {{ post().mediaFiles.length }}
+      </div>
+    }
+  </div>
+}

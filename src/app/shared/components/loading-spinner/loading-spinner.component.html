@@ -1,0 +1,31 @@
+<div
+  class="d-flex align-items-center justify-content-center gap-2"
+  role="status"
+  aria-live="polite"
+>
+  <!-- Spinner -->
+  <div
+    class="spinner-border text-primary"
+    [class.spinner-sm]="size() === 'sm'"
+    [class.spinner-md]="size() === 'md'"
+    [class.spinner-lg]="size() === 'lg'"
+    aria-hidden="true"
+  ></div>
+
+  <!-- Text label -->
+  @if (text()) {
+    <span
+      [class.small]="size() === 'sm'"
+      [class.fs-5]="size() === 'lg'"
+      class="text-secondary"
+    >
+      {{ text() }}
+    </span>
+  }
+
+  <!-- Screen reader label -->
+  @if (!text()) {
+    <span class="visually-hidden">Đang tải...</span>
+  }
+</div>
+<!-- /LoadingSpinnerComponent -->

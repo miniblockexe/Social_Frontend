@@ -1,0 +1,87 @@
+:host {
+  display: block;
+
+  // Palette
+  --c-bg: #0c0c0e;
+  --c-bg2: #111114;
+  --c-surface: #1c1c21;
+  --c-surface2: #242429;
+  --c-accent: #ff4d3d;
+  --c-accent-glow: rgba(255, 77, 61, 0.22);
+  --c-accent-dim: rgba(255, 77, 61, 0.1);
+  --c-teal: #00d4a8;
+  --c-amber: #f5a623;
+  --c-purple: #a855f7;
+  --c-purple-2: #ec4899;
+  --c-text: #f0f0f2;
+  --c-text2: rgba(240, 240, 242, 0.65);
+  --c-text3: rgba(240, 240, 242, 0.35);
+  --c-border: rgba(240, 240, 242, 0.08);
+  --c-border2: rgba(240, 240, 242, 0.15);
+
+  // Typography
+  --font-display: "Outfit", -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Plus Jakarta Sans", -apple-system, "Segoe UI", sans-serif;
+
+  // Radius
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-pill: 999px;
+
+  // Shadows
+  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.45);
+  --shadow-hover: 0 6px 32px rgba(0, 0, 0, 0.6);
+
+  // Nav height
+  --nav-h: 64px;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+
+  --sp-r-sm: var(--r-sm);
+  --sp-r-md: var(--r-md);
+  --sp-r-lg: var(--r-lg);
+  --sp-r-pill: var(--r-pill);
+
+  --sp-bg-page: var(--c-bg);
+  --sp-bg-card: var(--c-surface);
+  --sp-bg-input: var(--c-surface2);
+  --sp-bg-hover: rgba(255, 255, 255, 0.06);
+  --sp-text-1: var(--c-text);
+  --sp-text-2: var(--c-text2);
+  --sp-text-3: var(--c-text3);
+  --sp-primary: var(--c-accent);
+  --sp-primary-hover: #e8392a;
+  --sp-primary-light: var(--c-accent-dim);
+  --sp-primary-glow: var(--c-accent-glow);
+  --sp-success: var(--c-teal);
+  --sp-warning: var(--c-amber);
+  --sp-danger: var(--c-accent);
+  --sp-border: var(--c-border);
+  --sp-divider: var(--c-border);
+  --sp-shadow-card: var(--shadow-card);
+  --sp-shadow-nav: 0 1px 0 var(--c-border);
+  --sp-shadow-hover: var(--shadow-hover);
+
+  // sf-* compat aliases
+  --sf-bg: var(--c-bg);
+  --sf-surface: var(--c-bg2);
+  --sf-card: var(--c-surface);
+  --sf-elevated: var(--c-surface2);
+  --sf-accent: var(--c-accent);
+  --sf-accent-dim: var(--c-accent-dim);
+  --sf-text-primary: var(--c-text);
+  --sf-text-secondary: var(--c-text2);
+  --sf-text-tertiary: var(--c-text3);
+  --sf-border: var(--c-border);
+  --sf-radius-card: var(--r-lg);
+  --sf-font: var(--font-display);
+}

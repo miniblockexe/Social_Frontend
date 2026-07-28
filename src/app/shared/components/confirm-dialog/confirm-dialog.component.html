@@ -1,0 +1,123 @@
+@if (isVisible()) {
+  <!-- Overlay backdrop -->
+  <div
+    class="sp-overlay"
+    (click)="onCancel()"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="'dialog-title'"
+  >
+    <!-- Dialog card -->
+    <div
+      class="confirm-dialog sp-card"
+      (click)="$event.stopPropagation()"
+      role="document"
+    >
+      <!-- Header -->
+      <div class="confirm-header d-flex align-items-center gap-3 mb-3">
+        <!-- Icon -->
+        <div
+          class="confirm-icon"
+          [class.confirm-icon-danger]="danger()"
+          [class.confirm-icon-info]="!danger()"
+        >
+          @if (danger()) {
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          } @else {
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          }
+        </div>
+
+        <!-- Title -->
+        <h5 class="mb-0 fw-bold" id="dialog-title">{{ title() }}</h5>
+
+        <!-- Close -->
+        <button
+          class="btn-close ms-auto"
+          (click)="onCancel()"
+          aria-label="Đóng hộp thoại"
+        ></button>
+      </div>
+
+      <!-- Message -->
+      <p class="confirm-message text-secondary mb-4">{{ message() }}</p>
+
+      <!-- Actions -->
+      <div class="d-flex justify-content-end gap-2">
+        <!-- Cancel -->
+        <button type="button" class="btn btn-sp-ghost" (click)="onCancel()">
+          {{ cancelText() }}
+        </button>
+
+        <!-- Confirm -->
+        <button
+          type="button"
+          class="btn"
+          [class.btn-sp-primary]="!danger()"
+          [class.btn-danger-sp]="danger()"
+          (click)="onConfirm()"
+        >
+          {{ confirmText() }}
+        </button>
+      </div>
+    </div>
+    <!-- /Dialog card -->
+  </div>
+  <!-- /Overlay -->
+}
+<!-- /ConfirmDialogComponent -->
+
+<style>
+  .confirm-dialog {
+    width: 100%;
+    max-width: 420px;
+    animation: dialogIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .confirm-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .confirm-icon-danger {
+    background: rgba(250, 56, 62, 0.12);
+    color: var(--sp-danger);
+  }
+
+  .confirm-icon-info {
+    background: var(--sp-primary-light);
+    color: var(--sp-primary);
+  }
+
+  .confirm-message {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .btn-danger-sp {
+    background: var(--sp-danger);
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    font-weight: 600;
+    padding: 8px 20px;
+    transition:
+      background 0.2s ease,
+      transform 0.15s ease;
+  }
+
+  .btn-danger-sp:hover {
+    background: #d42b30;
+    color: #ffffff;
+  }
+
+  .btn-danger-sp:active {
+    transform: scale(0.98);
+  }
+</style>

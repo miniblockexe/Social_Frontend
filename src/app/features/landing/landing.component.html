@@ -1,0 +1,1466 @@
+<div class="sp-landing-page">
+  <!-- NAV -->
+  <nav class="sp-landing-nav" id="sp-nav" aria-label="Navigation chính">
+    <div class="sp-container sp-landing-nav-inner">
+      <a
+        routerLink="/"
+        class="sp-landing-logo"
+        aria-label="SocialApp - Trang chủ"
+      >
+        <div class="sp-logo-circle" aria-hidden="true">S</div>
+        <span class="sp-landing-logo-text">SocialApp</span>
+      </a>
+      <div class="sp-landing-nav-actions">
+        <a routerLink="/auth/login" class="sp-btn sp-btn--ghost">Đăng nhập</a>
+        <a routerLink="/auth/register" class="sp-btn sp-btn--primary"
+          >Bắt đầu miễn phí</a
+        >
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="sp-landing-hero" aria-labelledby="sp-hero-h1">
+    <div class="sp-landing-hero-bg" aria-hidden="true">
+      <div class="sp-landing-hero-orb sp-landing-hero-orb--red"></div>
+      <div class="sp-landing-hero-orb sp-landing-hero-orb--teal"></div>
+    </div>
+
+    <div class="sp-container sp-landing-hero-inner">
+      <!-- Left copy -->
+      <div class="sp-landing-hero-copy gs-hero-copy" id="sp-hero-copy">
+        <div class="sp-landing-hero-eyebrow" aria-hidden="true">
+          <span class="sp-landing-hero-dot"></span>
+          Mạng xã hội Việt 2026
+        </div>
+        <h1 class="sp-landing-hero-heading" id="sp-hero-h1">
+          Kết nối<br />
+          không<br />
+          <span class="sp-landing-accent-word">giới hạn.</span>
+        </h1>
+        <p class="sp-landing-hero-desc">
+          SocialApp là không gian thuần Việt để bạn kết bạn, chia sẻ khoảnh khắc
+          và xây dựng cộng đồng theo cách của riêng mình.
+        </p>
+        <div class="sp-landing-hero-cta">
+          <a
+            routerLink="/auth/register"
+            class="sp-btn sp-btn--primary sp-btn--lg"
+            aria-label="Tạo tài khoản miễn phí"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <line x1="19" y1="8" x2="19" y2="14" />
+              <line x1="22" y1="11" x2="16" y2="11" />
+            </svg>
+            Tạo tài khoản miễn phí
+          </a>
+          <a routerLink="/auth/login" class="sp-btn sp-btn--outline sp-btn--lg">
+            Đăng nhập
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+        <div class="sp-landing-hero-stats" role="list" aria-label="Thống kê">
+          <div class="sp-landing-stat" role="listitem">
+            <span class="sp-landing-stat-num">52K</span>
+            <span class="sp-landing-stat-label">Người dùng</span>
+          </div>
+          <div class="sp-landing-stat" role="listitem">
+            <span class="sp-landing-stat-num">2.1M</span>
+            <span class="sp-landing-stat-label">Bài viết</span>
+          </div>
+          <div class="sp-landing-stat" role="listitem">
+            <span class="sp-landing-stat-num">99.4%</span>
+            <span class="sp-landing-stat-label">Uptime</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right visual -->
+      <div class="sp-landing-hero-visual gs-hero-visual" aria-hidden="true">
+        <div class="sp-landing-phone-wrap">
+          <!-- Floating notification -->
+          <div
+            class="sp-landing-float-card sp-landing-float-card--1 gs-notif-pop"
+          >
+            <div
+              class="sp-landing-float-ava"
+              style="background: linear-gradient(135deg, #ff4d3d, #ff8f00)"
+            ></div>
+            <div class="sp-landing-float-text">
+              <p>Minh Tuấn thích bài viết của bạn</p>
+              <span>Vừa xong</span>
+            </div>
+          </div>
+
+          <!-- Online bubble -->
+          <div
+            class="sp-landing-float-card sp-landing-float-card--3 gs-online-pop"
+          >
+            <div class="sp-landing-online-dot"></div>
+            <div class="sp-landing-online-label">1,247 đang online</div>
+          </div>
+
+          <!-- Friend request -->
+          <div class="sp-landing-float-card sp-landing-float-card--2">
+            <div
+              class="sp-landing-float-ava"
+              style="background: linear-gradient(135deg, #00d4a8, #0099ff)"
+            ></div>
+            <div class="sp-landing-float-text">
+              <p>Phương Linh gửi lời mời kết bạn</p>
+              <span>5 giây trước</span>
+            </div>
+          </div>
+
+          <!-- Phone mockup -->
+          <div class="sp-landing-hero-phone">
+            <div class="sp-phone-notch"></div>
+            <div class="sp-phone-header">
+              <div class="sp-phone-avatar"></div>
+              <div class="sp-phone-title">Feed</div>
+              <div class="sp-phone-icon">
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--color-accent)"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                >
+                  <path
+                    d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div class="sp-phone-stories">
+              <div class="sp-story-ring">
+                <div class="sp-story-circle sp-story-circle--active">
+                  <div
+                    class="sp-story-inner"
+                    style="
+                      background: linear-gradient(135deg, #ff4d3d, #f5a623);
+                    "
+                  ></div>
+                </div>
+                <div class="sp-story-name">Bạn</div>
+              </div>
+              <div class="sp-story-ring">
+                <div class="sp-story-circle sp-story-circle--active">
+                  <div
+                    class="sp-story-inner"
+                    style="
+                      background: linear-gradient(135deg, #00d4a8, #0099ff);
+                    "
+                  ></div>
+                </div>
+                <div class="sp-story-name">Lan</div>
+              </div>
+              <div class="sp-story-ring">
+                <div class="sp-story-circle sp-story-circle--muted">
+                  <div class="sp-story-inner" style="background: #2a3040"></div>
+                </div>
+                <div class="sp-story-name">Tuấn</div>
+              </div>
+              <div class="sp-story-ring">
+                <div class="sp-story-circle sp-story-circle--active">
+                  <div
+                    class="sp-story-inner"
+                    style="
+                      background: linear-gradient(135deg, #a855f7, #ec4899);
+                    "
+                  ></div>
+                </div>
+                <div class="sp-story-name">Hà</div>
+              </div>
+            </div>
+
+            <div class="sp-phone-feed">
+              <div class="sp-feed-post">
+                <div class="sp-feed-post-header">
+                  <div
+                    class="sp-feed-ava"
+                    style="
+                      background: linear-gradient(135deg, #ff4d3d, #f5a623);
+                    "
+                  ></div>
+                  <div class="sp-feed-meta">
+                    <div class="sp-feed-name">Ngọc Anh</div>
+                    <div class="sp-feed-time">3 phút trước</div>
+                  </div>
+                </div>
+                <svg
+                  class="sp-feed-img"
+                  viewBox="0 0 236 80"
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="xMidYMid slice"
+                >
+                  <rect width="236" height="80" fill="#160820" />
+                  <polygon fill="#0d0520" points="0,80 50,30 98,80" />
+                  <polygon fill="#0f0625" points="55,80 128,12 198,80" />
+                  <polygon fill="#0a0418" points="158,80 200,36 236,80" />
+                  <polygon fill="#080416" points="0,80 36,46 72,80" />
+                  <polygon fill="#070415" points="128,80 172,44 236,80" />
+                  <circle cx="192" cy="16" r="9" fill="#f5a623" opacity="0.9" />
+                  <circle cx="196" cy="13" r="7" fill="#160820" />
+                  <circle
+                    cx="192"
+                    cy="16"
+                    r="20"
+                    fill="#f5a623"
+                    opacity="0.055"
+                  />
+                  <circle cx="14" cy="9" r="0.8" fill="#fff" opacity="0.75" />
+                  <circle cx="36" cy="5" r="0.7" fill="#fff" opacity="0.55" />
+                  <circle cx="62" cy="13" r="0.6" fill="#fff" opacity="0.7" />
+                  <circle cx="90" cy="4" r="0.7" fill="#fff" opacity="0.5" />
+                  <circle cx="115" cy="17" r="0.6" fill="#fff" opacity="0.6" />
+                  <circle cx="140" cy="7" r="0.5" fill="#fff" opacity="0.65" />
+                  <circle cx="220" cy="9" r="0.7" fill="#fff" opacity="0.55" />
+                  <rect
+                    x="0"
+                    y="73"
+                    width="236"
+                    height="7"
+                    fill="#ff4d3d"
+                    opacity="0.03"
+                  />
+                </svg>
+                <div class="sp-feed-actions">
+                  <div class="sp-feed-act sp-feed-act--liked">
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                      />
+                    </svg>
+                    218
+                  </div>
+                  <div class="sp-feed-act">
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                      />
+                    </svg>
+                    42
+                  </div>
+                  <div class="sp-feed-act">
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="18" cy="5" r="3" />
+                      <circle cx="6" cy="12" r="3" />
+                      <circle cx="18" cy="19" r="3" />
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                    </svg>
+                    Chia sẻ
+                  </div>
+                </div>
+              </div>
+
+              <div class="sp-feed-post">
+                <div class="sp-feed-post-header">
+                  <div
+                    class="sp-feed-ava"
+                    style="
+                      background: linear-gradient(135deg, #00d4a8, #0099ff);
+                    "
+                  ></div>
+                  <div class="sp-feed-meta">
+                    <div class="sp-feed-name">Minh Quân</div>
+                    <div class="sp-feed-time">12 phút trước</div>
+                  </div>
+                </div>
+                <svg
+                  class="sp-feed-img"
+                  viewBox="0 0 236 80"
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="xMidYMid slice"
+                >
+                  <rect width="236" height="80" fill="#020b14" />
+                  <rect
+                    x="0"
+                    y="48"
+                    width="16"
+                    height="32"
+                    fill="#091420"
+                    rx="1"
+                  />
+                  <rect
+                    x="2"
+                    y="36"
+                    width="10"
+                    height="14"
+                    fill="#0a1422"
+                    rx="1"
+                  />
+                  <rect
+                    x="18"
+                    y="28"
+                    width="20"
+                    height="52"
+                    fill="#0a1828"
+                    rx="1"
+                  />
+                  <rect
+                    x="40"
+                    y="40"
+                    width="14"
+                    height="40"
+                    fill="#081220"
+                    rx="1"
+                  />
+                  <rect
+                    x="56"
+                    y="22"
+                    width="26"
+                    height="58"
+                    fill="#0a1828"
+                    rx="1"
+                  />
+                  <rect
+                    x="84"
+                    y="34"
+                    width="18"
+                    height="46"
+                    fill="#091420"
+                    rx="1"
+                  />
+                  <rect
+                    x="104"
+                    y="16"
+                    width="30"
+                    height="64"
+                    fill="#0a1828"
+                    rx="1"
+                  />
+                  <rect
+                    x="136"
+                    y="26"
+                    width="22"
+                    height="54"
+                    fill="#091420"
+                    rx="1"
+                  />
+                  <rect
+                    x="160"
+                    y="20"
+                    width="26"
+                    height="60"
+                    fill="#0a1828"
+                    rx="1"
+                  />
+                  <rect
+                    x="188"
+                    y="36"
+                    width="20"
+                    height="44"
+                    fill="#091420"
+                    rx="1"
+                  />
+                  <rect
+                    x="210"
+                    y="28"
+                    width="26"
+                    height="52"
+                    fill="#0a1828"
+                    rx="1"
+                  />
+                  <rect
+                    x="21"
+                    y="34"
+                    width="3"
+                    height="3"
+                    fill="#00d4a8"
+                    opacity="0.65"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="28"
+                    y="42"
+                    width="3"
+                    height="3"
+                    fill="#00d4a8"
+                    opacity="0.4"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="60"
+                    y="28"
+                    width="3"
+                    height="3"
+                    fill="#00d4a8"
+                    opacity="0.6"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="68"
+                    y="36"
+                    width="3"
+                    height="3"
+                    fill="#0099ff"
+                    opacity="0.55"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="76"
+                    y="28"
+                    width="3"
+                    height="3"
+                    fill="#00d4a8"
+                    opacity="0.35"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="108"
+                    y="22"
+                    width="3"
+                    height="3"
+                    fill="#00d4a8"
+                    opacity="0.7"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="116"
+                    y="30"
+                    width="3"
+                    height="3"
+                    fill="#0099ff"
+                    opacity="0.5"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="124"
+                    y="22"
+                    width="3"
+                    height="3"
+                    fill="#00d4a8"
+                    opacity="0.45"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="140"
+                    y="32"
+                    width="3"
+                    height="3"
+                    fill="#00d4a8"
+                    opacity="0.5"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="164"
+                    y="26"
+                    width="3"
+                    height="3"
+                    fill="#00d4a8"
+                    opacity="0.6"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="172"
+                    y="34"
+                    width="3"
+                    height="3"
+                    fill="#0099ff"
+                    opacity="0.45"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="192"
+                    y="42"
+                    width="3"
+                    height="3"
+                    fill="#00d4a8"
+                    opacity="0.55"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="214"
+                    y="34"
+                    width="3"
+                    height="3"
+                    fill="#00d4a8"
+                    opacity="0.4"
+                    rx="0.5"
+                  />
+                  <rect
+                    x="0"
+                    y="74"
+                    width="236"
+                    height="6"
+                    fill="#00d4a8"
+                    opacity="0.06"
+                  />
+                  <circle
+                    cx="210"
+                    cy="11"
+                    r="6"
+                    fill="#c0e8ff"
+                    opacity="0.12"
+                  />
+                </svg>
+                <div class="sp-feed-actions">
+                  <div class="sp-feed-act">
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                      />
+                    </svg>
+                    97
+                  </div>
+                  <div class="sp-feed-act">
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                      />
+                    </svg>
+                    18
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="sp-landing-ticker" aria-hidden="true">
+    <div class="sp-ticker-track">
+      <div class="sp-ticker-inner">
+        <!-- Copy 1 -->
+        <span class="sp-ticker-item"
+          ><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+            /></svg
+          >Chat thời gian thực</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <span class="sp-ticker-item"
+          ><svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+            /></svg
+          >Phản ứng nhanh</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <span class="sp-ticker-item"
+          ><svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg
+          >Kết bạn dễ dàng</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <span class="sp-ticker-item"
+          ><svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+          >Bảo mật JWT</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <span class="sp-ticker-item"
+          ><svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" /></svg
+          >Chia sẻ ảnh và video</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <span class="sp-ticker-item"
+          ><svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"
+            /></svg
+          >Thông báo tức thì</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <!-- Copy 2 (nhân đôi để translateX(-50%) lặp liền mạch) -->
+        <span class="sp-ticker-item"
+          ><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+            /></svg
+          >Chat thời gian thực</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <span class="sp-ticker-item"
+          ><svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+            /></svg
+          >Phản ứng nhanh</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <span class="sp-ticker-item"
+          ><svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg
+          >Kết bạn dễ dàng</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <span class="sp-ticker-item"
+          ><svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg
+          >Bảo mật JWT</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <span class="sp-ticker-item"
+          ><svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" /></svg
+          >Chia sẻ ảnh và video</span
+        >
+        <span class="sp-ticker-sep">·</span>
+        <span class="sp-ticker-item"
+          ><svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"
+            /></svg
+          >Thông báo tức thì</span
+        >
+        <span class="sp-ticker-sep">·</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BENTO FEATURES -->
+  <section
+    class="sp-landing-features sp-section"
+    aria-labelledby="sp-features-h2"
+  >
+    <div class="sp-container">
+      <div class="sp-section-header gs-section-header">
+        <span class="sp-label">Tính năng</span>
+        <h2 id="sp-features-h2">Mọi thứ bạn cần,<br />trong một nơi.</h2>
+        <p>
+          Từ chat thời gian thực đến feed cá nhân hoá, SocialApp có đủ công cụ
+          để bạn kết nối sâu hơn.
+        </p>
+      </div>
+
+      <div class="sp-bento-grid">
+        <!-- Chat realtime — large -->
+        <div class="sp-bento-card sp-bento-chat gs-feature-card">
+          <div class="sp-bento-icon sp-bento-icon--accent" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+              />
+            </svg>
+          </div>
+          <h3>Chat thời gian thực</h3>
+          <p>
+            Nhắn tin tức thì qua WebSocket. Tin nhắn đến ngay lập tức, không độ
+            trễ, dù cả nghìn người online cùng lúc.
+          </p>
+          <div class="sp-bento-svg-wrap" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 96">
+              <path
+                id="sp-bubble-sm"
+                fill="none"
+                stroke="#ff4d3d"
+                stroke-width="1.584"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-miterlimit="10"
+                d="m110.4 8.3h-36.7c-1.8 0-3.2 1.6-3.2 3.2v15.9c0 1.7 1.4 3.1 3.2 3.1h22.4l9.1 9.7c0.4 0.3 0.4-0.1 0.4-0.2v-9.1h4.6c1.7 0.1 3.2-1.3 3.2-3.3v-16c0-1.6-1.3-3.3-3-3.3z"
+              />
+              <path
+                id="sp-bubble-main"
+                fill="#ff4d3d"
+                d="m83.5 36.1h-48.5c-2.3 0-5 2.1-5 4.8v27.8c0 2.6 2.1 5.1 5 5.1h3.9c0.5 2.3 0.9 11.6 1 11.8s0.8 0.5 1.1 0.2l13-11.9h29.4c2.4 0 4.8-2 4.8-5v-28c0-2.4-2.3-4.8-4.7-4.8z"
+              />
+              <g id="sp-typing-dots">
+                <circle
+                  fill="rgba(255,255,255,0.85)"
+                  cx="52.1"
+                  cy="54.9"
+                  r="2.1"
+                />
+                <circle
+                  fill="rgba(255,255,255,0.85)"
+                  cx="59.3"
+                  cy="54.9"
+                  r="2.1"
+                />
+                <circle
+                  fill="rgba(255,255,255,0.85)"
+                  cx="66.5"
+                  cy="54.9"
+                  r="2.1"
+                />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Feed -->
+        <div class="sp-bento-card sp-bento-feed gs-feature-card">
+          <div class="sp-bento-icon sp-bento-icon--teal" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16" />
+              <circle cx="5" cy="19" r="1" />
+            </svg>
+          </div>
+          <h3>Feed cá nhân hoá</h3>
+          <p>Thuật toán hiển thị đúng nội dung bạn quan tâm.</p>
+          <div class="sp-feed-preview" aria-hidden="true">
+            <div class="sp-feed-row">
+              <div
+                class="sp-feed-row-ava"
+                style="background: linear-gradient(135deg, #ff4d3d, #f5a623)"
+              ></div>
+              <div class="sp-feed-row-lines">
+                <div class="sp-feed-row-line"></div>
+                <div class="sp-feed-row-line sp-feed-row-line--short"></div>
+              </div>
+            </div>
+            <div class="sp-feed-row">
+              <div
+                class="sp-feed-row-ava"
+                style="background: linear-gradient(135deg, #00d4a8, #0099ff)"
+              ></div>
+              <div class="sp-feed-row-lines">
+                <div class="sp-feed-row-line"></div>
+                <div class="sp-feed-row-line sp-feed-row-line--short"></div>
+              </div>
+            </div>
+            <div class="sp-feed-row">
+              <div
+                class="sp-feed-row-ava"
+                style="background: linear-gradient(135deg, #a855f7, #ec4899)"
+              ></div>
+              <div class="sp-feed-row-lines">
+                <div class="sp-feed-row-line"></div>
+                <div class="sp-feed-row-line sp-feed-row-line--short"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="sp-bento-card sp-bento-notif gs-feature-card">
+          <div class="sp-bento-icon sp-bento-icon--amber" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"
+              />
+            </svg>
+          </div>
+          <h3>Thông báo tức thì</h3>
+          <p>Nhận ngay khi có tương tác mới.</p>
+          <div class="sp-notif-list" aria-hidden="true">
+            <div class="sp-notif-item">
+              <div
+                class="sp-notif-ava"
+                style="background: linear-gradient(135deg, #ff4d3d, #f5a623)"
+              ></div>
+              <div class="sp-notif-text">
+                <strong>Lan</strong> thích ảnh của bạn
+              </div>
+              <div class="sp-notif-badge"></div>
+            </div>
+            <div class="sp-notif-item">
+              <div
+                class="sp-notif-ava"
+                style="background: linear-gradient(135deg, #00d4a8, #0099ff)"
+              ></div>
+              <div class="sp-notif-text">
+                <strong>Minh</strong> bình luận bài viết
+              </div>
+              <div class="sp-notif-badge"></div>
+            </div>
+            <div class="sp-notif-item">
+              <div
+                class="sp-notif-ava"
+                style="background: linear-gradient(135deg, #a855f7, #ec4899)"
+              ></div>
+              <div class="sp-notif-text">
+                <strong>Hà</strong> gửi lời mời kết bạn
+              </div>
+              <div class="sp-notif-badge"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="sp-bento-card sp-bento-stats gs-feature-card">
+          <div class="sp-bento-icon sp-bento-icon--teal" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+          </div>
+          <h3>Cộng đồng sôi động</h3>
+          <p>Hơn 36K người cùng kết nối.</p>
+          <div class="sp-bento-stat-grid" aria-label="Số liệu">
+            <div class="sp-stat-box">
+              <div class="sp-stat-box-num">36K</div>
+              <div class="sp-stat-box-label">Người dùng</div>
+            </div>
+            <div class="sp-stat-box">
+              <div class="sp-stat-box-num">3.6M</div>
+              <div class="sp-stat-box-label">Bài viết</div>
+            </div>
+            <div class="sp-stat-box">
+              <div class="sp-stat-box-num">367K</div>
+              <div class="sp-stat-box-label">Kết bạn</div>
+            </div>
+            <div class="sp-stat-box">
+              <div class="sp-stat-box-num">99.4%</div>
+              <div class="sp-stat-box-label">Uptime</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Share -->
+        <div class="sp-bento-card sp-bento-share gs-feature-card">
+          <div class="sp-bento-icon sp-bento-icon--accent" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+          </div>
+          <h3>Chia sẻ đa dạng</h3>
+          <p>Ảnh, video, GIF và câu chuyện.</p>
+          <div class="sp-share-chips" aria-hidden="true">
+            <div class="sp-share-chip">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" /></svg
+              >Ảnh
+            </div>
+            <div class="sp-share-chip">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" /></svg
+              >Video
+            </div>
+            <div class="sp-share-chip">GIF</div>
+            <div class="sp-share-chip">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v8M8 12h8" /></svg
+              >Story
+            </div>
+          </div>
+        </div>
+
+        <!-- Privacy -->
+        <div class="sp-bento-card sp-bento-privacy gs-feature-card">
+          <div class="sp-bento-icon sp-bento-icon--accent" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <h3>Bảo mật cao</h3>
+          <p>
+            Xác thực JWT, mã hoá end-to-end và quản lý phiên an toàn. Dữ liệu
+            của bạn chỉ thuộc về bạn.
+          </p>
+          <div class="sp-bento-svg-wrap" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150">
+              <path
+                id="sp-shield-body"
+                fill="#ff4d3d"
+                d="m75 8.4-0.1 0.1c-14.6 5.6-36.8 13.1-54.9 17.8-0.5 19.5-0.9 39.4 3 56.6 5.8 28.2 24.8 46 52 58.7 27-11.3 46.3-29.6 52.3-57.6 3.8-17.1 3.5-36.1 3-57.7-17.3-4-36-9.7-55.3-17.9zm47.7 71.7c-5.1 23.3-19.8 41.8-47.6 55.9-24.7-11.6-40.1-29-46.2-52.5-3.9-15.4-4.2-29.3-3.7-52.9 9.5-2.2 32.9-9.1 49.8-16.6 12.3 4.7 29.9 10.8 49.8 16.6 0.6 22.1 0 40.1-2.1 49.5z"
+              />
+              <path
+                id="sp-shield-lock"
+                fill="#ff4d3d"
+                d="m90.4 66.3v-6.7c0-7.3-6.5-15.7-15.4-15.7s-15.4 7-15.4 15.7v6.6c-3.6 1-7 4.3-7 8.9v16.4c0 4.5 4.1 8.4 9.2 8.4h26.4c4.7 0 9.2-3.3 9.2-8.6v-16.1c0-3.7-2.6-7.9-7-8.9zm-5.8-0.5h-19.4v-6c0-5 4.1-10.3 9.8-10.3 5.2 0 9.6 3.9 9.6 10.1v6.2z"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Community -->
+        <div class="sp-bento-card sp-bento-community gs-feature-card">
+          <div class="sp-bento-icon sp-bento-icon--teal" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <h3>Kết nối bạn bè</h3>
+          <p>
+            Gửi lời mời, chấp nhận và quản lý danh sách bạn bè một cách dễ dàng.
+            Tìm người quen qua gợi ý thông minh.
+          </p>
+          <div class="sp-bento-svg-wrap" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 167.4">
+              <g id="sp-net-lines">
+                <polygon
+                  fill="none"
+                  stroke="rgba(240,240,242,0.18)"
+                  stroke-miterlimit="10"
+                  points="75 18.4 19 50.6 19 116.4 75 148.6 131.8 116.4 131.8 50.6"
+                />
+                <polyline
+                  fill="none"
+                  stroke="rgba(240,240,242,0.18)"
+                  stroke-miterlimit="10"
+                  points="25.9 55 75 83.9 124.2 112"
+                />
+                <line
+                  fill="none"
+                  stroke="rgba(240,240,242,0.18)"
+                  stroke-miterlimit="10"
+                  x1="75"
+                  x2="75"
+                  y1="25.3"
+                  y2="141.2"
+                />
+                <line
+                  fill="none"
+                  stroke="rgba(240,240,242,0.18)"
+                  stroke-miterlimit="10"
+                  x1="125"
+                  x2="81.8"
+                  y1="46.9"
+                  y2="22.8"
+                />
+                <line
+                  fill="none"
+                  stroke="rgba(240,240,242,0.18)"
+                  stroke-miterlimit="10"
+                  x1="124.2"
+                  x2="75"
+                  y1="55"
+                  y2="83.9"
+                />
+                <line
+                  fill="none"
+                  stroke="rgba(240,240,242,0.18)"
+                  stroke-miterlimit="10"
+                  x1="25.9"
+                  x2="68.1"
+                  y1="46.9"
+                  y2="22.8"
+                />
+                <line
+                  fill="none"
+                  stroke="rgba(240,240,242,0.18)"
+                  stroke-miterlimit="10"
+                  x1="25.8"
+                  x2="68.1"
+                  y1="112"
+                  y2="88.3"
+                />
+                <line
+                  fill="none"
+                  stroke="rgba(240,240,242,0.18)"
+                  stroke-miterlimit="10"
+                  x1="26"
+                  x2="67.6"
+                  y1="121.1"
+                  y2="144.6"
+                />
+                <line
+                  fill="none"
+                  stroke="rgba(240,240,242,0.18)"
+                  stroke-miterlimit="10"
+                  x1="82.6"
+                  x2="124.2"
+                  y1="144.6"
+                  y2="121.1"
+                />
+              </g>
+              <g id="sp-net-nodes">
+                <g class="sp-node">
+                  <path
+                    fill="#ff4d3d"
+                    d="m83.6 14.9c2.1 4.4 0 9.8-4.6 12.1-4.7 2.1-10.1 0-12.2-4.4s-0.4-9.1 4.3-11.6c4.4-2.3 10-0.7 12.5 3.9z"
+                  />
+                  <path
+                    fill="#fff"
+                    d="m76.8 17.2c0.8 0.8 0.8 2.3-0.2 3.1-0.8 0.8-2.3 0.8-3.1-0.2-0.8-0.8-0.8-2.3 0.2-3.1 0.9-0.8 2.2-0.8 3.1 0.2z"
+                  />
+                </g>
+                <g class="sp-node">
+                  <path
+                    fill="#ff4d3d"
+                    d="m83 80c2.3 4 0.7 9.9-4 11.9-4.4 2-9.8 0.4-12-4-1.7-4.4-0.5-9.6 4.1-11.9 4.4-2.3 9.6-0.1 11.9 4z"
+                  />
+                  <path
+                    fill="#fff"
+                    d="m76.6 82.3c0.8 0.8 0.8 2.3-0.2 3.1-0.8 0.8-2.3 0.8-3.1-0.2-0.8-0.8-0.7-2.5 0.2-3.1 0.9-0.7 2.2-0.7 3.1 0.2z"
+                  />
+                </g>
+                <g class="sp-node">
+                  <path
+                    fill="#ff4d3d"
+                    d="m123.6 47.7c1.8-4.2 6.6-6.8 11.6-4.7 4.2 1.9 6.4 6.6 4.6 11.2-1.9 4.2-6.7 6.9-11.5 5.2-4.4-1.5-6.7-6.9-4.7-11.7z"
+                  />
+                  <path
+                    fill="#fff"
+                    d="m130.5 48.8c1.2-0.4 2.5 0.2 3.5 1.6 0.4 1.1-0.4 2.3-1.6 2.5s-2.5-0.4-2.9-1.6c-0.3-0.9 0.2-1.9 1-2.5z"
+                  />
+                </g>
+                <g class="sp-node">
+                  <path
+                    fill="#ff4d3d"
+                    d="m83 153.2c-2.3 4.2-7.8 5.7-11.9 3.8-4.2-2-6-6.8-4.2-11.6 2.3-4.4 7.5-6.8 12.3-4.5 4.5 2 5.9 7.5 3.8 12.3z"
+                  />
+                  <path
+                    fill="#fff"
+                    d="m76.8 147.3c0.8 0.8 0.6 2.7-1 3.9-1.2 0.4-2.5-0.2-2.9-1.6-0.3-1.1 0.7-3.4 3.9-2.3z"
+                  />
+                </g>
+                <g class="sp-node">
+                  <path
+                    fill="#ff4d3d"
+                    d="m27.5 48.6c1.2 4.1-0.8 9.8-6.2 11.2-5.2 1.2-9.6-1.4-11.1-5.9-1.6-5.3 1.9-10.3 6.5-11.4 4.3-0.8 9.2 1 10.8 6.1z"
+                  />
+                  <path
+                    fill="#fff"
+                    d="m17.4 49c1.3-0.9 2.8-0.2 3.2 0.8 0.8 1.1 0 2.7-1.5 3.1-1.7 0.2-3-1.4-2.6-2.9 0.2-0.4 0.4-0.6 0.9-1z"
+                  />
+                </g>
+                <g class="sp-node">
+                  <path
+                    fill="#ff4d3d"
+                    d="m26.7 111.8c2.2 3.6 1 9.9-4 12.9-0.8 0.8-5.3 2-8.5 0-4.4-2.4-6-7.9-3.6-12.3 2.4-4.5 8.1-7 12.9-4.3 1.2 0.8 2.4 2 3.2 3.3v0.4z"
+                  />
+                  <path
+                    fill="#fff"
+                    d="m17.4 114.5c1.6-1 3.2 0 3.5 1.4 0.4 1.3-1 2.8-2.9 2.7-1.5-0.5-2.4-2.6-0.6-4.1z"
+                  />
+                </g>
+                <g class="sp-node">
+                  <path
+                    fill="#ff4d3d"
+                    d="m138.1 122.3c-3 3.8-9.1 4.6-12.7 1.7-3.4-2.7-4.4-8-2.3-12.2 2.9-4.8 8.7-6.4 13.3-3.4 4.1 2.8 5.6 8.4 1.7 13.9z"
+                  />
+                  <path
+                    fill="#fff"
+                    d="m130.9 114.1c1.3-0.2 2.7 0.4 3.2 2.3-0.2 1.5-2.4 3.1-4.2 1.5-1-1.1-0.7-3.2 1-3.8z"
+                  />
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="sp-landing-steps sp-section" aria-labelledby="sp-steps-h2">
+    <div class="sp-container">
+      <div class="sp-landing-steps-layout">
+        <div class="sp-landing-steps-copy">
+          <span class="sp-label gs-section-header">Cách hoạt động</span>
+          <h2 id="sp-steps-h2" class="gs-section-header">
+            Ba bước để bắt đầu.
+          </h2>
+          <div class="sp-steps-list">
+            @for (step of steps; track step.id) {
+              <div
+                class="sp-step-item gs-step"
+                [class.sp-step-item--active]="activeStep === step.id"
+                (click)="setActiveStep(step.id)"
+                (keydown.enter)="setActiveStep(step.id)"
+                (keydown.space)="setActiveStep(step.id)"
+                tabindex="0"
+                role="button"
+                [attr.aria-pressed]="activeStep === step.id"
+              >
+                <div class="sp-step-num">0{{ step.id }}</div>
+                <div class="sp-step-body">
+                  <h3>{{ step.title }}</h3>
+                  <p>{{ step.desc }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="sp-landing-steps-visual" aria-hidden="true">
+          <div class="sp-steps-phone">
+            <div class="sp-phone-notch"></div>
+            <!-- Step screens -->
+            <div
+              class="sp-step-screen"
+              [class.sp-step-screen--visible]="activeStep === 1"
+            >
+              <div class="sp-register-form">
+                <div class="sp-reg-label">Tạo tài khoản</div>
+                <div class="sp-reg-input">Họ và tên</div>
+                <div class="sp-reg-input">Email của bạn</div>
+                <div class="sp-reg-input">Mật khẩu</div>
+                <div class="sp-reg-btn">Đăng ký ngay</div>
+              </div>
+            </div>
+            <div
+              class="sp-step-screen"
+              [class.sp-step-screen--visible]="activeStep === 2"
+            >
+              <div class="sp-friend-list">
+                <div class="sp-reg-label">Gợi ý kết bạn</div>
+                <div class="sp-friend-row">
+                  <div
+                    class="sp-friend-ava"
+                    style="
+                      background: linear-gradient(135deg, #ff4d3d, #f5a623);
+                    "
+                  ></div>
+                  <div class="sp-friend-name">Nguyễn Lan Anh</div>
+                  <div class="sp-friend-add">+ Kết bạn</div>
+                </div>
+                <div class="sp-friend-row">
+                  <div
+                    class="sp-friend-ava"
+                    style="
+                      background: linear-gradient(135deg, #00d4a8, #0099ff);
+                    "
+                  ></div>
+                  <div class="sp-friend-name">Trần Minh Đức</div>
+                  <div class="sp-friend-add">+ Kết bạn</div>
+                </div>
+                <div class="sp-friend-row">
+                  <div
+                    class="sp-friend-ava"
+                    style="
+                      background: linear-gradient(135deg, #a855f7, #ec4899);
+                    "
+                  ></div>
+                  <div class="sp-friend-name">Lê Phương Hà</div>
+                  <div class="sp-friend-add">+ Kết bạn</div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="sp-step-screen"
+              [class.sp-step-screen--visible]="activeStep === 3"
+            >
+              <div class="sp-share-post">
+                <div class="sp-share-post-header">
+                  <div
+                    class="sp-share-post-ava"
+                    style="
+                      background: linear-gradient(135deg, #ff4d3d, #f5a623);
+                    "
+                  ></div>
+                  <div class="sp-share-post-name">Bạn</div>
+                </div>
+                <div
+                  class="sp-share-post-img"
+                  style="background: linear-gradient(135deg, #1a1a2e, #16213e)"
+                ></div>
+                <div class="sp-share-post-like">218 lượt thích</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section
+    class="sp-landing-testimonials sp-section"
+    aria-labelledby="sp-testimonials-h2"
+  >
+    <div class="sp-container">
+      <div class="sp-landing-testimonials-header gs-section-header">
+        <h2 id="sp-testimonials-h2">Người dùng nói gì?</h2>
+      </div>
+
+      <div class="sp-landing-testimonials-grid">
+        @for (t of testimonials; track t.id) {
+          <div
+            class="sp-landing-testimonial-card gs-testimonial"
+            [class.sp-landing-testimonial-card--featured]="t.id === 1"
+            role="article"
+          >
+            <div class="sp-landing-testimonial-stars" aria-label="5 sao">
+              @for (star of [1, 2, 3, 4, 5]; track star) {
+                <svg class="sp-landing-star" viewBox="0 0 24 24">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                  />
+                </svg>
+              }
+            </div>
+            <p class="sp-landing-testimonial-text">{{ t.text }}</p>
+            <div class="sp-landing-testimonial-author">
+              <div
+                class="sp-landing-testimonial-avatar"
+                [style.background]="t.avatarBg"
+                [attr.aria-hidden]="true"
+              >
+                {{ t.initials }}
+              </div>
+              <div>
+                <span class="sp-landing-testimonial-name">{{ t.name }}</span>
+                <div class="sp-landing-testimonial-role">{{ t.role }}</div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="sp-landing-cta-banner sp-section" aria-labelledby="sp-cta-h2">
+    <div class="sp-container">
+      <div class="sp-landing-cta-banner-inner gs-cta-banner">
+        <h2 id="sp-cta-h2">Sẵn sàng tham gia<br />cộng đồng?</h2>
+        <p>Miễn phí hoàn toàn. Không cần thẻ tín dụng. Bắt đầu ngay hôm nay.</p>
+        <div class="sp-landing-cta-buttons">
+          <a
+            routerLink="/auth/register"
+            class="sp-btn sp-btn--primary sp-btn--lg"
+            aria-label="Tạo tài khoản miễn phí"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <line x1="19" y1="8" x2="19" y2="14" />
+              <line x1="22" y1="11" x2="16" y2="11" />
+            </svg>
+            Tạo tài khoản ngay
+          </a>
+          <a routerLink="/auth/login" class="sp-btn sp-btn--outline sp-btn--lg"
+            >Đã có tài khoản? Đăng nhập</a
+          >
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="sp-landing-footer" role="contentinfo">
+    <div class="sp-container sp-landing-footer-inner">
+      <a routerLink="/" class="sp-landing-logo" aria-label="SocialApp">
+        <div class="sp-logo-circle" aria-hidden="true">S</div>
+        <span class="sp-landing-logo-text">SocialApp</span>
+      </a>
+      <nav class="sp-landing-footer-links" aria-label="Liên kết chân trang">
+        <a routerLink="/privacy">Quyền riêng tư</a>
+        <a routerLink="/terms">Điều khoản</a>
+        <a routerLink="/help">Trợ giúp</a>
+        <a routerLink="/about">Về chúng tôi</a>
+      </nav>
+      <p class="sp-landing-footer-copy">
+        © 2026 SocialApp. Mọi quyền được bảo lưu.
+      </p>
+    </div>
+  </footer>
+</div>

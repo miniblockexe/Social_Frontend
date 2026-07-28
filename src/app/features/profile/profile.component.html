@@ -1,0 +1,760 @@
+<div class="pf-page" [class.gsap-ready]="gsapReady">
+  @if (isLoadingProfile()) {
+    <div
+      class="pf-skeleton-wrap"
+      aria-busy="true"
+      aria-label="Đang tải trang cá nhân"
+    >
+      <!-- Cover skeleton -->
+      <div class="pf-sk pf-sk--cover" aria-hidden="true"></div>
+
+      <!-- Info skeleton -->
+      <div class="pf-sk-info-wrap" aria-hidden="true">
+        <div class="pf-sk-info-inner">
+          <div class="pf-sk pf-sk--avatar"></div>
+          <div class="pf-sk-name-block">
+            <div
+              class="pf-sk pf-sk--line"
+              style="width: 200px; height: 24px"
+            ></div>
+            <div
+              class="pf-sk pf-sk--line"
+              style="width: 130px; height: 14px; margin-top: 8px"
+            ></div>
+            <div
+              class="pf-sk pf-sk--line"
+              style="width: 260px; height: 13px; margin-top: 6px"
+            ></div>
+            <div class="pf-sk-stats-row">
+              <div class="pf-sk pf-sk--stat"></div>
+              <div class="pf-sk pf-sk--stat"></div>
+              <div class="pf-sk pf-sk--stat"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs skeleton -->
+      <div class="pf-sk-tabs-wrap" aria-hidden="true">
+        <div class="pf-sk pf-sk--tab"></div>
+        <div class="pf-sk pf-sk--tab" style="width: 80px"></div>
+        <div class="pf-sk pf-sk--tab" style="width: 72px"></div>
+        <div class="pf-sk pf-sk--tab" style="width: 56px"></div>
+      </div>
+    </div>
+  }
+
+  @if (!isLoadingProfile() && profile()) {
+    <section class="pf-cover-section" #coverRef aria-label="Ảnh bìa">
+      <div
+        class="pf-cover-img"
+        [class.pf-cover-img--empty]="!profile()!.coverPhotoUrl"
+        [style.backgroundImage]="
+          profile()!.coverPhotoUrl
+            ? 'url(' + profile()!.coverPhotoUrl + ')'
+            : null
+        "
+        role="img"
+        [attr.aria-label]="'Ảnh bìa của ' + profile()!.fullName"
+      ></div>
+
+      <!-- Gradient overlay -->
+      <div class="pf-cover-overlay" aria-hidden="true"></div>
+
+      <!-- Orb decorations (only on empty cover) -->
+      @if (!profile()!.coverPhotoUrl) {
+        <div class="pf-cover-orb pf-cover-orb--red" aria-hidden="true"></div>
+        <div class="pf-cover-orb pf-cover-orb--teal" aria-hidden="true"></div>
+      }
+
+      @if (isMyProfile()) {
+        <label
+          class="pf-btn-change-cover"
+          for="pf-cover-input"
+          role="button"
+          aria-label="Đổi ảnh bìa"
+          tabindex="0"
+        >
+          <i class="fa-solid fa-camera" aria-hidden="true"></i>
+          <span>Đổi ảnh bìa</span>
+        </label>
+        <input
+          id="pf-cover-input"
+          type="file"
+          accept="image/*"
+          class="pf-file-hidden"
+          (change)="onCoverChange($event)"
+          aria-label="Chọn ảnh bìa"
+          tabindex="-1"
+        />
+      }
+    </section>
+
+    <section class="pf-info-section" #infoRef aria-label="Thông tin người dùng">
+      <div class="pf-info-inner">
+        <!-- Avatar -->
+        <div class="pf-avatar-wrap">
+          <div class="pf-avatar-ring" aria-hidden="true">
+            <div class="pf-avatar-ring-inner">
+              <img
+                [src]="
+                  profile()!.avatarUrl ??
+                  'https://api.dicebear.com/7.x/avataaars/svg?seed=' +
+                    profile()!.fullName
+                "
+                [alt]="'Ảnh đại diện của ' + profile()!.fullName"
+                class="pf-avatar-img"
+                width="120"
+                height="120"
+                loading="eager"
+              />
+            </div>
+          </div>
+
+          @if (isMyProfile()) {
+            <label
+              class="pf-btn-change-avatar"
+              for="pf-avatar-input"
+              role="button"
+              aria-label="Đổi ảnh đại diện"
+              tabindex="0"
+            >
+              <i class="fa-solid fa-camera" aria-hidden="true"></i>
+            </label>
+            <input
+              id="pf-avatar-input"
+              type="file"
+              accept="image/*"
+              class="pf-file-hidden"
+              (change)="onAvatarChange($event)"
+              aria-label="Chọn ảnh đại diện"
+              tabindex="-1"
+            />
+          }
+        </div>
+
+        <!-- Name + bio + stats + actions -->
+        <div class="pf-info-body">
+          <h1 class="pf-name">{{ profile()!.fullName }}</h1>
+
+          @if (profile()!.username) {
+            <p class="pf-username">
+              <i class="fa-solid fa-at" aria-hidden="true"></i>
+              {{ profile()!.username }}
+            </p>
+          }
+
+          @if (profile()!.bio) {
+            <p class="pf-bio">{{ profile()!.bio }}</p>
+          }
+
+          <!-- Stats row -->
+          <div class="pf-stats" role="list" aria-label="Thống kê trang cá nhân">
+            <div class="pf-stat" role="listitem">
+              <span class="pf-stat-count">{{
+                profile()!.postCount | number
+              }}</span>
+              <span class="pf-stat-label">Bài viết</span>
+            </div>
+            <div class="pf-stat-divider" aria-hidden="true"></div>
+            <div class="pf-stat" role="listitem">
+              <span class="pf-stat-count">{{
+                profile()!.friendCount | number
+              }}</span>
+              <span class="pf-stat-label">Bạn bè</span>
+            </div>
+            <div class="pf-stat-divider" aria-hidden="true"></div>
+            <div class="pf-stat" role="listitem">
+              <span class="pf-stat-count">{{ joinedYear() }}</span>
+              <span class="pf-stat-label">Năm tham gia</span>
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="pf-actions" role="group" aria-label="Hành động">
+            @if (isMyProfile()) {
+              <button
+                class="pf-btn pf-btn--ghost"
+                (click)="onEditProfile()"
+                aria-label="Chỉnh sửa trang cá nhân"
+              >
+                <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                Chỉnh sửa
+              </button>
+            } @else {
+              @switch (friendStatus()) {
+                @case ("none") {
+                  <button
+                    class="pf-btn pf-btn--accent"
+                    (click)="onAddFriend()"
+                    [disabled]="isFriendLoading()"
+                    aria-label="Gửi lời mời kết bạn"
+                  >
+                    @if (isFriendLoading()) {
+                      <span class="pf-spinner" aria-hidden="true"></span>
+                    } @else {
+                      <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                    }
+                    Kết bạn
+                  </button>
+                }
+                @case ("pending") {
+                  <button
+                    class="pf-btn pf-btn--ghost"
+                    (click)="onCancelRequest()"
+                    [disabled]="isFriendLoading()"
+                    aria-label="Hủy lời mời kết bạn"
+                  >
+                    <i class="fa-solid fa-user-clock" aria-hidden="true"></i>
+                    Đã gửi lời mời
+                  </button>
+                }
+                @case ("received") {
+                  <button
+                    class="pf-btn pf-btn--accent"
+                    (click)="onAcceptFriend()"
+                    [disabled]="isFriendLoading()"
+                    aria-label="Chấp nhận kết bạn"
+                  >
+                    <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                    Chấp nhận
+                  </button>
+                }
+                @case ("friend") {
+                  <button
+                    class="pf-btn pf-btn--ghost pf-btn--friend"
+                    (click)="onUnfriend()"
+                    [disabled]="isFriendLoading()"
+                    aria-label="Bạn bè - nhấn để hủy kết bạn"
+                  >
+                    <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                    Bạn bè
+                  </button>
+                }
+              }
+
+              <button
+                class="pf-btn pf-btn--ghost"
+                (click)="onMessage()"
+                aria-label="Nhắn tin"
+              >
+                <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                Nhắn tin
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div
+      class="pf-tabs-bar"
+      role="tablist"
+      aria-label="Phần nội dung trang cá nhân"
+    >
+      <div class="pf-tabs-inner">
+        <button
+          class="pf-tab"
+          [class.pf-tab--active]="activeTab() === 'posts'"
+          (click)="setTab('posts')"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'posts'"
+          aria-controls="pf-panel-posts"
+          id="pf-tab-posts"
+        >
+          <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+          Bài viết
+        </button>
+        <button
+          class="pf-tab"
+          [class.pf-tab--active]="activeTab() === 'photos'"
+          (click)="setTab('photos')"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'photos'"
+          aria-controls="pf-panel-photos"
+          id="pf-tab-photos"
+        >
+          <i class="fa-regular fa-image" aria-hidden="true"></i>
+          Ảnh
+        </button>
+        <button
+          class="pf-tab"
+          [class.pf-tab--active]="activeTab() === 'friends'"
+          (click)="setTab('friends')"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'friends'"
+          aria-controls="pf-panel-friends"
+          id="pf-tab-friends"
+        >
+          <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+          Bạn bè
+        </button>
+        <button
+          class="pf-tab"
+          [class.pf-tab--active]="activeTab() === 'about'"
+          (click)="setTab('about')"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'about'"
+          aria-controls="pf-panel-about"
+          id="pf-tab-about"
+        >
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          Giới thiệu
+        </button>
+      </div>
+    </div>
+
+    <div class="pf-content-area">
+      <!-- TAB: BÀI VIẾT -->
+      @if (activeTab() === "posts") {
+        <div
+          class="pf-content-grid"
+          id="pf-panel-posts"
+          role="tabpanel"
+          aria-labelledby="pf-tab-posts"
+        >
+          <!-- Sidebar: Intro card -->
+          <aside class="pf-sidebar" aria-label="Thông tin cá nhân">
+            <!-- About card -->
+            <div class="pf-widget">
+              <h2 class="pf-widget-title">
+                <i
+                  class="fa-solid fa-circle-info pf-widget-icon"
+                  aria-hidden="true"
+                ></i>
+                Giới thiệu
+              </h2>
+
+              @if (profile()!.bio) {
+                <p class="pf-about-bio">{{ profile()!.bio }}</p>
+              } @else if (isMyProfile()) {
+                <p class="pf-about-empty">
+                  Thêm tiểu sử để cho mọi người biết thêm về bạn.
+                </p>
+              }
+
+              <div class="pf-about-rows">
+                @if (profile()!.createdAt) {
+                  <div class="pf-about-row">
+                    <div class="pf-about-icon-box pf-about-icon-box--teal">
+                      <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                    </div>
+                    <span class="pf-about-text">
+                      Tham gia từ
+                      <strong>{{
+                        profile()!.createdAt | date: "MMMM yyyy"
+                      }}</strong>
+                    </span>
+                  </div>
+                }
+              </div>
+
+              @if (isMyProfile()) {
+                <button
+                  class="pf-btn pf-btn--ghost pf-btn--block"
+                  (click)="onEditProfile()"
+                  aria-label="Chỉnh sửa giới thiệu"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                  Chỉnh sửa giới thiệu
+                </button>
+              }
+            </div>
+
+            <!-- Friends preview card -->
+            <div class="pf-widget">
+              <div class="pf-widget-header">
+                <h2 class="pf-widget-title">
+                  <i
+                    class="fa-solid fa-user-group pf-widget-icon"
+                    aria-hidden="true"
+                  ></i>
+                  Bạn bè
+                </h2>
+                <span class="pf-widget-count">{{
+                  profile()!.friendCount | number
+                }}</span>
+              </div>
+
+              @if (friendsPreview().length > 0) {
+                <div class="pf-friends-grid" role="list">
+                  @for (f of friendsPreview(); track f.user.id) {
+                    <a
+                      [routerLink]="['/profile', f.user.id]"
+                      class="pf-friend-thumb"
+                      role="listitem"
+                      [attr.aria-label]="f.user.fullName"
+                    >
+                      <img
+                        [src]="
+                          f.user.avatarUrl ??
+                          'https://api.dicebear.com/7.x/avataaars/svg?seed=' +
+                            f.user.fullName
+                        "
+                        [alt]="f.user.fullName"
+                        class="pf-friend-thumb-img"
+                        loading="lazy"
+                      />
+                      <span class="pf-friend-thumb-name">{{
+                        f.user.fullName | slice: 0 : 10
+                      }}</span>
+                    </a>
+                  }
+                </div>
+                @if (profile()!.friendCount > 6) {
+                  <button
+                    class="pf-btn pf-btn--ghost pf-btn--block"
+                    (click)="setTab('friends')"
+                    aria-label="Xem tất cả bạn bè"
+                  >
+                    Xem tất cả bạn bè
+                  </button>
+                }
+              } @else if (!isLoadingFriends()) {
+                <p class="pf-about-empty">Chưa có bạn bè nào.</p>
+              }
+
+              @if (isLoadingFriends()) {
+                <div
+                  class="pf-friends-grid pf-friends-grid--sk"
+                  aria-hidden="true"
+                >
+                  @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                    <div class="pf-friend-thumb-sk">
+                      <div class="pf-sk pf-sk--friend-img"></div>
+                      <div class="pf-sk pf-sk--friend-name"></div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </aside>
+
+          <!-- Posts feed -->
+          <main
+            class="pf-posts-col"
+            id="pf-panel-posts"
+            role="main"
+            aria-label="Bài viết"
+          >
+            <!-- Loading skeletons -->
+            @if (isLoadingPosts()) {
+              @for (i of [1, 2]; track i) {
+                <div class="pf-post-sk" aria-hidden="true">
+                  <div class="pf-post-sk-header">
+                    <div class="pf-sk pf-sk--avatar-sm"></div>
+                    <div class="pf-post-sk-lines">
+                      <div
+                        class="pf-sk pf-sk--line"
+                        style="width: 55%; height: 14px"
+                      ></div>
+                      <div
+                        class="pf-sk pf-sk--line"
+                        style="width: 38%; height: 12px; margin-top: 6px"
+                      ></div>
+                    </div>
+                  </div>
+                  <div
+                    class="pf-sk pf-sk--line"
+                    style="width: 100%; height: 13px; margin: 0 0 6px"
+                  ></div>
+                  <div
+                    class="pf-sk pf-sk--line"
+                    style="width: 80%; height: 13px; margin: 0 0 6px"
+                  ></div>
+                  <div class="pf-sk pf-sk--post-img"></div>
+                </div>
+              }
+            }
+
+            <!-- Post list -->
+            @for (post of posts(); track post.id) {
+              <app-post-card
+                [post]="post"
+                (postDeleted)="onPostDeleted($event)"
+                (postUpdated)="onPostUpdated($event)"
+              />
+            }
+
+            <!-- Empty state -->
+            @if (!isLoadingPosts() && posts().length === 0) {
+              <div class="pf-empty-state">
+                <div class="pf-empty-icon" aria-hidden="true">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </div>
+                <p class="pf-empty-title">Chưa có bài viết nào</p>
+                <span class="pf-empty-sub">
+                  @if (isMyProfile()) {
+                    Chia sẻ khoảnh khắc đầu tiên của bạn!
+                  } @else {
+                    Người dùng này chưa đăng bài viết nào.
+                  }
+                </span>
+              </div>
+            }
+
+            <!-- Infinite scroll sentinel -->
+            <div #sentinel class="pf-sentinel" aria-hidden="true"></div>
+
+            <!-- Load more indicator -->
+            @if (isLoadingMorePosts()) {
+              <div class="pf-load-more" aria-label="Đang tải thêm bài viết">
+                <span class="pf-spinner" aria-hidden="true"></span>
+              </div>
+            }
+          </main>
+        </div>
+      }
+
+      <!-- TAB: ẢNH -->
+      @if (activeTab() === "photos") {
+        <div
+          class="pf-photos-panel"
+          id="pf-panel-photos"
+          role="tabpanel"
+          aria-labelledby="pf-tab-photos"
+        >
+          <div class="pf-photos-header">
+            <h2 class="pf-section-title">Ảnh</h2>
+            <span class="pf-photos-count">{{ photoCount() }} ảnh</span>
+          </div>
+
+          @if (photos().length > 0) {
+            <div class="pf-photos-grid" role="list">
+              @for (photo of photos(); track photo.id) {
+                <button
+                  class="pf-photo-cell"
+                  role="listitem"
+                  [attr.aria-label]="'Xem ảnh'"
+                  (click)="openPhoto(photo.mediaUrl)"
+                >
+                  <img
+                    [src]="photo.mediaUrl"
+                    alt="Ảnh bài viết"
+                    class="pf-photo-img"
+                    loading="lazy"
+                  />
+                  <div class="pf-photo-overlay" aria-hidden="true">
+                    <i class="fa-solid fa-expand"></i>
+                  </div>
+                </button>
+              }
+            </div>
+          } @else if (!isLoadingPosts()) {
+            <div class="pf-empty-state">
+              <div class="pf-empty-icon" aria-hidden="true">
+                <i class="fa-regular fa-image"></i>
+              </div>
+              <p class="pf-empty-title">Chưa có ảnh nào</p>
+              <span class="pf-empty-sub">
+                @if (isMyProfile()) {
+                  Đăng bài viết kèm ảnh để lưu trữ kỷ niệm!
+                } @else {
+                  Người dùng này chưa đăng ảnh nào.
+                }
+              </span>
+            </div>
+          }
+
+          @if (isLoadingPosts()) {
+            <div class="pf-photos-grid pf-photos-grid--sk" aria-hidden="true">
+              @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                <div class="pf-sk pf-sk--photo"></div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- TAB: BẠN BÈ -->
+      @if (activeTab() === "friends") {
+        <div
+          class="pf-friends-panel"
+          id="pf-panel-friends"
+          role="tabpanel"
+          aria-labelledby="pf-tab-friends"
+        >
+          <div class="pf-friends-header">
+            <h2 class="pf-section-title">Bạn bè</h2>
+            <span class="pf-photos-count"
+              >{{ profile()!.friendCount | number }} người</span
+            >
+          </div>
+
+          @if (isLoadingFriends()) {
+            <div class="pf-friends-list-grid" aria-hidden="true">
+              @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                <div class="pf-friend-card-sk">
+                  <div class="pf-sk pf-sk--friend-card-img"></div>
+                  <div
+                    class="pf-sk pf-sk--line"
+                    style="width: 70%; height: 14px; margin: 8px auto 4px"
+                  ></div>
+                  <div
+                    class="pf-sk pf-sk--line"
+                    style="width: 45%; height: 12px; margin: 0 auto"
+                  ></div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (friends().length > 0) {
+            <div class="pf-friends-list-grid" role="list">
+              @for (f of friends(); track f.user.id) {
+                <article class="pf-friend-card" role="listitem">
+                  <a
+                    [routerLink]="['/profile', f.user.id]"
+                    class="pf-friend-card-link"
+                    [attr.aria-label]="f.user.fullName"
+                  >
+                    <img
+                      [src]="
+                        f.user.avatarUrl ??
+                        'https://api.dicebear.com/7.x/avataaars/svg?seed=' +
+                          f.user.fullName
+                      "
+                      [alt]="f.user.fullName"
+                      class="pf-friend-card-img"
+                      loading="lazy"
+                    />
+                  </a>
+                  <div class="pf-friend-card-body">
+                    <a
+                      [routerLink]="['/profile', f.user.id]"
+                      class="pf-friend-card-name"
+                    >
+                      {{ f.user.fullName }}
+                    </a>
+                    <span class="pf-friend-card-meta">
+                      {{
+                        f.mutualFriendsCount > 0
+                          ? f.mutualFriendsCount + " bạn chung"
+                          : "Bạn bè"
+                      }}
+                    </span>
+                  </div>
+                </article>
+              }
+            </div>
+          } @else if (!isLoadingFriends()) {
+            <div class="pf-empty-state">
+              <div class="pf-empty-icon" aria-hidden="true">
+                <i class="fa-solid fa-user-group"></i>
+              </div>
+              <p class="pf-empty-title">Chưa có bạn bè</p>
+              <span class="pf-empty-sub">
+                @if (isMyProfile()) {
+                  Kết nối với mọi người để mở rộng mạng lưới của bạn!
+                } @else {
+                  Chưa có thông tin bạn bè.
+                }
+              </span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- TAB: GIỚI THIỆU -->
+      @if (activeTab() === "about") {
+        <div
+          class="pf-about-panel"
+          id="pf-panel-about"
+          role="tabpanel"
+          aria-labelledby="pf-tab-about"
+        >
+          <div class="pf-about-card">
+            <h2 class="pf-section-title">Giới thiệu</h2>
+
+            @if (profile()!.bio) {
+              <div class="pf-about-section">
+                <h3 class="pf-about-section-title">Tiểu sử</h3>
+                <p class="pf-about-bio-full">{{ profile()!.bio }}</p>
+              </div>
+            }
+
+            <div class="pf-about-section">
+              <h3 class="pf-about-section-title">Thông tin cơ bản</h3>
+              <div class="pf-about-details">
+                <div class="pf-about-detail-row">
+                  <div class="pf-about-icon-box pf-about-icon-box--red">
+                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                  </div>
+                  <div class="pf-about-detail-text">
+                    <span class="pf-about-detail-label">Tên hiển thị</span>
+                    <span class="pf-about-detail-value">{{
+                      profile()!.fullName
+                    }}</span>
+                  </div>
+                </div>
+
+                @if (profile()!.username) {
+                  <div class="pf-about-detail-row">
+                    <div class="pf-about-icon-box pf-about-icon-box--teal">
+                      <i class="fa-solid fa-at" aria-hidden="true"></i>
+                    </div>
+                    <div class="pf-about-detail-text">
+                      <span class="pf-about-detail-label">Tên người dùng</span>
+                      <span class="pf-about-detail-value"
+                        >&#64;{{ profile()!.username }}</span
+                      >
+                    </div>
+                  </div>
+                }
+
+                @if (profile()!.createdAt) {
+                  <div class="pf-about-detail-row">
+                    <div class="pf-about-icon-box pf-about-icon-box--amber">
+                      <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                    </div>
+                    <div class="pf-about-detail-text">
+                      <span class="pf-about-detail-label">Ngày tham gia</span>
+                      <span class="pf-about-detail-value">{{
+                        profile()!.createdAt | date: "d MMMM, yyyy"
+                      }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            @if (isMyProfile()) {
+              <button
+                class="pf-btn pf-btn--ghost"
+                (click)="onEditProfile()"
+                style="margin-top: 1.25rem"
+                aria-label="Chỉnh sửa thông tin"
+              >
+                <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                Chỉnh sửa thông tin
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!isLoadingProfile() && !profile()) {
+    <div class="pf-not-found">
+      <div class="pf-not-found-card">
+        <div class="pf-empty-icon" aria-hidden="true">
+          <i class="fa-solid fa-user-xmark"></i>
+        </div>
+        <p class="pf-empty-title">Không tìm thấy người dùng</p>
+        <span class="pf-empty-sub"
+          >Trang cá nhân này không tồn tại hoặc đã bị xóa.</span
+        >
+        <a
+          routerLink="/home"
+          class="pf-btn pf-btn--accent"
+          style="margin-top: 1.25rem; display: inline-flex"
+          aria-label="Về trang chủ"
+        >
+          <i class="fa-solid fa-house" aria-hidden="true"></i>
+          Về trang chủ
+        </a>
+      </div>
+    </div>
+  }
+</div>

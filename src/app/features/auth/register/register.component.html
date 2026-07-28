@@ -1,0 +1,327 @@
+<a href="#registerForm" class="skip-link">Bỏ qua đến form đăng ký</a>
+
+<div class="orb orb--teal" aria-hidden="true"></div>
+<div class="orb orb--red"  aria-hidden="true"></div>
+<div class="grain-overlay" aria-hidden="true"></div>
+
+<main class="register-page" aria-label="Trang tạo tài khoản SocialApp">
+  <div class="register-wrap entrance-hidden" id="gsapCard">
+
+    <header class="card-header entrance-hidden" id="gsapHeader">
+      <div class="logo-row">
+        <div class="logo-mark" aria-hidden="true">S</div>
+        <span class="logo-name">SocialApp</span>
+      </div>
+      <h1 class="card-heading">Tạo tài khoản mới</h1>
+      <p class="card-sub">Tham gia cộng đồng SocialApp hoàn toàn miễn phí.</p>
+    </header>
+
+    <div class="step-indicators entrance-hidden" aria-label="Bước đăng ký">
+      <div class="step-pip" [class.active]="currentStep() >= 1" aria-label="Bước 1">
+        <span class="pip-num">1</span>
+      </div>
+      <div class="step-connector" [class.done]="currentStep() === 2"></div>
+      <div class="step-pip" [class.active]="currentStep() >= 2" aria-label="Bước 2">
+        <span class="pip-num">2</span>
+      </div>
+    </div>
+
+    <div class="error-slot" [class.error-slot--visible]="errorMessage()">
+      @if (errorMessage()) {
+        <div
+          class="error-banner"
+          id="errorBanner"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <i class="fa-solid fa-triangle-exclamation error-banner__icon" aria-hidden="true"></i>
+          <p class="error-banner__msg">{{ errorMessage() }}</p>
+        </div>
+      }
+    </div>
+
+    <div id="stepContent" class="step-content entrance-hidden">
+
+      <form
+        [formGroup]="registerForm"
+        (ngSubmit)="onSubmit()"
+        id="registerForm"
+        novalidate
+      >
+
+        @if (currentStep() === 1) {
+          <div class="step-label">Bước 1 / 2 — Thông tin cá nhân</div>
+
+          <!-- Full name -->
+          <div class="form-group">
+            <label class="form-label" for="regFullName">Họ và tên</label>
+            <div class="input-wrap">
+              <input
+                type="text"
+                id="regFullName"
+                formControlName="fullName"
+                class="form-input"
+                [class.is-invalid]="isInvalid('fullName')"
+                placeholder="Nguyễn Văn A"
+                autocomplete="name"
+                aria-required="true"
+                aria-describedby="errFullName"
+              />
+            </div>
+            @if (getError("fullName", "required")) {
+              <div class="field-error" id="errFullName" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Vui lòng nhập họ và tên.</span>
+              </div>
+            }
+            @if (getError("fullName", "minlength")) {
+              <div class="field-error" id="errFullName" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Họ và tên phải có ít nhất 2 ký tự.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Username -->
+          <div class="form-group">
+            <label class="form-label" for="regUsername">Tên đăng nhập</label>
+            <div class="input-wrap">
+              <input
+                type="text"
+                id="regUsername"
+                formControlName="username"
+                class="form-input"
+                [class.is-invalid]="isInvalid('username')"
+                placeholder="nguyenvana123"
+                autocomplete="username"
+                aria-required="true"
+                aria-describedby="errUsername"
+                inputmode="text"
+              />
+            </div>
+            @if (getError("username", "required")) {
+              <div class="field-error" id="errUsername" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Vui lòng nhập tên đăng nhập.</span>
+              </div>
+            }
+            @if (getError("username", "minlength")) {
+              <div class="field-error" id="errUsername" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Tên đăng nhập phải có ít nhất 3 ký tự.</span>
+              </div>
+            }
+            @if (getError("username", "pattern")) {
+              <div class="field-error" id="errUsername" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Chỉ dùng chữ cái, số, dấu chấm hoặc gạch dưới.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Next button -->
+          <button
+            type="button"
+            class="btn-submit btn-next"
+            (click)="goToStep2()"
+          >
+            Tiếp theo
+            <i class="fa-solid fa-arrow-right btn-icon-right" aria-hidden="true"></i>
+          </button>
+        }
+
+        @if (currentStep() === 2) {
+          <div class="step-label">Bước 2 / 2 — Bảo mật tài khoản</div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label" for="regEmail">Email</label>
+            <div class="input-wrap">
+              <input
+                type="email"
+                id="regEmail"
+                formControlName="email"
+                class="form-input"
+                [class.is-invalid]="isInvalid('email')"
+                placeholder="ban@example.com"
+                autocomplete="email"
+                inputmode="email"
+                aria-required="true"
+                aria-describedby="errEmail"
+              />
+            </div>
+            @if (getError("email", "required")) {
+              <div class="field-error" id="errEmail" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Vui lòng nhập email.</span>
+              </div>
+            }
+            @if (getError("email", "email")) {
+              <div class="field-error" id="errEmail" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Địa chỉ email không hợp lệ.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="regPassword">Mật khẩu</label>
+            <div class="input-wrap">
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                id="regPassword"
+                formControlName="password"
+                class="form-input form-input--pw"
+                [class.is-invalid]="isInvalid('password')"
+                placeholder="Ít nhất 8 ký tự"
+                autocomplete="new-password"
+                aria-required="true"
+                aria-describedby="regStrength errPassword"
+              />
+              <button
+                type="button"
+                class="pw-toggle"
+                [attr.aria-label]="showPassword() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                (click)="togglePassword()"
+              >
+                <i aria-hidden="true"
+                  [class]="showPassword() ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"
+                ></i>
+              </button>
+            </div>
+
+            @if (registerForm.get("password")?.value) {
+              <div class="strength-wrap" id="regStrength" aria-live="polite">
+                <div class="strength-bars">
+                  @for (seg of [1, 2, 3, 4]; track seg) {
+                    <div
+                      class="strength-bar"
+                      [class.active]="seg <= passwordStrength()"
+                      [attr.data-level]="seg <= passwordStrength() ? passwordStrength() : null"
+                    ></div>
+                  }
+                </div>
+                <span class="strength-label" [attr.data-level]="passwordStrength()">
+                  {{ passwordStrengthLabel() }}
+                </span>
+              </div>
+            }
+
+            @if (getError("password", "required")) {
+              <div class="field-error" id="errPassword" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Vui lòng nhập mật khẩu.</span>
+              </div>
+            }
+            @if (getError("password", "minlength")) {
+              <div class="field-error" id="errPassword" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Mật khẩu phải có ít nhất 8 ký tự.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Confirm password -->
+          <div class="form-group">
+            <label class="form-label" for="regConfirmPassword">Xác nhận mật khẩu</label>
+            <div class="input-wrap">
+              <input
+                [type]="showConfirmPassword() ? 'text' : 'password'"
+                id="regConfirmPassword"
+                formControlName="confirmPassword"
+                class="form-input form-input--pw"
+                [class.is-invalid]="isInvalid('confirmPassword') || hasMismatch()"
+                placeholder="Nhập lại mật khẩu"
+                autocomplete="new-password"
+                aria-required="true"
+                aria-describedby="errConfirmPassword"
+              />
+              <button
+                type="button"
+                class="pw-toggle"
+                [attr.aria-label]="showConfirmPassword() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                (click)="toggleConfirmPassword()"
+              >
+                <i aria-hidden="true"
+                  [class]="showConfirmPassword() ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"
+                ></i>
+              </button>
+            </div>
+            @if (getError("confirmPassword", "required")) {
+              <div class="field-error" id="errConfirmPassword" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Vui lòng xác nhận mật khẩu.</span>
+              </div>
+            }
+            @if (hasMismatch()) {
+              <div class="field-error" id="errConfirmPassword" role="alert">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <span>Mật khẩu không khớp.</span>
+              </div>
+            }
+          </div>
+
+          <!-- Terms checkbox -->
+          <div class="terms-row">
+            <input
+              type="checkbox"
+              id="regTerms"
+              class="terms-checkbox"
+              formControlName="acceptTerms"
+              aria-describedby="errTerms"
+            />
+            <label for="regTerms" class="terms-label">
+              Tôi đồng ý với
+              <a routerLink="/terms" class="terms-link">Điều khoản dịch vụ</a>
+              và
+              <a routerLink="/privacy" class="terms-link">Chính sách quyền riêng tư</a>
+              của SocialApp.
+            </label>
+          </div>
+          @if (getError("acceptTerms", "required") && registerForm.get("acceptTerms")?.touched) {
+            <div class="field-error" id="errTerms" role="alert">
+              <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+              <span>Bạn cần đồng ý với điều khoản để tiếp tục.</span>
+            </div>
+          }
+
+          <!-- Step nav: Back + Submit -->
+          <div class="step-nav-row">
+            <button
+              type="button"
+              class="btn-back"
+              (click)="goBack()"
+              aria-label="Quay lại bước 1"
+            >
+              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+              Quay lại
+            </button>
+
+            <button
+              type="submit"
+              id="gsapSubmit"
+              class="btn-submit btn-submit--compact"
+              [class.is-loading]="isLoading()"
+              [disabled]="isLoading() || registerForm.invalid"
+              aria-label="Tạo tài khoản SocialApp"
+            >
+              <span class="btn-spinner" aria-hidden="true"></span>
+              <i class="fa-solid fa-user-plus btn-icon" aria-hidden="true"></i>
+              <span class="btn-label">Đăng ký ngay</span>
+              <span class="btn-loading-label">Đang tạo...</span>
+            </button>
+          </div>
+        }
+
+      </form>
+    </div><!-- /#stepContent -->
+
+    <p class="login-cta entrance-hidden" id="gsapFooter">
+      Đã có tài khoản?
+      <a class="login-link" routerLink="/auth/login">Đăng nhập</a>
+    </p>
+
+  </div><!-- /.register-wrap -->
+</main>

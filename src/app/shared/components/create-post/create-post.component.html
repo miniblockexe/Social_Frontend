@@ -1,0 +1,383 @@
+<div class="cp-shell sp-card" [class.cp-shell--open]="isOpen()">
+  @if (!isOpen()) {
+    <div class="cp-collapsed" #collapsedEl>
+      <!-- Trigger row -->
+      <div
+        class="cp-trigger-row"
+        (click)="open()"
+        role="button"
+        tabindex="0"
+        (keyup.enter)="open()"
+        aria-label="Tạo bài viết mới"
+      >
+        <app-avatar
+          [src]="currentUser()?.avatarUrl"
+          [name]="currentUser()?.fullName ?? ''"
+          [size]="40"
+        />
+        <button
+          class="cp-trigger-pill"
+          type="button"
+          (click)="open()"
+          tabindex="-1"
+        >
+          {{
+            currentUser()?.fullName
+              ? currentUser()!.fullName + " ơi, bạn đang nghĩ gì vậy?"
+              : "Bạn đang nghĩ gì vậy?"
+          }}
+        </button>
+      </div>
+
+      <!-- Quick action bar -->
+      <div class="cp-quick-bar" role="group" aria-label="Đăng nhanh">
+        <button
+          class="cp-quick-btn cp-quick-btn--media"
+          (click)="openWithMedia()"
+          aria-label="Thêm ảnh hoặc video"
+        >
+          <i class="fa-solid fa-image" aria-hidden="true"></i>
+          <span>Ảnh / Video</span>
+        </button>
+        <div class="cp-quick-divider" aria-hidden="true"></div>
+        <button
+          class="cp-quick-btn cp-quick-btn--mood"
+          (click)="openWithMood()"
+          aria-label="Thêm cảm xúc"
+        >
+          <i class="fa-regular fa-face-smile" aria-hidden="true"></i>
+          <span>Cảm xúc</span>
+        </button>
+        <div class="cp-quick-divider" aria-hidden="true"></div>
+        <button
+          class="cp-quick-btn cp-quick-btn--live"
+          (click)="openWithLive()"
+          aria-label="Livestream"
+        >
+          <i class="fa-solid fa-circle-dot" aria-hidden="true"></i>
+          <span>Trực tiếp</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (isOpen()) {
+    <div class="cp-form" #formEl>
+      <!-- Header -->
+      <div class="cp-form-header">
+        <h2 class="cp-form-title">Tạo bài viết</h2>
+        <button
+          class="cp-close-btn"
+          (click)="close()"
+          aria-label="Đóng form tạo bài viết"
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="cp-divider" aria-hidden="true"></div>
+
+      <!-- Author row + privacy -->
+      <div class="cp-author-row">
+        <app-avatar
+          [src]="currentUser()?.avatarUrl"
+          [name]="currentUser()?.fullName ?? ''"
+          [size]="44"
+        />
+        <div class="cp-author-meta">
+          <span class="cp-author-name">{{ currentUser()?.fullName }}</span>
+
+          <!-- Privacy selector -->
+          <div
+            class="cp-privacy-chip"
+            (click)="togglePrivacyMenu($event)"
+            role="button"
+            tabindex="0"
+            (keyup.enter)="togglePrivacyMenu($event)"
+            [attr.aria-expanded]="showPrivacyMenu()"
+            aria-haspopup="listbox"
+            aria-label="Chọn đối tượng xem bài"
+          >
+            <i [class]="privacyIcon()" aria-hidden="true"></i>
+            <span>{{ privacyLabel() }}</span>
+            <i
+              class="fa-solid fa-caret-down cp-privacy-caret"
+              [class.cp-privacy-caret--open]="showPrivacyMenu()"
+              aria-hidden="true"
+            ></i>
+
+            @if (showPrivacyMenu()) {
+              <ul
+                class="cp-privacy-menu sp-fade-in"
+                role="listbox"
+                aria-label="Chọn quyền riêng tư"
+              >
+                <li
+                  class="cp-privacy-option"
+                  [class.cp-privacy-option--active]="privacy() === 0"
+                  role="option"
+                  [attr.aria-selected]="privacy() === 0"
+                  (click)="setPrivacy(0)"
+                >
+                  <span
+                    class="cp-privacy-option-icon cp-privacy-option-icon--public"
+                  >
+                    <i class="fa-solid fa-earth-asia" aria-hidden="true"></i>
+                  </span>
+                  <span class="cp-privacy-option-text">
+                    <span class="cp-privacy-option-label">Công khai</span>
+                    <span class="cp-privacy-option-desc"
+                      >Mọi người đều thấy</span
+                    >
+                  </span>
+                  @if (privacy() === 0) {
+                    <i
+                      class="fa-solid fa-check cp-privacy-check"
+                      aria-hidden="true"
+                    ></i>
+                  }
+                </li>
+                <li
+                  class="cp-privacy-option"
+                  [class.cp-privacy-option--active]="privacy() === 1"
+                  role="option"
+                  [attr.aria-selected]="privacy() === 1"
+                  (click)="setPrivacy(1)"
+                >
+                  <span
+                    class="cp-privacy-option-icon cp-privacy-option-icon--friends"
+                  >
+                    <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                  </span>
+                  <span class="cp-privacy-option-text">
+                    <span class="cp-privacy-option-label">Bạn bè</span>
+                    <span class="cp-privacy-option-desc">Chỉ bạn bè thấy</span>
+                  </span>
+                  @if (privacy() === 1) {
+                    <i
+                      class="fa-solid fa-check cp-privacy-check"
+                      aria-hidden="true"
+                    ></i>
+                  }
+                </li>
+                <li
+                  class="cp-privacy-option"
+                  [class.cp-privacy-option--active]="privacy() === 2"
+                  role="option"
+                  [attr.aria-selected]="privacy() === 2"
+                  (click)="setPrivacy(2)"
+                >
+                  <span
+                    class="cp-privacy-option-icon cp-privacy-option-icon--private"
+                  >
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                  </span>
+                  <span class="cp-privacy-option-text">
+                    <span class="cp-privacy-option-label">Chỉ mình tôi</span>
+                    <span class="cp-privacy-option-desc"
+                      >Không ai khác thấy</span
+                    >
+                  </span>
+                  @if (privacy() === 2) {
+                    <i
+                      class="fa-solid fa-check cp-privacy-check"
+                      aria-hidden="true"
+                    ></i>
+                  }
+                </li>
+              </ul>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Textarea -->
+      <div class="cp-textarea-wrap">
+        <textarea
+          #textareaEl
+          class="cp-textarea"
+          [placeholder]="
+            currentUser()?.fullName
+              ? currentUser()!.fullName + ' ơi, bạn đang nghĩ gì vậy?'
+              : 'Bạn đang nghĩ gì vậy?'
+          "
+          [(ngModel)]="content"
+          (input)="onContentInput()"
+          rows="4"
+          aria-label="Nội dung bài viết"
+          maxlength="5000"
+          [class.cp-textarea--has-media]="previewFiles().length > 0"
+        ></textarea>
+
+        <!-- Char count -->
+        @if (content.length > 4000) {
+          <div
+            class="cp-char-count"
+            [class.cp-char-count--warn]="content.length > 4700"
+            [class.cp-char-count--crit]="content.length > 4900"
+            role="status"
+            [attr.aria-label]="5000 - content.length + ' ký tự còn lại'"
+          >
+            <svg class="cp-char-ring" viewBox="0 0 36 36" aria-hidden="true">
+              <circle class="cp-char-ring-bg" cx="18" cy="18" r="15.9" />
+              <circle
+                class="cp-char-ring-fill"
+                cx="18"
+                cy="18"
+                r="15.9"
+                [style.stroke-dasharray]="charDashArray()"
+                [class.cp-char-ring-fill--warn]="content.length > 4700"
+                [class.cp-char-ring-fill--crit]="content.length > 4900"
+              />
+            </svg>
+            @if (content.length > 4700) {
+              <span class="cp-char-number">{{ 5000 - content.length }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Media preview -->
+      @if (previewFiles().length > 0) {
+        <div
+          class="cp-media-grid"
+          [class.cp-media-grid--single]="previewFiles().length === 1"
+          [class.cp-media-grid--double]="previewFiles().length === 2"
+          [class.cp-media-grid--triple]="previewFiles().length === 3"
+          [class.cp-media-grid--quad]="previewFiles().length >= 4"
+          role="list"
+          aria-label="Ảnh và video đã chọn"
+        >
+          @for (file of previewFiles(); track file.url; let i = $index) {
+            <div
+              class="cp-media-item"
+              role="listitem"
+              [class.cp-media-item--video]="file.type === 'video'"
+            >
+              @if (file.type === "image") {
+                <img
+                  [src]="file.url"
+                  [alt]="'Ảnh xem trước ' + (i + 1)"
+                  loading="lazy"
+                />
+              } @else {
+                <video
+                  [src]="file.url"
+                  preload="metadata"
+                  [attr.aria-label]="'Video xem trước ' + (i + 1)"
+                ></video>
+                <div class="cp-video-badge" aria-hidden="true">
+                  <i class="fa-solid fa-play"></i>
+                </div>
+              }
+              <button
+                class="cp-media-remove"
+                (click)="removeFile(i)"
+                [attr.aria-label]="
+                  'Xóa ' +
+                  (file.type === 'image' ? 'ảnh' : 'video') +
+                  ' ' +
+                  (i + 1)
+                "
+              >
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+            </div>
+          }
+
+          @if (previewFiles().length < 10) {
+            <button
+              class="cp-media-add"
+              (click)="triggerFileInput()"
+              aria-label="Thêm thêm ảnh hoặc video"
+            >
+              <i class="fa-solid fa-plus" aria-hidden="true"></i>
+              <span>Thêm</span>
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Toolbar + Add media row -->
+      <div class="cp-add-to-post">
+        <span class="cp-add-to-post-label">Thêm vào bài viết</span>
+        <div class="cp-toolbar" role="toolbar" aria-label="Công cụ đính kèm">
+          <button
+            class="cp-tool-btn cp-tool-btn--media"
+            (click)="triggerFileInput()"
+            aria-label="Thêm ảnh hoặc video"
+            title="Ảnh / Video"
+          >
+            <i class="fa-solid fa-image" aria-hidden="true"></i>
+          </button>
+          <button
+            class="cp-tool-btn cp-tool-btn--emoji"
+            (click)="toggleEmoji()"
+            aria-label="Thêm biểu tượng cảm xúc"
+            title="Emoji"
+          >
+            <i class="fa-regular fa-face-smile" aria-hidden="true"></i>
+          </button>
+          <button
+            class="cp-tool-btn cp-tool-btn--location"
+            (click)="toggleLocation()"
+            aria-label="Thêm vị trí"
+            title="Vị trí"
+          >
+            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+          </button>
+          <button
+            class="cp-tool-btn cp-tool-btn--tag"
+            (click)="toggleTagFriends()"
+            aria-label="Gắn thẻ bạn bè"
+            title="Gắn thẻ bạn bè"
+          >
+            <i class="fa-solid fa-user-tag" aria-hidden="true"></i>
+          </button>
+          <button
+            class="cp-tool-btn cp-tool-btn--more"
+            aria-label="Thêm tùy chọn khác"
+            title="Thêm"
+          >
+            <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="cp-divider" aria-hidden="true"></div>
+
+      <!-- Submit -->
+      <div class="cp-submit-row">
+        <button
+          class="cp-submit-btn"
+          (click)="onSubmit()"
+          [disabled]="!canSubmit() || isSubmitting()"
+          aria-label="Đăng bài viết"
+          [class.cp-submit-btn--loading]="isSubmitting()"
+        >
+          @if (isSubmitting()) {
+            <span class="cp-submit-spinner" aria-hidden="true">
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+            </span>
+            <span>Đang đăng...</span>
+          } @else {
+            <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+            <span>Đăng bài</span>
+          }
+        </button>
+      </div>
+
+      <!-- Hidden file input -->
+      <input
+        #fileInput
+        type="file"
+        accept="image/*,video/*"
+        multiple
+        class="cp-file-input-hidden"
+        (change)="onFileSelected($event)"
+        aria-hidden="true"
+        tabindex="-1"
+      />
+    </div>
+  }
+</div>

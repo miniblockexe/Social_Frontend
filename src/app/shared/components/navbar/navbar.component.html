@@ -1,0 +1,168 @@
+<nav
+  id="sp-navbar"
+  class="sp-navbar"
+  role="navigation"
+  aria-label="Thanh điều hướng chính"
+>
+  <!-- Left: Logo -->
+  <div class="sp-navbar__logo">
+    <a routerLink="/home" class="sp-logo-link" aria-label="Trang chủ SocialApp">
+      <div class="sp-logo-circle" aria-hidden="true">S</div>
+      <span class="sp-logo-text">SocialApp</span>
+    </a>
+  </div>
+
+  <!-- Center: Search -->
+  <div class="sp-navbar__search">
+    <div class="sp-search-wrap">
+      <i
+        class="fa-solid fa-magnifying-glass sp-search-icon"
+        aria-hidden="true"
+      ></i>
+      <input
+        class="sp-input sp-search-input"
+        type="search"
+        placeholder="Tìm kiếm trên SocialApp..."
+        aria-label="Tìm kiếm"
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()"
+      />
+    </div>
+  </div>
+
+  <!-- Right: Actions -->
+  <div class="sp-navbar__actions">
+    <!-- Trang chủ -->
+    <a
+      class="sp-nav-icon-btn"
+      routerLink="/home"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      aria-label="Trang chủ"
+    >
+      <i class="fa-solid fa-house" aria-hidden="true"></i>
+      <span class="sp-nav-active-bar"></span>
+    </a>
+
+    <!-- Tin nhắn -->
+    <a
+      class="sp-nav-icon-btn"
+      routerLink="/messages"
+      routerLinkActive="active"
+      aria-label="Tin nhắn"
+    >
+      <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+      @if (unreadMessages() > 0) {
+        <span
+          class="sp-badge"
+          [attr.aria-label]="unreadMessages() + ' tin nhắn chưa đọc'"
+        >
+          {{ unreadMessages() > 9 ? "9+" : unreadMessages() }}
+        </span>
+      }
+      <span class="sp-nav-active-bar"></span>
+    </a>
+
+    <!-- Thông báo -->
+    <a
+      class="sp-nav-icon-btn"
+      routerLink="/notifications"
+      routerLinkActive="active"
+      aria-label="Thông báo"
+    >
+      <i class="fa-solid fa-bell" aria-hidden="true"></i>
+      @if (unreadNotifications() > 0) {
+        <span
+          class="sp-badge"
+          [attr.aria-label]="unreadNotifications() + ' thông báo chưa đọc'"
+        >
+          {{ unreadNotifications() > 9 ? "9+" : unreadNotifications() }}
+        </span>
+      }
+      <span class="sp-nav-active-bar"></span>
+    </a>
+
+    <!-- Dark mode toggle -->
+    <button
+      class="sp-nav-icon-btn"
+      (click)="toggleDarkMode()"
+      [attr.aria-label]="
+        isDark() ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'
+      "
+    >
+      @if (isDark()) {
+        <i class="fa-solid fa-sun" aria-hidden="true"></i>
+      } @else {
+        <i class="fa-solid fa-moon" aria-hidden="true"></i>
+      }
+    </button>
+
+    <!-- Avatar + dropdown menu -->
+    <div class="sp-avatar-menu" (click)="toggleMenu($event)">
+      <app-avatar
+        [src]="currentUser()?.avatarUrl"
+        [name]="currentUser()?.fullName ?? ''"
+        [size]="36"
+      />
+      @if (showMenu()) {
+        <div
+          class="sp-dropdown sp-navbar-dropdown sp-fade-in"
+          (click)="$event.stopPropagation()"
+        >
+          <!-- User info -->
+          <div class="sp-navbar-dropdown-user">
+            <app-avatar
+              [src]="currentUser()?.avatarUrl"
+              [name]="currentUser()?.fullName ?? ''"
+              [size]="48"
+            />
+            <div class="sp-navbar-dropdown-user-info">
+              <span class="sp-navbar-dropdown-name">{{
+                currentUser()?.fullName
+              }}</span>
+              <span class="sp-navbar-dropdown-email"
+                >&#64;{{ currentUser()?.username }}</span
+              >
+            </div>
+          </div>
+          <div class="sp-divider" style="margin: var(--sp-2) 0"></div>
+          <!-- Menu items -->
+          <a
+            [routerLink]="['/profile', currentUser()?.id]"
+            class="sp-dropdown-item"
+            (click)="closeMenu()"
+          >
+            <i class="fa-solid fa-user" aria-hidden="true"></i>
+            Trang cá nhân
+          </a>
+          <a
+            routerLink="/settings"
+            class="sp-dropdown-item"
+            (click)="closeMenu()"
+          >
+            <i class="fa-solid fa-gear" aria-hidden="true"></i>
+            Cài đặt
+          </a>
+          @if (isAdmin()) {
+            <a
+              routerLink="/admin"
+              class="sp-dropdown-item"
+              (click)="closeMenu()"
+            >
+              <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+              Quản trị viên
+            </a>
+          }
+          <div class="sp-divider" style="margin: var(--sp-2) 0"></div>
+          <button
+            class="sp-dropdown-item sp-dropdown-item--danger"
+            (click)="onLogout()"
+          >
+            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+            Đăng xuất
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</nav>

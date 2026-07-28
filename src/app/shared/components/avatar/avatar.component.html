@@ -1,0 +1,19 @@
+<!-- AvatarComponent -->
+<div
+  class="sp-avatar-wrap"
+  [style.width.px]="size()"
+  [style.height.px]="size()"
+>
+  <img
+    class="sp-avatar-img"
+    [src]="avatarUrl()"
+    [alt]="name() + ' avatar'"
+    [style.width.px]="size()"
+    [style.height.px]="size()"
+    loading="lazy"
+    (error)="onImgError($event)"
+  />
+  @if (online()) {
+    <span class="online-dot" aria-label="Đang online"></span>
+  }
+</div>

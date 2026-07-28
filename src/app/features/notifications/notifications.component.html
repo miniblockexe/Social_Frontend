@@ -1,0 +1,231 @@
+
+<div class="notif-page" #pageRef>
+  <div class="notif-wrap">
+    <div class="notif-header" #headerRef>
+      <h2 class="notif-title">Thông báo</h2>
+
+      @if (unreadCount() > 0) {
+        <button
+          class="notif-mark-btn"
+          (click)="markAllRead()"
+          (mouseenter)="onMarkAllHover($event.target, true)"
+          (mouseleave)="onMarkAllHover($event.target, false)"
+          [disabled]="isMarkingAll()"
+          aria-label="Đánh dấu tất cả là đã đọc"
+        >
+          @if (isMarkingAll()) {
+            <span class="notif-spinner" aria-hidden="true"></span>
+          } @else {
+            <i class="fa-solid fa-check-double" aria-hidden="true"></i>
+          }
+          Đánh dấu đã đọc
+        </button>
+      }
+    </div>
+
+    <div class="notif-tabs" #tabsRef role="tablist" aria-label="Lọc thông báo">
+      <div class="notif-tabs-inner">
+        <button
+          class="notif-tab"
+          [class.is-active]="filterTab() === 'all'"
+          (click)="setFilter('all')"
+          role="tab"
+          [attr.aria-selected]="filterTab() === 'all'"
+        >
+          Tất cả
+        </button>
+        <button
+          class="notif-tab"
+          [class.is-active]="filterTab() === 'unread'"
+          (click)="setFilter('unread')"
+          role="tab"
+          [attr.aria-selected]="filterTab() === 'unread'"
+        >
+          Chưa đọc
+          @if (unreadCount() > 0) {
+            <span class="notif-tab-badge">{{ unreadCount() }}</span>
+          }
+        </button>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="notif-card" aria-hidden="true" aria-busy="true">
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <div class="notif-skeleton-row">
+            <div class="sk sk-avatar"></div>
+            <div class="sk-body">
+              <div class="sk sk-line sk-line--w70"></div>
+              <div class="sk sk-line sk-line--w45"></div>
+            </div>
+            <div class="sk sk-thumb"></div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (!isLoading() && filteredNotifications().length === 0) {
+      <div class="notif-empty">
+        <div class="notif-empty-icon" aria-hidden="true">
+          <i class="fa-regular fa-bell-slash"></i>
+        </div>
+        <p class="notif-empty-title">
+          @if (filterTab() === "unread") {
+            Bạn đã đọc tất cả!
+          } @else {
+            Chưa có thông báo nào
+          }
+        </p>
+        <span class="notif-empty-sub">
+          @if (filterTab() === "unread") {
+            Không có thông báo chưa đọc nào.
+          } @else {
+            Các hoạt động mới sẽ xuất hiện ở đây.
+          }
+        </span>
+      </div>
+    }
+
+    @if (!isLoading() && filteredNotifications().length > 0) {
+      <div
+        class="notif-card"
+        #listRef
+        role="list"
+        aria-label="Danh sách thông báo"
+      >
+        @for (
+          notif of filteredNotifications();
+          track notif.id;
+          let last = $last
+        ) {
+          <div
+            class="notif-item"
+            [class.is-unread]="!notif.isRead"
+            role="listitem"
+            tabindex="0"
+            (click)="onNotifClick(notif, $event)"
+            (keyup.enter)="onNotifClick(notif, $event)"
+            [attr.aria-label]="
+              notif.actor.fullName +
+              ' ' +
+              getNotifText(notif.type) +
+              (notif.isRead ? '' : ' — chưa đọc')
+            "
+          >
+            <!-- Avatar + type badge -->
+            <div class="notif-avatar-wrap">
+              <app-avatar
+                [src]="notif.actor.avatarUrl"
+                [name]="notif.actor.fullName"
+                [size]="44"
+              />
+              <span
+                class="notif-type-badge {{ getNotifIconColor(notif.type) }}"
+                aria-hidden="true"
+              >
+                <i [class]="getNotifIcon(notif.type)"></i>
+              </span>
+            </div>
+
+            <!-- Text content -->
+            <div class="notif-content">
+              <p class="notif-message">
+                <strong>{{ notif.actor.fullName }}</strong>
+                {{ getNotifText(notif.type) }}
+              </p>
+              <span class="notif-time">
+                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                {{ notif.createdAt | timeAgo }}
+              </span>
+
+              <!-- Friend request action buttons -->
+              @if (notif.type === NotificationType.FriendRequest) {
+                <div
+                  class="notif-friend-actions"
+                  (click)="$event.stopPropagation()"
+                >
+                  <button
+                    class="notif-btn-accept"
+                    (click)="onAcceptFriend(notif)"
+                    [disabled]="notif.isPending"
+                    [attr.aria-label]="
+                      'Chấp nhận lời mời từ ' + notif.actor.fullName
+                    "
+                  >
+                    @if (notif.isPending) {
+                      <span
+                        class="notif-spinner notif-spinner--sm"
+                        aria-hidden="true"
+                      ></span>
+                    } @else {
+                      <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    }
+                    Chấp nhận
+                  </button>
+                  <button
+                    class="notif-btn-decline"
+                    (click)="onDeclineFriend(notif, $event)"
+                    [disabled]="notif.isPending"
+                    [attr.aria-label]="
+                      'Từ chối lời mời từ ' + notif.actor.fullName
+                    "
+                  >
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                    Từ chối
+                  </button>
+                </div>
+              }
+            </div>
+
+            <!-- Post thumbnail -->
+            @if (notif.postThumbnail) {
+              <div class="notif-thumb">
+                <img
+                  [src]="notif.postThumbnail"
+                  alt="Ảnh bài viết"
+                  loading="lazy"
+                />
+              </div>
+            }
+
+            <!-- Unread dot -->
+            @if (!notif.isRead) {
+              <span class="notif-unread-dot" aria-hidden="true"></span>
+            }
+          </div>
+
+          @if (!last) {
+            <div
+              class="notif-divider"
+              role="separator"
+              aria-hidden="true"
+            ></div>
+          }
+        }
+      </div>
+
+      <!-- Load more -->
+      @if (hasMore()) {
+        <div class="notif-load-more">
+          <button
+            class="notif-load-btn"
+            (click)="loadMore()"
+            [disabled]="isLoadingMore()"
+            aria-label="Tải thêm thông báo"
+          >
+            @if (isLoadingMore()) {
+              <span
+                class="notif-spinner notif-spinner--sm"
+                aria-hidden="true"
+              ></span>
+              Đang tải...
+            } @else {
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+              Xem thêm
+            }
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

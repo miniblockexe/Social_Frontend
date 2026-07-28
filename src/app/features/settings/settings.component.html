@@ -1,0 +1,721 @@
+<div class="sp-settings-page gsap-ready" #settingsPage>
+  <div class="sp-settings-wrap">
+    <aside
+      class="sp-settings-sidebar"
+      #sidebarEl
+      aria-label="Settings navigation"
+    >
+      <h2 class="sp-settings-sidebar-title">Cài đặt</h2>
+
+      <nav class="sp-settings-nav" role="navigation">
+        @for (item of navItems; track item.key) {
+          <button
+            class="sp-settings-nav-item"
+            [class.is-active]="activeSection() === item.key"
+            (click)="setSection(item.key)"
+            [attr.aria-current]="activeSection() === item.key ? 'page' : null"
+          >
+            <span
+              class="sp-settings-nav-icon"
+              [class]="'sp-settings-nav-icon--' + item.color"
+              aria-hidden="true"
+            >
+              <i [class]="item.icon"></i>
+            </span>
+            <span class="sp-settings-nav-label">{{ item.label }}</span>
+            <i
+              class="fa-solid fa-chevron-right sp-settings-nav-arrow"
+              aria-hidden="true"
+            ></i>
+          </button>
+        }
+      </nav>
+
+      <!-- Mobile: logout shortcut -->
+      <button
+        class="sp-settings-nav-item sp-settings-logout-btn"
+        (click)="onLogout()"
+      >
+        <span
+          class="sp-settings-nav-icon sp-settings-nav-icon--red"
+          aria-hidden="true"
+        >
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </span>
+        <span class="sp-settings-nav-label">Đăng xuất</span>
+      </button>
+    </aside>
+
+    <main class="sp-settings-content" #contentPanel>
+      @if (activeSection() === "profile") {
+        <div class="sp-settings-section" @sectionFade>
+          <div class="sp-settings-section-header">
+            <div>
+              <h3 class="sp-settings-section-title">Thông tin cá nhân</h3>
+              <p class="sp-settings-section-desc">
+                Cập nhật tên hiển thị, tiểu sử và thông tin cơ bản.
+              </p>
+            </div>
+          </div>
+
+          <!-- Avatar card -->
+          <div class="sp-card sp-settings-card">
+            <div class="sp-settings-row sp-settings-avatar-row">
+              <div class="sp-settings-row-left">
+                <div class="sp-settings-label">Ảnh đại diện</div>
+                <div class="sp-settings-desc">JPG, PNG. Tối đa 5 MB.</div>
+              </div>
+              <div class="sp-settings-row-right sp-settings-avatar-ctrl">
+                <div class="sp-avatar-ring">
+                  <div
+                    class="sp-avatar sp-avatar--64"
+                    [style.background]="getAvatarGradient()"
+                  >
+                    @if (currentUser()?.avatarUrl) {
+                      <img
+                        [src]="currentUser()!.avatarUrl!"
+                        [alt]="currentUser()!.fullName"
+                      />
+                    } @else {
+                      <span>{{ getInitials() }}</span>
+                    }
+                  </div>
+                </div>
+                <button
+                  class="sp-btn-ghost sp-btn--sm"
+                  (click)="triggerAvatarUpload()"
+                  aria-label="Đổi ảnh đại diện"
+                >
+                  <i class="fa-solid fa-camera" aria-hidden="true"></i>
+                  Đổi ảnh
+                </button>
+                <input
+                  #avatarInput
+                  type="file"
+                  accept="image/*"
+                  class="sp-visually-hidden"
+                  (change)="onAvatarChange($event)"
+                  aria-label="Chọn ảnh đại diện"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Info fields card -->
+          <div class="sp-card sp-settings-card" [formGroup]="profileForm">
+            <!-- Họ và tên -->
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <label class="sp-settings-label" for="fullName"
+                  >Họ và tên</label
+                >
+                <div class="sp-settings-desc">Tên hiển thị công khai.</div>
+              </div>
+              <div class="sp-settings-row-right">
+                <div class="sp-field-wrap">
+                  <input
+                    id="fullName"
+                    type="text"
+                    class="sp-input"
+                    formControlName="fullName"
+                    placeholder="Nhập họ và tên"
+                    [class.is-invalid]="
+                      profileForm.get('fullName')?.invalid &&
+                      profileForm.get('fullName')?.touched
+                    "
+                  />
+                  @if (
+                    profileForm.get("fullName")?.invalid &&
+                    profileForm.get("fullName")?.touched
+                  ) {
+                    <span class="sp-field-error" role="alert">
+                      <i
+                        class="fa-solid fa-circle-exclamation"
+                        aria-hidden="true"
+                      ></i>
+                      Vui lòng nhập họ và tên
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-settings-row-divider"></div>
+
+            <!-- Username -->
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <label class="sp-settings-label" for="username"
+                  >Tên người dùng</label
+                >
+                <div class="sp-settings-desc">
+                  Dùng để đăng nhập và mention.
+                </div>
+              </div>
+              <div class="sp-settings-row-right">
+                <div class="sp-field-wrap sp-field-prefix-wrap">
+                  <span class="sp-field-prefix" aria-hidden="true">&#64;</span>
+                  <input
+                    id="username"
+                    type="text"
+                    class="sp-input sp-input--has-prefix"
+                    formControlName="username"
+                    placeholder="username"
+                    [class.is-invalid]="
+                      profileForm.get('username')?.invalid &&
+                      profileForm.get('username')?.touched
+                    "
+                  />
+                  @if (
+                    profileForm.get("username")?.invalid &&
+                    profileForm.get("username")?.touched
+                  ) {
+                    <span class="sp-field-error" role="alert">
+                      <i
+                        class="fa-solid fa-circle-exclamation"
+                        aria-hidden="true"
+                      ></i>
+                      Tên người dùng không hợp lệ
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-settings-row-divider"></div>
+
+            <!-- Bio -->
+            <div class="sp-settings-row sp-settings-row--top">
+              <div class="sp-settings-row-left">
+                <label class="sp-settings-label" for="bio">Tiểu sử</label>
+                <div class="sp-settings-desc">Tối đa 160 ký tự.</div>
+              </div>
+              <div class="sp-settings-row-right">
+                <div class="sp-field-wrap">
+                  <textarea
+                    id="bio"
+                    class="sp-textarea"
+                    rows="3"
+                    formControlName="bio"
+                    placeholder="Chia sẻ đôi điều về bạn..."
+                    maxlength="160"
+                  ></textarea>
+                  <span class="sp-char-count"
+                    >{{ profileForm.get("bio")?.value?.length || 0 }}/160</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Save button -->
+            <div class="sp-settings-row-divider"></div>
+            <div class="sp-settings-row sp-settings-row--actions">
+              <div class="sp-settings-row-left"></div>
+              <div class="sp-settings-row-right">
+                <button
+                  class="sp-btn-accent sp-btn--pill"
+                  [disabled]="profileForm.invalid || profileSaving()"
+                  (click)="saveProfile()"
+                >
+                  @if (profileSaving()) {
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    ></span>
+                    Đang lưu...
+                  } @else if (profileSaved()) {
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    Đã lưu
+                  } @else {
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                    Lưu thay đổi
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (activeSection() === "security") {
+        <div class="sp-settings-section" @sectionFade>
+          <div class="sp-settings-section-header">
+            <div>
+              <h3 class="sp-settings-section-title">Tài khoản &amp; Bảo mật</h3>
+              <p class="sp-settings-section-desc">
+                Quản lý mật khẩu và bảo mật tài khoản của bạn.
+              </p>
+            </div>
+          </div>
+
+          <!-- Email (read-only) -->
+          <div class="sp-card sp-settings-card">
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <div class="sp-settings-label">Email</div>
+                <div class="sp-settings-desc">
+                  Không thể thay đổi sau khi đăng ký.
+                </div>
+              </div>
+              <div class="sp-settings-row-right">
+                <div class="sp-field-wrap">
+                  <input
+                    type="email"
+                    class="sp-input sp-input--readonly"
+                    [value]="currentUser()?.username ?? ''"
+                    readonly
+                    aria-readonly="true"
+                  />
+                  <span class="sp-field-badge">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    Đã xác minh
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Change password card -->
+          <div class="sp-card sp-settings-card" [formGroup]="passwordForm">
+            <div class="sp-settings-card-subheader">
+              <i class="fa-solid fa-key" aria-hidden="true"></i>
+              Đổi mật khẩu
+            </div>
+
+            <!-- Current password -->
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <label class="sp-settings-label" for="currentPassword"
+                  >Mật khẩu hiện tại</label
+                >
+              </div>
+              <div class="sp-settings-row-right">
+                <div class="sp-field-wrap sp-field-pw-wrap">
+                  <input
+                    id="currentPassword"
+                    [type]="showCurrentPw() ? 'text' : 'password'"
+                    class="sp-input sp-input--has-suffix"
+                    formControlName="currentPassword"
+                    placeholder="Nhập mật khẩu hiện tại"
+                    autocomplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    class="sp-pw-toggle"
+                    (click)="showCurrentPw.set(!showCurrentPw())"
+                    [attr.aria-label]="
+                      showCurrentPw() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
+                    "
+                  >
+                    <i
+                      [class]="
+                        showCurrentPw()
+                          ? 'fa-regular fa-eye-slash'
+                          : 'fa-regular fa-eye'
+                      "
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-settings-row-divider"></div>
+
+            <!-- New password -->
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <label class="sp-settings-label" for="newPassword"
+                  >Mật khẩu mới</label
+                >
+              </div>
+              <div class="sp-settings-row-right">
+                <div class="sp-field-wrap sp-field-pw-wrap">
+                  <input
+                    id="newPassword"
+                    [type]="showNewPw() ? 'text' : 'password'"
+                    class="sp-input sp-input--has-suffix"
+                    formControlName="newPassword"
+                    placeholder="Tối thiểu 8 ký tự"
+                    autocomplete="new-password"
+                    (input)="checkPasswordStrength()"
+                  />
+                  <button
+                    type="button"
+                    class="sp-pw-toggle"
+                    (click)="showNewPw.set(!showNewPw())"
+                    [attr.aria-label]="
+                      showNewPw() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
+                    "
+                  >
+                    <i
+                      [class]="
+                        showNewPw()
+                          ? 'fa-regular fa-eye-slash'
+                          : 'fa-regular fa-eye'
+                      "
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                  <!-- Strength bars -->
+                  <div
+                    class="sp-pw-strength"
+                    aria-label="Độ mạnh mật khẩu"
+                    role="img"
+                  >
+                    @for (bar of [0, 1, 2, 3]; track bar) {
+                      <div
+                        class="sp-pw-strength-bar"
+                        [class.is-active]="passwordStrength() > bar"
+                        [class]="
+                          'sp-pw-strength-bar sp-pw-strength-bar--' +
+                          getStrengthColor()
+                        "
+                        [class.is-active]="passwordStrength() > bar"
+                      ></div>
+                    }
+                    <span
+                      class="sp-pw-strength-label"
+                      [class]="'sp-pw-strength-label--' + getStrengthColor()"
+                    >
+                      {{ getStrengthLabel() }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-settings-row-divider"></div>
+
+            <!-- Confirm password -->
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <label class="sp-settings-label" for="confirmPassword"
+                  >Xác nhận mật khẩu mới</label
+                >
+              </div>
+              <div class="sp-settings-row-right">
+                <div class="sp-field-wrap sp-field-pw-wrap">
+                  <input
+                    id="confirmPassword"
+                    [type]="showConfirmPw() ? 'text' : 'password'"
+                    class="sp-input sp-input--has-suffix"
+                    formControlName="confirmPassword"
+                    placeholder="Nhập lại mật khẩu mới"
+                    autocomplete="new-password"
+                    [class.is-invalid]="
+                      passwordForm.get('confirmPassword')?.touched &&
+                      passwordForm.hasError('mismatch')
+                    "
+                  />
+                  <button
+                    type="button"
+                    class="sp-pw-toggle"
+                    (click)="showConfirmPw.set(!showConfirmPw())"
+                    [attr.aria-label]="
+                      showConfirmPw() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
+                    "
+                  >
+                    <i
+                      [class]="
+                        showConfirmPw()
+                          ? 'fa-regular fa-eye-slash'
+                          : 'fa-regular fa-eye'
+                      "
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                  @if (
+                    passwordForm.hasError("mismatch") &&
+                    passwordForm.get("confirmPassword")?.touched
+                  ) {
+                    <span class="sp-field-error" role="alert">
+                      <i
+                        class="fa-solid fa-circle-exclamation"
+                        aria-hidden="true"
+                      ></i>
+                      Mật khẩu xác nhận không khớp
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Save button -->
+            <div class="sp-settings-row-divider"></div>
+            <div class="sp-settings-row sp-settings-row--actions">
+              <div class="sp-settings-row-left"></div>
+              <div class="sp-settings-row-right">
+                <button
+                  class="sp-btn-accent sp-btn--pill"
+                  [disabled]="passwordForm.invalid || passwordSaving()"
+                  (click)="savePassword()"
+                >
+                  @if (passwordSaving()) {
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    ></span>
+                    Đang lưu...
+                  } @else if (passwordSaved()) {
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    Đã lưu
+                  } @else {
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                    Lưu thay đổi
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (activeSection() === "privacy") {
+        <div class="sp-settings-section" @sectionFade>
+          <div class="sp-settings-section-header">
+            <div>
+              <h3 class="sp-settings-section-title">Quyền riêng tư</h3>
+              <p class="sp-settings-section-desc">
+                Kiểm soát ai có thể xem thông tin và bài viết của bạn.
+              </p>
+            </div>
+          </div>
+
+          <div class="sp-card sp-settings-card">
+            @for (item of privacyItems; track item.key) {
+              <div class="sp-settings-row">
+                <div class="sp-settings-row-left">
+                  <div class="sp-settings-label">{{ item.label }}</div>
+                  <div class="sp-settings-desc">{{ item.desc }}</div>
+                </div>
+                <div class="sp-settings-row-right">
+                  <div class="sp-select-wrap">
+                    <select
+                      class="sp-select"
+                      [attr.aria-label]="item.label"
+                      [(ngModel)]="privacySettings[item.key]"
+                    >
+                      <option value="public">Công khai</option>
+                      <option value="friends">Chỉ bạn bè</option>
+                      <option value="private">Chỉ mình tôi</option>
+                    </select>
+                    <i
+                      class="fa-solid fa-chevron-down sp-select-arrow"
+                      aria-hidden="true"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+              @if (!$last) {
+                <div class="sp-settings-row-divider"></div>
+              }
+            }
+
+            <div class="sp-settings-row-divider"></div>
+            <div class="sp-settings-row sp-settings-row--actions">
+              <div class="sp-settings-row-left"></div>
+              <div class="sp-settings-row-right">
+                <button
+                  class="sp-btn-accent sp-btn--pill"
+                  [disabled]="privacySaving()"
+                  (click)="savePrivacy()"
+                >
+                  @if (privacySaving()) {
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    ></span>
+                    Đang lưu...
+                  } @else {
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                    Lưu thay đổi
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (activeSection() === "notifications") {
+        <div class="sp-settings-section" @sectionFade>
+          <div class="sp-settings-section-header">
+            <div>
+              <h3 class="sp-settings-section-title">Thông báo</h3>
+              <p class="sp-settings-section-desc">
+                Chọn loại thông báo bạn muốn nhận.
+              </p>
+            </div>
+          </div>
+
+          <div class="sp-card sp-settings-card">
+            @for (item of notifItems; track item.key) {
+              <div class="sp-settings-row">
+                <div class="sp-settings-row-left">
+                  <div class="sp-settings-label">{{ item.label }}</div>
+                  <div class="sp-settings-desc">{{ item.desc }}</div>
+                </div>
+                <div class="sp-settings-row-right">
+                  <button
+                    class="sp-toggle"
+                    role="switch"
+                    [attr.aria-checked]="notifSettings[item.key]"
+                    [class.is-on]="notifSettings[item.key]"
+                    (click)="notifSettings[item.key] = !notifSettings[item.key]"
+                    [attr.aria-label]="item.label"
+                  >
+                    <span class="sp-toggle-thumb"></span>
+                  </button>
+                </div>
+              </div>
+              @if (!$last) {
+                <div class="sp-settings-row-divider"></div>
+              }
+            }
+
+            <div class="sp-settings-row-divider"></div>
+            <div class="sp-settings-row sp-settings-row--actions">
+              <div class="sp-settings-row-left"></div>
+              <div class="sp-settings-row-right">
+                <button
+                  class="sp-btn-accent sp-btn--pill"
+                  [disabled]="notifSaving()"
+                  (click)="saveNotifications()"
+                >
+                  @if (notifSaving()) {
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    ></span>
+                    Đang lưu...
+                  } @else {
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                    Lưu thay đổi
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (activeSection() === "appearance") {
+        <div class="sp-settings-section" @sectionFade>
+          <div class="sp-settings-section-header">
+            <div>
+              <h3 class="sp-settings-section-title">Giao diện</h3>
+              <p class="sp-settings-section-desc">
+                Tuỳ chỉnh ngôn ngữ và ngôn ngữ hiển thị.
+              </p>
+            </div>
+          </div>
+
+          <div class="sp-card sp-settings-card">
+            <!-- Ngôn ngữ -->
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <div class="sp-settings-label">Ngôn ngữ</div>
+                <div class="sp-settings-desc">
+                  Ngôn ngữ hiển thị của ứng dụng.
+                </div>
+              </div>
+              <div class="sp-settings-row-right">
+                <div class="sp-select-wrap">
+                  <select
+                    class="sp-select"
+                    aria-label="Ngôn ngữ"
+                    [(ngModel)]="appearanceSettings.language"
+                  >
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="en">English</option>
+                  </select>
+                  <i
+                    class="fa-solid fa-chevron-down sp-select-arrow"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-settings-row-divider"></div>
+
+            <!-- Animated reactions toggle -->
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <div class="sp-settings-label">Hiệu ứng động</div>
+                <div class="sp-settings-desc">
+                  Bật/tắt animation trong ứng dụng.
+                </div>
+              </div>
+              <div class="sp-settings-row-right">
+                <button
+                  class="sp-toggle"
+                  role="switch"
+                  [attr.aria-checked]="appearanceSettings.animations"
+                  [class.is-on]="appearanceSettings.animations"
+                  (click)="
+                    appearanceSettings.animations =
+                      !appearanceSettings.animations
+                  "
+                  aria-label="Hiệu ứng động"
+                >
+                  <span class="sp-toggle-thumb"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sp-settings-row-divider"></div>
+
+            <!-- Compact mode -->
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <div class="sp-settings-label">Chế độ thu gọn</div>
+                <div class="sp-settings-desc">
+                  Giảm khoảng cách giữa các bài viết.
+                </div>
+              </div>
+              <div class="sp-settings-row-right">
+                <button
+                  class="sp-toggle"
+                  role="switch"
+                  [attr.aria-checked]="appearanceSettings.compact"
+                  [class.is-on]="appearanceSettings.compact"
+                  (click)="
+                    appearanceSettings.compact = !appearanceSettings.compact
+                  "
+                  aria-label="Chế độ thu gọn"
+                >
+                  <span class="sp-toggle-thumb"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sp-settings-row-divider"></div>
+            <div class="sp-settings-row sp-settings-row--actions">
+              <div class="sp-settings-row-left"></div>
+              <div class="sp-settings-row-right">
+                <button
+                  class="sp-btn-accent sp-btn--pill"
+                  [disabled]="appearanceSaving()"
+                  (click)="saveAppearance()"
+                >
+                  @if (appearanceSaving()) {
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    ></span>
+                    Đang lưu...
+                  } @else {
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                    Lưu thay đổi
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+</div>

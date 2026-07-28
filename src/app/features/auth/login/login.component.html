@@ -1,0 +1,215 @@
+<a href="#loginForm" class="skip-link">Bỏ qua đến form đăng nhập</a>
+
+<div class="grain-overlay" aria-hidden="true"></div>
+
+<main class="login-page" aria-label="Trang đăng nhập SocialApp">
+  <aside class="brand-panel" aria-hidden="true">
+    <div class="orb orb--red" id="orbRed"></div>
+    <div class="orb orb--teal" id="orbTeal"></div>
+
+    <div class="brand-inner">
+      <div class="brand-logo entrance-hidden" id="gsapLogo">
+        <div class="logo-mark">S</div>
+        <span class="logo-name">SocialApp</span>
+      </div>
+
+      <h1 class="brand-headline">
+        <span class="hl-line entrance-hidden" id="gsapHl1">Cùng kết nối.</span>
+        <span class="hl-line accent-word entrance-hidden" id="gsapHl2"
+          >Cùng tạo nên.</span
+        >
+      </h1>
+
+      <div class="stats-row">
+        <div class="stat-item entrance-hidden" id="gsapStat1">
+          <span class="stat-value"><span class="stat-dot"></span>52K</span>
+          <span class="stat-label">người dùng</span>
+        </div>
+        <div class="stat-item entrance-hidden" id="gsapStat2">
+          <span class="stat-value"><span class="stat-dot"></span>2.1M</span>
+          <span class="stat-label">bài viết</span>
+        </div>
+        <div class="stat-item entrance-hidden" id="gsapStat3">
+          <span class="stat-value"><span class="stat-dot"></span>99.4%</span>
+          <span class="stat-label">uptime</span>
+        </div>
+      </div>
+    </div>
+
+    <!--
+      Notif card wrapper: GSAP controls x-slide + opacity
+      Inner .notif-card: CSS keyframes handle the float animation
+    -->
+    <div class="notif-wrapper notif-wrapper--1" id="notifW1">
+      <div class="notif-card notif-card--1">
+        <div class="notif-avatar notif-avatar--red">MT</div>
+        <div class="notif-body">
+          <p class="notif-text">
+            <strong>Minh Tuấn</strong> thích bài viết của bạn
+          </p>
+          <span class="notif-time">vừa xong</span>
+        </div>
+        <i
+          class="fa-solid fa-heart notif-icon notif-icon--heart"
+          aria-hidden="true"
+        ></i>
+      </div>
+    </div>
+
+    <div class="notif-wrapper notif-wrapper--2" id="notifW2">
+      <div class="notif-card notif-card--2">
+        <div class="notif-avatar notif-avatar--teal">PL</div>
+        <div class="notif-body">
+          <p class="notif-text">
+            <strong>Phương Linh</strong> gửi lời mời kết bạn
+          </p>
+          <span class="notif-time">2 phút trước</span>
+        </div>
+        <i
+          class="fa-solid fa-user-plus notif-icon notif-icon--user"
+          aria-hidden="true"
+        ></i>
+      </div>
+    </div>
+  </aside>
+
+  <section class="form-panel">
+    <div class="form-wrap">
+      <div class="mobile-logo" aria-hidden="true">
+        <div class="logo-mark">S</div>
+        <span class="logo-name">SocialApp</span>
+      </div>
+
+      <h2 class="form-heading entrance-hidden" id="gsapH2">Đăng nhập</h2>
+      <p class="form-sub entrance-hidden" id="gsapSub">
+        Chào mừng bạn trở lại!
+      </p>
+
+      <div class="error-slot" [class.error-slot--visible]="errorMessage()">
+        @if (errorMessage()) {
+          <div
+            class="error-banner"
+            id="errorBanner"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            <i
+              class="fa-solid fa-triangle-exclamation error-banner__icon"
+              aria-hidden="true"
+            ></i>
+            <p class="error-banner__msg">{{ errorMessage() }}</p>
+          </div>
+        }
+      </div>
+
+      <!-- Login Form -->
+      <form
+        [formGroup]="form"
+        (ngSubmit)="onSubmit()"
+        id="loginForm"
+        novalidate
+      >
+        <div class="form-group entrance-hidden" id="gsapEmail">
+          <div class="form-label-row">
+            <label class="form-label" for="emailInput">Email</label>
+          </div>
+          <div class="input-wrap">
+            <input
+              type="email"
+              id="emailInput"
+              formControlName="email"
+              class="form-input"
+              [class.is-invalid]="!!emailError"
+              placeholder="you@example.com"
+              autocomplete="email"
+              aria-required="true"
+              aria-describedby="emailErrMsg"
+            />
+          </div>
+          @if (emailError) {
+            <div class="field-error" id="emailErrMsg" aria-live="polite">
+              <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+              <span>{{ emailError }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="form-group entrance-hidden" id="gsapPassword">
+          <div class="form-label-row">
+            <label class="form-label" for="passwordInput">Mật khẩu</label>
+            <a class="forgot-link" routerLink="/auth/forgot-password"
+              >Quên mật khẩu?</a
+            >
+          </div>
+          <div class="input-wrap">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              id="passwordInput"
+              formControlName="password"
+              class="form-input form-input--pw"
+              [class.is-invalid]="!!passwordError"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              aria-required="true"
+              aria-describedby="passwordErrMsg"
+            />
+            <button
+              type="button"
+              class="pw-toggle"
+              [attr.aria-label]="
+                showPassword() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
+              "
+              (click)="togglePassword()"
+            >
+              <i
+                aria-hidden="true"
+                [class]="
+                  showPassword()
+                    ? 'fa-regular fa-eye-slash'
+                    : 'fa-regular fa-eye'
+                "
+              ></i>
+            </button>
+          </div>
+          @if (passwordError) {
+            <div class="field-error" id="passwordErrMsg" aria-live="polite">
+              <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+              <span>{{ passwordError }}</span>
+            </div>
+          }
+        </div>
+
+        <button
+          type="submit"
+          id="btnSubmit"
+          class="btn-submit entrance-hidden"
+          [class.is-loading]="isLoading()"
+          [disabled]="isLoading()"
+        >
+          <span class="btn-spinner" aria-hidden="true"></span>
+          <span class="btn-label">Đăng nhập</span>
+          <span class="btn-loading-label">Đang đăng nhập...</span>
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="divider entrance-hidden" id="gsapDivider" aria-hidden="true">
+        <div class="divider-line"></div>
+        <span class="divider-text">hoặc</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- Register CTA -->
+      <button
+        type="button"
+        id="gsapRegister"
+        class="btn-ghost entrance-hidden"
+        [routerLink]="['/auth/register']"
+      >
+        <i class="fa-regular fa-user" aria-hidden="true"></i>
+        Tạo tài khoản mới
+      </button>
+    </div>
+  </section>
+</main>
