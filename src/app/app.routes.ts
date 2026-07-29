@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { gsapCleanupGuard } from './core/guards/gsap-cleanup.guard';
+import { loginGuard } from './core/guards/login.guard';
 
 export const routes: Routes = [
   {
@@ -18,6 +19,7 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then(
         (m) => m.LoginComponent,
       ),
+    canActivate: [loginGuard], 
   },
   {
     path: 'auth/register',
@@ -25,6 +27,7 @@ export const routes: Routes = [
       import('./features/auth/register/register.component').then(
         (m) => m.RegisterComponent,
       ),
+    canActivate: [loginGuard], 
   },
   {
     path: 'home',

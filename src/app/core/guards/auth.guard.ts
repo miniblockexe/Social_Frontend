@@ -1,20 +1,36 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { firstValueFrom } from 'rxjs';
 
 export const authGuard: CanActivateFn = async () => {
-  const authService = inject(AuthService);
+  const auth = inject(AuthService);
   const router = inject(Router);
 
-  const token = authService.getToken();
-  if (!token || authService.isTokenExpired()) {
+  const token = auth.getToken();
+
+  if (!token) {
     router.navigate(['/auth/login']);
     return false;
   }
 
-  if (!authService.currentUser()) {
-    await authService.loadCurrentUser();
+  if (!auth.isTokenExpired()) {
+    if (!auth.currentUser()) {
+      try {
+        await auth.loadCurrentUser();
+      } catch {}
+    }
+    return true;
   }
 
-  return true;
+  try {
+    await firstValueFrom(auth.refreshToken());
+    if (!auth.currentUser()) {
+      await auth.loadCurrentUser();
+    }
+    return true;
+  } catch {
+    router.navigate(['/auth/login']);
+    return false;
+  }
 };
