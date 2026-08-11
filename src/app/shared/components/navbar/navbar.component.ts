@@ -4,6 +4,7 @@ import {
   OnInit,
   OnDestroy,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -40,7 +41,7 @@ import { Conversation } from '../../../core/models/message.models';
 export class NavbarComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly notificationHubService = inject(NotificationHubService);
-  private readonly chatHubService = inject(ChatHubService);
+  readonly chatHubService = inject(ChatHubService);
   private readonly messageService = inject(MessageService);
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
@@ -52,17 +53,61 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.notificationHubService.unreadCount(),
   );
 
-  // Conversations để hiển thị trong messenger dropdown
-  conversations = signal<Conversation[]>([]);
-  isLoadingConversations = signal(false);
+  /** Badge tin nhắn = tổng unread real-time từ SignalR */
+  unreadMessages = computed(() => this.chatHubService.totalUnread());
 
-  // Tổng unread messages từ conversations
-  unreadMessages = computed(() => {
-    return this.conversations().reduce(
-      (sum, c) => sum + (c.unreadCount ?? 0),
-      0,
-    );
+  // Conversations base (load từ HTTP)
+  private baseConversations = signal<Conversation[]>([]);
+
+  /**
+   * Conversations hiển thị trong dropdown:
+   * Merge base list với incomingMessages — cập nhật preview và sort
+   * ngay khi có tin nhắn mới mà không cần reload HTTP.
+   */
+  conversations = computed(() => {
+    const base = this.baseConversations();
+    const incoming = this.chatHubService.incomingMessages();
+    if (incoming.length === 0) return base;
+
+    // Merge: với mỗi incoming, cập nhật lastMessage preview trên base list
+    let merged = [...base];
+    for (const inc of incoming) {
+      const idx = merged.findIndex((c) => c.id === inc.conversationId);
+      if (idx !== -1) {
+        const updated: Conversation = {
+          ...merged[idx],
+          lastMessageAt: inc.createdAt,
+          unreadCount:
+            this.chatHubService
+              .unreadByConversation()
+              .get(inc.conversationId) ?? 0,
+          lastMessage: {
+            id: '',
+            conversationId: inc.conversationId,
+            content: inc.content,
+            isAI: false,
+            attachmentUrl: null,
+            attachmentType: null,
+            createdAt: inc.createdAt,
+            isDeleted: false,
+            sender: {
+              id: inc.senderId,
+              username: '',
+              fullName: inc.senderName,
+              avatarUrl: inc.senderAvatar,
+              role: 0 as any,
+            },
+            seenByUserIds: [],
+          },
+        };
+        merged.splice(idx, 1);
+        merged = [updated, ...merged];
+      }
+    }
+    return merged;
   });
+
+  isLoadingConversations = signal(false);
 
   showMenu = signal(false);
   showMessenger = signal(false);
@@ -71,10 +116,26 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private convSub?: Subscription;
 
+  constructor() {
+    effect(() => {
+      const incoming = this.chatHubService.incomingMessages();
+      const base = this.baseConversations();
+      const missing = incoming.some(
+        (inc) => !base.find((c) => c.id === inc.conversationId),
+      );
+      if (missing) {
+        this.loadConversations();
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.isDark.set(localStorage.getItem('theme') === 'dark');
+
     this.notificationHubService.startConnection();
     this.notificationHubService.loadInitialCount();
+    this.chatHubService.startConnection();
+
     this.loadConversations();
   }
 
@@ -84,9 +145,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   loadConversations(): void {
     this.isLoadingConversations.set(true);
-    this.convSub = this.messageService.getConversations(1, 15).subscribe({
+    this.convSub?.unsubscribe();
+    this.convSub = this.messageService.getConversations(1, 20).subscribe({
       next: (res) => {
-        if (res.success) this.conversations.set(res.data.items);
+        if (res.success) this.baseConversations.set(res.data.items);
       },
       complete: () => this.isLoadingConversations.set(false),
     });
@@ -107,6 +169,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   openConversation(conv: Conversation, event: Event): void {
     event.stopPropagation();
     this.closeMessenger();
+    this.chatHubService.clearUnread(conv.id);
     this.router.navigate(['/messages', conv.id]);
   }
 
@@ -136,6 +199,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (msg.isDeleted) return 'Tin nhắn đã bị xóa';
     if (msg.attachmentUrl && !msg.content) return '📎 File đính kèm';
     return msg.content ?? '';
+  }
+
+  /** Unread count cho conversation cụ thể (real-time từ SignalR) */
+  getUnreadCount(convId: string): number {
+    return this.chatHubService.unreadByConversation().get(convId) ?? 0;
+  }
+
+  /** Conversation có unread không (kết hợp DB + real-time) */
+  hasUnread(conv: Conversation): boolean {
+    return this.getUnreadCount(conv.id) > 0 || (conv.unreadCount ?? 0) > 0;
   }
 
   toggleMenu(event: Event): void {

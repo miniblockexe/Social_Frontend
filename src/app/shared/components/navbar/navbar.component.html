@@ -47,10 +47,10 @@
     <!-- Tin nhắn — messenger dropdown -->
     <div
       class="sp-nav-icon-btn sp-messenger-trigger"
+      [class.active]="showMessenger()"
       (click)="toggleMessenger($event)"
       aria-label="Tin nhắn"
       role="button"
-      [class.active]="showMessenger()"
     >
       <i class="fa-brands fa-facebook-messenger" aria-hidden="true"></i>
       @if (unreadMessages() > 0) {
@@ -71,15 +71,13 @@
           <!-- Header -->
           <div class="sp-messenger-header">
             <span class="sp-messenger-title">Đoạn chat</span>
-            <div class="sp-messenger-header-actions">
-              <button
-                class="sp-messenger-icon-btn"
-                title="Tạo cuộc trò chuyện mới"
-                (click)="openAllMessages($event)"
-              >
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-            </div>
+            <button
+              class="sp-messenger-icon-btn"
+              title="Mở trang tin nhắn"
+              (click)="openAllMessages($event)"
+            >
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
           </div>
 
           <!-- Tabs -->
@@ -95,7 +93,6 @@
             }
           </div>
 
-          <!-- Conversation list -->
           <div class="sp-messenger-list">
             @if (isLoadingConversations()) {
               <div class="sp-messenger-loading">
@@ -110,7 +107,7 @@
               @for (conv of conversations(); track conv.id) {
                 <div
                   class="sp-messenger-item"
-                  [class.sp-messenger-item--unread]="conv.unreadCount > 0"
+                  [class.sp-messenger-item--unread]="hasUnread(conv)"
                   (click)="openConversation(conv, $event)"
                 >
                   <div class="sp-messenger-item-avatar">
@@ -119,23 +116,22 @@
                       [name]="getConversationName(conv)"
                       [size]="44"
                     />
-                    <span class="sp-messenger-online-dot"></span>
                   </div>
                   <div class="sp-messenger-item-info">
                     <span class="sp-messenger-item-name">{{
                       getConversationName(conv)
                     }}</span>
                     <span class="sp-messenger-item-preview">
-                      {{ getLastMessagePreview(conv) | truncate: 36 }}
+                      {{ getLastMessagePreview(conv) | truncate: 38 }}
                       @if (conv.lastMessage?.createdAt) {
                         <span class="sp-messenger-item-dot">·</span>
-                        <span class="sp-messenger-item-time">{{
-                          conv.lastMessage!.createdAt | timeAgo
-                        }}</span>
+                        <span class="sp-messenger-item-time">
+                          {{ conv.lastMessage!.createdAt | timeAgo }}
+                        </span>
                       }
                     </span>
                   </div>
-                  @if (conv.unreadCount > 0) {
+                  @if (hasUnread(conv)) {
                     <span class="sp-messenger-unread-dot"></span>
                   }
                 </div>
@@ -202,7 +198,6 @@
           class="sp-dropdown sp-navbar-dropdown sp-fade-in"
           (click)="$event.stopPropagation()"
         >
-          <!-- User info -->
           <div class="sp-navbar-dropdown-user">
             <app-avatar
               [src]="currentUser()?.avatarUrl"
@@ -219,7 +214,6 @@
             </div>
           </div>
           <div class="sp-divider" style="margin: var(--sp-2) 0"></div>
-          <!-- Menu items -->
           <a
             [routerLink]="['/profile', currentUser()?.id]"
             class="sp-dropdown-item"

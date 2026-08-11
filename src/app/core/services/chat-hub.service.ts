@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import {
   HubConnection,
   HubConnectionBuilder,
@@ -11,6 +11,15 @@ import { Message } from '../models/message.models';
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
+export interface IncomingMessage {
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string | null;
+  content: string | null;
+  createdAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ChatHubService {
   private readonly authService = inject(AuthService);
@@ -22,6 +31,26 @@ export class ChatHubService {
   messages = signal<Map<string, Message[]>>(new Map());
   typingUsers = signal<Map<string, string[]>>(new Map());
   connectionState = signal<ConnectionState>('disconnected');
+
+  /**
+   * Map<conversationId, unreadCount> — chỉ đếm tin nhắn từ người khác
+   * khi conversation đó KHÔNG phải đang active.
+   * Navbar dùng signal này để hiện badge.
+   */
+  unreadByConversation = signal<Map<string, number>>(new Map());
+
+  /** Tổng số tin nhắn chưa đọc qua tất cả conversation. */
+  totalUnread = computed(() => {
+    let total = 0;
+    this.unreadByConversation().forEach((count) => (total += count));
+    return total;
+  });
+
+  /**
+   * Danh sách tin nhắn mới đến (chỉ từ người khác, chưa đọc).
+   * Navbar dùng để cập nhật preview trong dropdown.
+   */
+  incomingMessages = signal<IncomingMessage[]>([]);
 
   async startConnection(): Promise<void> {
     if (this.connection?.state === HubConnectionState.Connected) return;
@@ -55,11 +84,15 @@ export class ChatHubService {
     if (!this.connection) return;
 
     this.connection.on('ReceiveMessage', (msg: Message) => {
+      const currentUserId = this.authService.currentUser()?.id?.toLowerCase();
+
       // normalize seenByUserIds lowercase để nhất quán với MessageSeen handler
       const normalizedMsg: Message = {
         ...msg,
         seenByUserIds: msg.seenByUserIds.map((id) => id.toLowerCase()),
       };
+
+      // Cập nhật messages map
       this.messages.update((map) => {
         const updated = new Map(map);
         const list = [
@@ -70,8 +103,38 @@ export class ChatHubService {
         return updated;
       });
 
-      if (this.activeConversationId() === msg.conversationId) {
+      const isFromOther =
+        currentUserId && msg.sender?.id?.toLowerCase() !== currentUserId;
+
+      const isActive = this.activeConversationId() === msg.conversationId;
+
+      if (isActive) {
         this.markSeen(msg.conversationId);
+      } else if (isFromOther) {
+        this.unreadByConversation.update((map) => {
+          const updated = new Map(map);
+          updated.set(
+            msg.conversationId,
+            (updated.get(msg.conversationId) ?? 0) + 1,
+          );
+          return updated;
+        });
+
+        const incoming: IncomingMessage = {
+          conversationId: msg.conversationId,
+          senderId: msg.sender?.id ?? '',
+          senderName: msg.sender?.fullName ?? '',
+          senderAvatar: msg.sender?.avatarUrl ?? null,
+          content: msg.content,
+          createdAt: msg.createdAt,
+        };
+
+        this.incomingMessages.update((list) => {
+          const filtered = list.filter(
+            (m) => m.conversationId !== msg.conversationId,
+          );
+          return [incoming, ...filtered];
+        });
       }
     });
 
@@ -85,9 +148,6 @@ export class ChatHubService {
         userId: string;
         seenAt: string;
       }) => {
-        // normalize Guid sang lowercase trước khi so sánh
-        // BE List<Guid> serialize lowercase, nhưng userId từ JWT claim có thể
-        // trả về bất kỳ casing nào → toLowerCase() đảm bảo luôn khớp
         const normalizedUserId = userId.toLowerCase();
         this.messages.update((map) => {
           const updated = new Map(map);
@@ -101,6 +161,11 @@ export class ChatHubService {
           updated.set(conversationId, list);
           return updated;
         });
+
+        const currentUserId = this.authService.currentUser()?.id?.toLowerCase();
+        if (normalizedUserId === currentUserId) {
+          this.clearUnread(conversationId);
+        }
       },
     );
 
@@ -169,6 +234,7 @@ export class ChatHubService {
 
   async markSeen(conversationId: string): Promise<void> {
     await this.connection?.invoke('MarkSeen', conversationId);
+    this.clearUnread(conversationId);
   }
 
   async sendTyping(conversationId: string, isTyping: boolean): Promise<void> {
@@ -181,6 +247,19 @@ export class ChatHubService {
 
   setActiveConversation(id: string): void {
     this.activeConversationId.set(id);
+    this.clearUnread(id);
+  }
+
+  clearUnread(conversationId: string): void {
+    this.unreadByConversation.update((map) => {
+      if (!map.has(conversationId)) return map;
+      const updated = new Map(map);
+      updated.delete(conversationId);
+      return updated;
+    });
+    this.incomingMessages.update((list) =>
+      list.filter((m) => m.conversationId !== conversationId),
+    );
   }
 
   getMessagesForConversation(convId: string): Message[] {
@@ -188,8 +267,6 @@ export class ChatHubService {
   }
 
   loadInitialMessages(convId: string, messages: Message[]): void {
-    // normalize seenByUserIds lowercase khi load từ HTTP
-    // để nhất quán với data đến từ SignalR
     const normalized = messages.map((m) => ({
       ...m,
       seenByUserIds: m.seenByUserIds.map((id) => id.toLowerCase()),
