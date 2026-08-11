@@ -61,8 +61,8 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     {
       id: 3,
       text: 'Là developer, tôi ấn tượng với độ ổn định và tốc độ. WebSocket hoạt động cực kỳ mượt, không bao giờ ngắt kết nối giữa chừng.',
-      name: 'Lê Văn Cường',
-      role: 'Developer, Đà Nẵng',
+      name: 'Đinh Lê Viết Cường',
+      role: 'Developer, Đà Lạt',
       initials: 'C',
       avatarBg: 'linear-gradient(135deg, #00d4a8, #0099ff)',
     },
