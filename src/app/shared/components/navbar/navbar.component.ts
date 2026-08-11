@@ -61,29 +61,27 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   /**
    * Conversations hiển thị trong dropdown:
-   * Merge base list với incomingMessages — cập nhật preview và sort
+   * Merge base list với latestMessageByConv — cập nhật preview và sort
    * ngay khi có tin nhắn mới mà không cần reload HTTP.
+   * Dùng latestMessageByConv (không phải incomingMessages) để bao gồm
+   * cả tin nhắn do chính user gửi — incomingMessages chỉ track tin từ người khác.
    */
   conversations = computed(() => {
     const base = this.baseConversations();
-    const incoming = this.chatHubService.incomingMessages();
-    if (incoming.length === 0) return base;
-
-    // Merge: với mỗi incoming, cập nhật lastMessage preview trên base list
+    const latest = this.chatHubService.latestMessageByConv();
+    if (latest.size === 0) return base;
     let merged = [...base];
-    for (const inc of incoming) {
-      const idx = merged.findIndex((c) => c.id === inc.conversationId);
+    latest.forEach((inc, conversationId) => {
+      const idx = merged.findIndex((c) => c.id === conversationId);
       if (idx !== -1) {
         const updated: Conversation = {
           ...merged[idx],
           lastMessageAt: inc.createdAt,
           unreadCount:
-            this.chatHubService
-              .unreadByConversation()
-              .get(inc.conversationId) ?? 0,
+            this.chatHubService.unreadByConversation().get(conversationId) ?? 0,
           lastMessage: {
             id: '',
-            conversationId: inc.conversationId,
+            conversationId,
             content: inc.content,
             isAI: false,
             attachmentUrl: null,
@@ -103,8 +101,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
         merged.splice(idx, 1);
         merged = [updated, ...merged];
       }
-    }
-    return merged;
+    });
+
+    // Sort theo lastMessageAt mới nhất
+    return merged.sort((a, b) => {
+      const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return tb - ta;
+    });
   });
 
   isLoadingConversations = signal(false);

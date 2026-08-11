@@ -48,9 +48,11 @@ export class ChatHubService {
 
   /**
    * Danh sách tin nhắn mới đến (chỉ từ người khác, chưa đọc).
-   * Navbar dùng để cập nhật preview trong dropdown.
+   * Navbar dùng để cập nhật unread badge và reload conv nếu thiếu.
    */
   incomingMessages = signal<IncomingMessage[]>([]);
+
+  latestMessageByConv = signal<Map<string, IncomingMessage>>(new Map());
 
   async startConnection(): Promise<void> {
     if (this.connection?.state === HubConnectionState.Connected) return;
@@ -91,14 +93,12 @@ export class ChatHubService {
         ...msg,
         seenByUserIds: msg.seenByUserIds.map((id) => id.toLowerCase()),
       };
-
       this.messages.update((map) => {
         const updated = new Map(map);
         let existing = updated.get(normalizedMsg.conversationId) ?? [];
 
         const isOwnMessage =
-          currentUserId &&
-          msg.sender?.id?.toLowerCase() === currentUserId;
+          currentUserId && msg.sender?.id?.toLowerCase() === currentUserId;
 
         if (isOwnMessage) {
           existing = existing.filter((m) => !m.id.startsWith('temp-'));
@@ -117,6 +117,20 @@ export class ChatHubService {
 
       const isActive = this.activeConversationId() === msg.conversationId;
 
+      const preview: IncomingMessage = {
+        conversationId: msg.conversationId,
+        senderId: msg.sender?.id ?? '',
+        senderName: msg.sender?.fullName ?? '',
+        senderAvatar: msg.sender?.avatarUrl ?? null,
+        content: msg.content,
+        createdAt: msg.createdAt,
+      };
+      this.latestMessageByConv.update((map) => {
+        const updated = new Map(map);
+        updated.set(msg.conversationId, preview);
+        return updated;
+      });
+
       if (isActive) {
         this.markSeen(msg.conversationId);
       } else if (isFromOther) {
@@ -129,20 +143,11 @@ export class ChatHubService {
           return updated;
         });
 
-        const incoming: IncomingMessage = {
-          conversationId: msg.conversationId,
-          senderId: msg.sender?.id ?? '',
-          senderName: msg.sender?.fullName ?? '',
-          senderAvatar: msg.sender?.avatarUrl ?? null,
-          content: msg.content,
-          createdAt: msg.createdAt,
-        };
-
         this.incomingMessages.update((list) => {
           const filtered = list.filter(
             (m) => m.conversationId !== msg.conversationId,
           );
-          return [incoming, ...filtered];
+          return [preview, ...filtered];
         });
       }
     });
@@ -284,6 +289,22 @@ export class ChatHubService {
       if (map.has(convId)) return map;
       const updated = new Map(map);
       updated.set(convId, normalized);
+      return updated;
+    });
+  }
+
+  notifyMessageSent(msg: Message): void {
+    const preview: IncomingMessage = {
+      conversationId: msg.conversationId,
+      senderId: msg.sender?.id ?? '',
+      senderName: msg.sender?.fullName ?? '',
+      senderAvatar: msg.sender?.avatarUrl ?? null,
+      content: msg.attachmentUrl ? null : msg.content,
+      createdAt: msg.createdAt,
+    };
+    this.latestMessageByConv.update((map) => {
+      const updated = new Map(map);
+      updated.set(msg.conversationId, preview);
       return updated;
     });
   }

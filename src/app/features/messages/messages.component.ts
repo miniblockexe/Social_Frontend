@@ -164,6 +164,8 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!activeId) return;
       const allMessages = this.chatHubService.messages();
       const updated = allMessages.get(activeId) ?? [];
+      // BUG 5 FIX: luôn set kể cả khi rỗng — để clear tin nhắn conv cũ ngay
+      // khi chuyển sang conv mới chưa có tin nhắn trong map
       untracked(() => this.rawMessages.set([...updated]));
     });
   }
@@ -416,6 +418,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
         if (res.success) {
           const msgs = this.chatHubService.getMessagesForConversation(convId);
           this.chatHubService.upsertMessages(convId, [...msgs, res.data]);
+          this.chatHubService.notifyMessageSent(res.data);
           setTimeout(() => this.scrollToBottom(), 60);
         }
       },
