@@ -9,7 +9,7 @@ import { HUB_NOTIFY } from '../constants/api.constants';
 import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
 import { ToastService } from './toast.service';
-import { Notification } from '../models/notification.models';
+import { Notification, NotificationType } from '../models/notification.models';
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
@@ -64,6 +64,8 @@ export class NotificationHubService {
     if (!this.connection) return;
 
     this.connection.on('ReceiveNotification', (notification: Notification) => {
+      // Tin nhắn không tạo notification — hiển thị qua messenger dropdown
+      if (notification.type === NotificationType.Message) return;
       this.notifications.update((list) => [notification, ...list]);
       this.unreadCount.update((c) => c + 1);
       this.toastService.info(notification.content);

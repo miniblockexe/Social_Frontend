@@ -44,14 +44,15 @@
       <span class="sp-nav-active-bar"></span>
     </a>
 
-    <!-- Tin nhắn -->
-    <a
-      class="sp-nav-icon-btn"
-      routerLink="/messages"
-      routerLinkActive="active"
+    <!-- Tin nhắn — messenger dropdown -->
+    <div
+      class="sp-nav-icon-btn sp-messenger-trigger"
+      (click)="toggleMessenger($event)"
       aria-label="Tin nhắn"
+      role="button"
+      [class.active]="showMessenger()"
     >
-      <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+      <i class="fa-brands fa-facebook-messenger" aria-hidden="true"></i>
       @if (unreadMessages() > 0) {
         <span
           class="sp-badge"
@@ -60,8 +61,100 @@
           {{ unreadMessages() > 9 ? "9+" : unreadMessages() }}
         </span>
       }
-      <span class="sp-nav-active-bar"></span>
-    </a>
+
+      <!-- Messenger Dropdown -->
+      @if (showMessenger()) {
+        <div
+          class="sp-messenger-dropdown sp-fade-in"
+          (click)="$event.stopPropagation()"
+        >
+          <!-- Header -->
+          <div class="sp-messenger-header">
+            <span class="sp-messenger-title">Đoạn chat</span>
+            <div class="sp-messenger-header-actions">
+              <button
+                class="sp-messenger-icon-btn"
+                title="Tạo cuộc trò chuyện mới"
+                (click)="openAllMessages($event)"
+              >
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="sp-messenger-tabs">
+            <button class="sp-messenger-tab active">Tất cả</button>
+            @if (unreadMessages() > 0) {
+              <button class="sp-messenger-tab">
+                Chưa đọc
+                <span class="sp-messenger-tab-badge">{{
+                  unreadMessages()
+                }}</span>
+              </button>
+            }
+          </div>
+
+          <!-- Conversation list -->
+          <div class="sp-messenger-list">
+            @if (isLoadingConversations()) {
+              <div class="sp-messenger-loading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+              </div>
+            } @else if (conversations().length === 0) {
+              <div class="sp-messenger-empty">
+                <i class="fa-regular fa-comment-dots"></i>
+                <span>Chưa có tin nhắn nào</span>
+              </div>
+            } @else {
+              @for (conv of conversations(); track conv.id) {
+                <div
+                  class="sp-messenger-item"
+                  [class.sp-messenger-item--unread]="conv.unreadCount > 0"
+                  (click)="openConversation(conv, $event)"
+                >
+                  <div class="sp-messenger-item-avatar">
+                    <app-avatar
+                      [src]="getConversationAvatar(conv)"
+                      [name]="getConversationName(conv)"
+                      [size]="44"
+                    />
+                    <span class="sp-messenger-online-dot"></span>
+                  </div>
+                  <div class="sp-messenger-item-info">
+                    <span class="sp-messenger-item-name">{{
+                      getConversationName(conv)
+                    }}</span>
+                    <span class="sp-messenger-item-preview">
+                      {{ getLastMessagePreview(conv) | truncate: 36 }}
+                      @if (conv.lastMessage?.createdAt) {
+                        <span class="sp-messenger-item-dot">·</span>
+                        <span class="sp-messenger-item-time">{{
+                          conv.lastMessage!.createdAt | timeAgo
+                        }}</span>
+                      }
+                    </span>
+                  </div>
+                  @if (conv.unreadCount > 0) {
+                    <span class="sp-messenger-unread-dot"></span>
+                  }
+                </div>
+              }
+            }
+          </div>
+
+          <!-- Footer -->
+          <div class="sp-messenger-footer">
+            <button
+              class="sp-messenger-see-all"
+              (click)="openAllMessages($event)"
+            >
+              Xem tất cả trong Tin nhắn
+            </button>
+          </div>
+        </div>
+      }
+    </div>
 
     <!-- Thông báo -->
     <a

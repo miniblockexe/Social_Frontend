@@ -69,7 +69,6 @@ export class NotificationsComponent
 
   readonly NotificationType = NotificationType;
 
-  // ĐÃ THÊM: entranceTl theo yêu cầu của bạn
   private gsapCtx: gsap.Context | null = null;
   private entranceTl: gsap.core.Timeline | null = null;
   private prefersReducedMotion = false;
@@ -77,10 +76,13 @@ export class NotificationsComponent
   unreadCount = computed(() => this.notificationHubService.unreadCount());
 
   filteredNotifications = computed(() => {
+    const nonMessage = this.notifications().filter(
+      (n) => n.type !== NotificationType.Message,
+    );
     if (this.filterTab() === 'unread') {
-      return this.notifications().filter((n) => !n.isRead);
+      return nonMessage.filter((n) => !n.isRead);
     }
-    return this.notifications();
+    return nonMessage;
   });
 
   constructor() {
@@ -88,6 +90,8 @@ export class NotificationsComponent
       const incoming = this.notificationHubService.notifications();
       if (incoming.length === 0) return;
       const latest = incoming[0];
+      // Bỏ qua notification loại Message — tin nhắn hiển thị qua messenger dropdown
+      if (latest.type === NotificationType.Message) return;
       this.notifications.update((list) => {
         if (list.some((n) => n.id === latest.id)) return list;
         const newUI = this.toUI(latest);
