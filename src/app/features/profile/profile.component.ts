@@ -27,6 +27,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { FriendService } from '../../core/services/friend.service';
 import { MessageService } from '../../core/services/message.service';
 import { ToastService } from '../../core/services/toast.service';
+import { FeedCacheService } from '../../core/services/feed-cache.service';
 
 import { UserProfile } from '../../core/models/user.models';
 import { Post, PostMedia } from '../../core/models/post.models';
@@ -65,6 +66,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly friendService = inject(FriendService);
   private readonly messageService = inject(MessageService);
   private readonly toastService = inject(ToastService);
+  private readonly feedCache = inject(FeedCacheService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -99,7 +101,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     return d ? new Date(d).getFullYear() : '';
   });
 
-  /** Flat list of all image media from posts */
   photos = computed<PostMedia[]>(() =>
     this.posts()
       .flatMap((p) => p.mediaFiles.filter((m) => m.mediaType === 0)) // 0 = Image
@@ -108,7 +109,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
   photoCount = computed(() => this.photos().length);
 
-  /** First 6 friends for sidebar preview */
   friendsPreview = computed(() => this.friends().slice(0, 6));
 
   friendStatus = computed((): FriendStatusStr => {
@@ -132,7 +132,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         this.currentUserId = id;
         this.resetState();
         this.loadProfile(id);
-        this.loadPosts(id, true);
+        this.loadPostsWithCache(id);
         this.loadFriends(id);
       });
   }
@@ -225,6 +225,19 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private loadPostsWithCache(id: string): void {
+    const snap = this.feedCache.getProfilePosts(id);
+    if (snap) {
+      this.posts.set(snap.posts);
+      this.postsPage = snap.page;
+      this.postsHasMore = snap.hasMore;
+      this.isLoadingPosts.set(false);
+      this.cdr.markForCheck();
+      return;
+    }
+    this.loadPosts(id, true);
+  }
+
   loadPosts(id: string, initial = false): void {
     if (initial) {
       this.isLoadingPosts.set(true);
@@ -238,6 +251,12 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
           this.posts.update((prev) => [...prev, ...res.data.items]);
         }
         this.postsHasMore = res.data.page < res.data.totalPages;
+        this.feedCache.saveProfilePosts(
+          id,
+          this.posts(),
+          this.postsPage,
+          this.postsHasMore,
+        );
       },
       complete: () => {
         this.isLoadingPosts.set(false);
@@ -313,11 +332,13 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onPostDeleted(postId: string): void {
     this.posts.update((list) => list.filter((p) => p.id !== postId));
+    this.feedCache.removeProfilePost(this.currentUserId, postId);
     this.cdr.markForCheck();
   }
 
   onPostUpdated(post: Post): void {
     this.posts.update((list) => list.map((p) => (p.id === post.id ? post : p)));
+    this.feedCache.updateProfilePost(this.currentUserId, post);
     this.cdr.markForCheck();
   }
 

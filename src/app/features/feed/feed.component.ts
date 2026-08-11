@@ -25,6 +25,7 @@ import { PostService } from '../../core/services/post.service';
 import { FriendService } from '../../core/services/friend.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { FeedCacheService } from '../../core/services/feed-cache.service'; // THÊM
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { CreatePostComponent } from '../../shared/components/create-post/create-post.component';
@@ -57,6 +58,7 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly friendService = inject(FriendService);
   private readonly authService = inject(AuthService);
   private readonly toastService = inject(ToastService);
+  private readonly feedCache = inject(FeedCacheService); 
   private readonly cdr = inject(ChangeDetectorRef);
 
   me = computed(() => this.authService.currentUser());
@@ -111,9 +113,9 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    this.loadFeed();
-    this.loadPendingRequests();
-    this.loadSuggestions();
+    this.loadFeedWithCache();
+    this.loadPendingRequestsWithCache();
+    this.loadSuggestionsWithCache();
   }
 
   ngAfterViewInit(): void {
@@ -123,23 +125,18 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (!prefersReduced) {
       this.ctx = gsap.context(() => {
-        // Sidebar trái slide-in
         gsap.from('.feed-sidebar--left', {
           x: -28,
           duration: 0.6,
           ease: 'power3.out',
           clearProps: 'x',
         });
-
-        // Sidebar phải slide-in
         gsap.from('.feed-sidebar--right', {
           x: 28,
           duration: 0.6,
           ease: 'power3.out',
           clearProps: 'x',
         });
-
-        // Center feed fade-up
         gsap.from('.feed-center', {
           y: 20,
           duration: 0.5,
@@ -147,8 +144,6 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
           delay: 0.1,
           clearProps: 'y',
         });
-
-        // Feed header (user info bar)
         gsap.from('.feed-page-header', {
           y: -16,
           duration: 0.45,
@@ -157,7 +152,6 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
           clearProps: 'y',
         });
       });
-
       this.setupScrollTriggers();
     }
   }
@@ -165,6 +159,23 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     ScrollTrigger.getAll().forEach((t) => t.kill());
     this.ctx?.revert();
+  }
+
+  private loadFeedWithCache(): void {
+    const snap = this.feedCache.getFeed();
+    if (snap) {
+      this.posts = snap.posts;
+      this.cursorId = snap.cursorId;
+      this.hasMore = snap.hasMore;
+      this.cdr.markForCheck();
+
+      const age = Date.now() - (snap as any).cachedAt;
+      if (age > 45_000) {
+        this.revalidateFeedSilently();
+      }
+      return;
+    }
+    this.loadFeed();
   }
 
   private loadFeed(): void {
@@ -179,6 +190,9 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
           this.hasMore = res.data.page < res.data.totalPages;
           const last = res.data.items.at(-1);
           if (last) this.cursorId = last.id;
+
+          // Lưu vào cache
+          this.feedCache.saveFeed(this.posts, this.cursorId, this.hasMore);
         }
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -190,11 +204,39 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private loadPendingRequests(): void {
+  /** Fetch trang 1 trong nền, cập nhật cache + UI nếu có dữ liệu mới */
+  private revalidateFeedSilently(): void {
+    this.postService.getFeed(1, 10).subscribe({
+      next: (res) => {
+        if (!res.success || !res.data) return;
+        const fresh = res.data.items;
+        const last = fresh.at(-1);
+        const cursor = last?.id;
+        const hasMore = res.data.page < res.data.totalPages;
+
+        this.posts = fresh;
+        this.cursorId = cursor;
+        this.hasMore = hasMore;
+        this.feedCache.saveFeed(fresh, cursor, hasMore);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private loadPendingRequestsWithCache(): void {
+    const cached = this.feedCache.getPending();
+    if (cached) {
+      this.pendingRequests = cached;
+      this.cdr.markForCheck();
+      return;
+    }
     this.isLoadingRequests = true;
     this.friendService.getPendingRequests(1, 5).subscribe({
       next: (res) => {
-        if (res.success) this.pendingRequests = res.data.items;
+        if (res.success) {
+          this.pendingRequests = res.data.items;
+          this.feedCache.savePending(res.data.items);
+        }
         this.isLoadingRequests = false;
         this.cdr.markForCheck();
       },
@@ -205,11 +247,20 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private loadSuggestions(): void {
+  private loadSuggestionsWithCache(): void {
+    const cached = this.feedCache.getSuggestions();
+    if (cached) {
+      this.suggestions = cached;
+      this.cdr.markForCheck();
+      return;
+    }
     this.isLoadingSuggestions = true;
     this.friendService.getSuggestions(1, 5).subscribe({
       next: (res) => {
-        if (res.success) this.suggestions = res.data.items;
+        if (res.success) {
+          this.suggestions = res.data.items;
+          this.feedCache.saveSuggestions(res.data.items);
+        }
         this.isLoadingSuggestions = false;
         this.cdr.markForCheck();
       },
@@ -258,20 +309,21 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onPostDeleted(postId: string): void {
     this.posts = this.posts.filter((p) => p.id !== postId);
+    this.feedCache.removePost(postId);
     this.cdr.markForCheck();
   }
 
   onPostUpdated(post: Post): void {
     this.posts = this.posts.map((p) => (p.id === post.id ? post : p));
+    this.feedCache.updatePost(post);
     this.cdr.markForCheck();
   }
 
   onPostCreated(post: Post): void {
-    // Prepend new post to top of feed
     this.posts = [post, ...this.posts];
+    this.feedCache.prependPost(post);
     this.cdr.markForCheck();
 
-    // Animate new post sliding in
     const prefersReduced = window.matchMedia(
       '(prefers-reduced-motion: reduce)',
     ).matches;
@@ -302,6 +354,7 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
         this.pendingRequests = this.pendingRequests.filter(
           (r) => r.requestId !== req.requestId,
         );
+        this.feedCache.removePending(req.requestId);
         this.cdr.markForCheck();
       },
       error: () => this.toastService.error('Không thể chấp nhận lời mời'),
@@ -314,6 +367,7 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
         this.pendingRequests = this.pendingRequests.filter(
           (r) => r.requestId !== req.requestId,
         );
+        this.feedCache.removePending(req.requestId);
         this.cdr.markForCheck();
       },
       error: () => this.toastService.error('Không thể từ chối lời mời'),
@@ -330,6 +384,7 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
         this.suggestions = this.suggestions.filter(
           (s) => s.user.id !== suggestion.user.id,
         );
+        this.feedCache.removeSuggestion(suggestion.user.id);
         this.sendingRequestId = null;
         this.cdr.markForCheck();
       },
