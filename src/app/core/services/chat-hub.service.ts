@@ -92,14 +92,23 @@ export class ChatHubService {
         seenByUserIds: msg.seenByUserIds.map((id) => id.toLowerCase()),
       };
 
-      // Cập nhật messages map
       this.messages.update((map) => {
         const updated = new Map(map);
-        const list = [
-          ...(updated.get(normalizedMsg.conversationId) ?? []),
-          normalizedMsg,
-        ];
-        updated.set(normalizedMsg.conversationId, list);
+        let existing = updated.get(normalizedMsg.conversationId) ?? [];
+
+        const isOwnMessage =
+          currentUserId &&
+          msg.sender?.id?.toLowerCase() === currentUserId;
+
+        if (isOwnMessage) {
+          existing = existing.filter((m) => !m.id.startsWith('temp-'));
+        }
+
+        if (!existing.some((m) => m.id === normalizedMsg.id)) {
+          existing = [...existing, normalizedMsg];
+        }
+
+        updated.set(normalizedMsg.conversationId, existing);
         return updated;
       });
 
@@ -273,6 +282,18 @@ export class ChatHubService {
     }));
     this.messages.update((map) => {
       if (map.has(convId)) return map;
+      const updated = new Map(map);
+      updated.set(convId, normalized);
+      return updated;
+    });
+  }
+
+  upsertMessages(convId: string, messages: Message[]): void {
+    const normalized = messages.map((m) => ({
+      ...m,
+      seenByUserIds: m.seenByUserIds.map((id) => id.toLowerCase()),
+    }));
+    this.messages.update((map) => {
       const updated = new Map(map);
       updated.set(convId, normalized);
       return updated;

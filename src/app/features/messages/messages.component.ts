@@ -164,9 +164,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!activeId) return;
       const allMessages = this.chatHubService.messages();
       const updated = allMessages.get(activeId) ?? [];
-      if (updated.length > 0) {
-        untracked(() => this.rawMessages.set([...updated]));
-      }
+      untracked(() => this.rawMessages.set([...updated]));
     });
   }
 
@@ -187,7 +185,6 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.chatHubService.stopConnection();
     if (this.typingTimeout) clearTimeout(this.typingTimeout);
     if (this.newConvSearchTimeout) clearTimeout(this.newConvSearchTimeout);
   }
@@ -418,7 +415,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (res) => {
         if (res.success) {
           const msgs = this.chatHubService.getMessagesForConversation(convId);
-          this.chatHubService.loadInitialMessages(convId, [...msgs, res.data]);
+          this.chatHubService.upsertMessages(convId, [...msgs, res.data]);
           setTimeout(() => this.scrollToBottom(), 60);
         }
       },
