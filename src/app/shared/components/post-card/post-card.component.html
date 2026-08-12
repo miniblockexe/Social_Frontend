@@ -110,7 +110,7 @@
         @if (orig.content) {
           <p class="sp-post-content sp-embedded-content">{{ orig.content }}</p>
         }
-        @if (orig.mediaFiles?.length > 0) {
+        @if (orig.mediaFiles.length > 0) {
           <div
             class="sp-media-grid"
             [class]="'sp-media-grid--' + Math.min(orig.mediaFiles.length, 4)"
@@ -142,7 +142,7 @@
     </div>
   }
 
-  @if (post().mediaFiles && post().mediaFiles.length > 0) {
+  @if (post().mediaFiles.length > 0) {
     <div
       class="sp-media-grid"
       [class]="'sp-media-grid--' + Math.min(post().mediaFiles.length, 4)"
@@ -418,7 +418,7 @@
 
     <button
       class="sp-action-btn"
-      (click)="onShare()"
+      (click)="onShare($event)"
       aria-label="Chia sẻ bài viết"
       [attr.aria-expanded]="showShareMenu()"
     >
@@ -430,7 +430,11 @@
 
     <!-- Share dropdown -->
     @if (showShareMenu()) {
-      <div class="sp-share-menu sp-dropdown sp-fade-in" role="menu">
+      <div
+        class="sp-share-menu sp-dropdown sp-fade-in"
+        role="menu"
+        (click)="$event.stopPropagation()"
+      >
         <button class="sp-dropdown-item" (click)="onCopyLink()" role="menuitem">
           <i class="fa-solid fa-link" aria-hidden="true"></i>
           Copy link
@@ -489,7 +493,7 @@
           @if (post().content) {
             <p class="sp-share-orig-content">{{ post().content }}</p>
           }
-          @if (post().mediaFiles?.length > 0) {
+          @if (post().mediaFiles.length > 0) {
             <p class="sp-share-orig-media-hint">
               <i class="fa-solid fa-image" aria-hidden="true"></i>
               {{ post().mediaFiles.length }} ảnh / video
@@ -693,15 +697,15 @@
 
     <!-- Media content -->
     <div class="sp-lightbox-content" (click)="$event.stopPropagation()">
-      @if (post().mediaFiles[lightboxIndex()!].mediaType === 0) {
+      @if (post().mediaFiles[lightboxIndex()!]?.mediaType === 0) {
         <img
-          [src]="post().mediaFiles[lightboxIndex()!].mediaUrl"
+          [src]="post().mediaFiles[lightboxIndex()!]?.mediaUrl"
           [alt]="'Ảnh ' + (lightboxIndex()! + 1)"
           class="sp-lightbox-img"
         />
       } @else {
         <video
-          [src]="post().mediaFiles[lightboxIndex()!].mediaUrl"
+          [src]="post().mediaFiles[lightboxIndex()!]?.mediaUrl"
           class="sp-lightbox-video"
           controls
           autoplay

@@ -152,6 +152,7 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
   @HostListener('document:click')
   onDocumentClick(): void {
     this.showMenu.set(false);
+    this.showShareMenu.set(false);
   }
 
   togglePostMenu(event: Event): void {
@@ -333,7 +334,8 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  onShare(): void {
+  onShare(event?: Event): void {
+    event?.stopPropagation();
     this.showShareMenu.update((v) => !v);
     this.showSharePanel.set(false);
   }

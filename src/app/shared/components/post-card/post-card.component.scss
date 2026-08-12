@@ -28,8 +28,9 @@
 }
 
 .sp-post-card {
-  margin-bottom: 0; // gap handled by feed-list
+  margin-bottom: 0;
   padding: 0;
+  overflow: visible; 
 }
 
 .sp-post-header {
@@ -1016,7 +1017,8 @@
 
 .sp-share-menu {
   position: absolute;
-  bottom: calc(100% + 6px);
+  top: calc(100% + 4px);
+  bottom: auto;
   right: 0;
   min-width: 220px;
   z-index: 200;
