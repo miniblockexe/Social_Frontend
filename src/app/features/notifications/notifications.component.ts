@@ -355,11 +355,22 @@ export class NotificationsComponent
     );
     this.friendService.acceptRequest(notif.entityId).subscribe({
       next: () => {
+        const wasUnread = !notif.isRead;
         this.notifications.update((list) =>
           list.map((n) =>
-            n.id === notif.id ? { ...n, isPending: false, isRead: true } : n,
+            n.id === notif.id
+              ? {
+                  ...n,
+                  isPending: false,
+                  isRead: true,
+                  type: NotificationType.FriendAccepted,
+                }
+              : n,
           ),
         );
+        if (wasUnread) {
+          this.notificationHubService.markRead([notif.id]);
+        }
       },
       error: () => {
         this.notifications.update((list) =>
