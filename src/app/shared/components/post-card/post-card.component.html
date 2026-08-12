@@ -494,10 +494,38 @@
             <p class="sp-share-orig-content">{{ post().content }}</p>
           }
           @if (post().mediaFiles.length > 0) {
-            <p class="sp-share-orig-media-hint">
-              <i class="fa-solid fa-image" aria-hidden="true"></i>
-              {{ post().mediaFiles.length }} ảnh / video
-            </p>
+            <div class="sp-share-orig-media-preview">
+              <div
+                class="sp-share-orig-media-grid"
+                [class]="'sp-share-orig-media-grid--' + Math.min(post().mediaFiles.length, 3)"
+              >
+                @for (
+                  media of post().mediaFiles.slice(0, 3);
+                  track media.id;
+                  let i = $index
+                ) {
+                  <div class="sp-share-orig-media-item">
+                    @if (media.mediaType === 0) {
+                      <img
+                        [src]="media.mediaUrl"
+                        [alt]="'Ảnh ' + (i + 1)"
+                        loading="lazy"
+                      />
+                    } @else {
+                      <div class="sp-share-orig-video-thumb">
+                        <video [src]="media.mediaUrl" preload="metadata"></video>
+                        <i class="fa-solid fa-play sp-share-orig-play-icon" aria-hidden="true"></i>
+                      </div>
+                    }
+                    @if (i === 2 && post().mediaFiles.length > 3) {
+                      <div class="sp-share-orig-more">
+                        +{{ post().mediaFiles.length - 3 }}
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
           }
         }
       </div>

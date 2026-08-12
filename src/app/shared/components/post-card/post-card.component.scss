@@ -30,7 +30,9 @@
 .sp-post-card {
   margin-bottom: 0;
   padding: 0;
-  overflow: visible; 
+  overflow: visible;
+  // Đảm bảo dropdown con không bị clip bởi card cha
+  contain: layout style;
 }
 
 .sp-post-header {
@@ -1017,11 +1019,15 @@
 
 .sp-share-menu {
   position: absolute;
-  top: calc(100% + 4px);
-  bottom: auto;
+  bottom: calc(100% + 4px); // mở lên phía trên nút Chia sẻ, tránh bị che bởi nội dung phía dưới
+  top: auto;
   right: 0;
   min-width: 220px;
-  z-index: 200;
+  z-index: 500;
+  // shadow rõ hơn để nổi bật
+  box-shadow:
+    0 -4px 24px rgba(0, 0, 0, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .sp-share-panel {
@@ -1089,6 +1095,98 @@
   margin: 0;
 }
 
+// ─── Share preview media grid ─────────────────────────────────────────────────
+
+.sp-share-orig-media-preview {
+  border-radius: var(--sp-r-sm);
+  overflow: hidden;
+}
+
+.sp-share-orig-media-grid {
+  display: grid;
+  gap: 2px;
+
+  &--1 {
+    grid-template-columns: 1fr;
+    .sp-share-orig-media-item {
+      aspect-ratio: 16 / 9;
+    }
+  }
+  &--2 {
+    grid-template-columns: 1fr 1fr;
+    .sp-share-orig-media-item {
+      aspect-ratio: 1 / 1;
+    }
+  }
+  &--3 {
+    grid-template-columns: 1fr 1fr;
+    .sp-share-orig-media-item:first-child {
+      grid-column: 1 / -1;
+      aspect-ratio: 16 / 9;
+    }
+    .sp-share-orig-media-item:not(:first-child) {
+      aspect-ratio: 1 / 1;
+    }
+  }
+}
+
+.sp-share-orig-media-item {
+  position: relative;
+  overflow: hidden;
+  background: var(--sp-bg-input);
+
+  img,
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.sp-share-orig-video-thumb {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.sp-share-orig-play-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 20px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  // Canh giữa bằng flex trên icon FA không được, dùng pseudo trick
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: auto;
+  height: auto;
+}
+
+.sp-share-orig-more {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
 .sp-share-caption {
   resize: vertical;
   min-height: 70px;
@@ -1128,6 +1226,15 @@
   border-radius: var(--sp-r-md);
   overflow: hidden;
   padding: 0;
+
+  // Ảnh/video trong embedded post phải fill đúng ô, không bị lệch
+  .sp-media-item img,
+  .sp-media-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 }
 
 .sp-embedded-header {
