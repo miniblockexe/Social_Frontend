@@ -152,7 +152,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.convSub?.unsubscribe();
     this.convSub = this.messageService.getConversations(1, 20).subscribe({
       next: (res) => {
-        if (res.success) this.baseConversations.set(res.data.items);
+        if (res.success) {
+          this.baseConversations.set(res.data.items);
+          this.chatHubService.initUnreadFromConversations(res.data.items);
+        }
       },
       complete: () => this.isLoadingConversations.set(false),
     });

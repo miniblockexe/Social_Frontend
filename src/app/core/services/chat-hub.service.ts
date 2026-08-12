@@ -259,9 +259,23 @@ export class ChatHubService {
     await this.connection?.invoke('DeleteMessage', messageId);
   }
 
-  setActiveConversation(id: string): void {
+  setActiveConversation(id: string | null): void {
     this.activeConversationId.set(id);
-    this.clearUnread(id);
+    if (id) this.clearUnread(id);
+  }
+
+  initUnreadFromConversations(
+    conversations: Array<{ id: string; unreadCount: number }>,
+  ): void {
+    this.unreadByConversation.update((map) => {
+      const updated = new Map(map);
+      for (const conv of conversations) {
+        if (!updated.has(conv.id) && conv.unreadCount > 0) {
+          updated.set(conv.id, conv.unreadCount);
+        }
+      }
+      return updated;
+    });
   }
 
   clearUnread(conversationId: string): void {

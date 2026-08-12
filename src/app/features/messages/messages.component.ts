@@ -187,6 +187,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.typingTimeout) clearTimeout(this.typingTimeout);
     if (this.newConvSearchTimeout) clearTimeout(this.newConvSearchTimeout);
+    this.chatHubService.setActiveConversation(null);
   }
 
   private runEntranceAnimation(): void {
@@ -243,6 +244,11 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activeConversation.set(existing);
       this.loadMessages(conversationId);
       this.chatHubService.setActiveConversation(conversationId);
+      this.conversations.update((list) =>
+        list.map((c) =>
+          c.id === conversationId ? { ...c, unreadCount: 0 } : c,
+        ),
+      );
       this.router.navigate(['/messages', conversationId]);
     } else {
       this.messageService.getConversations().subscribe({
@@ -253,6 +259,11 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
             this.activeConversation.set(conv);
             this.loadMessages(conversationId);
             this.chatHubService.setActiveConversation(conversationId);
+            this.conversations.update((list) =>
+              list.map((c) =>
+                c.id === conversationId ? { ...c, unreadCount: 0 } : c,
+              ),
+            );
             this.router.navigate(['/messages', conversationId]);
           }
         },
@@ -263,6 +274,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   closeConversation(): void {
     this.activeConversation.set(null);
     this.rawMessages.set([]);
+    this.chatHubService.setActiveConversation(null);
     this.router.navigate(['/messages']);
   }
 
