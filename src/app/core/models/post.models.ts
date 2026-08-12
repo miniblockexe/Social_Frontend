@@ -12,6 +12,19 @@ export interface Post {
   commentCount: number;
   isLikedByMe: boolean;
   isOwner: boolean;
+
+  shareCount: number;
+  isSharedByMe: boolean;
+  originalPost: SharedPost | null;
+}
+
+export interface SharedPost {
+  id: string;
+  content: string | null;
+  createdAt: string;
+  author: UserBrief;
+  mediaFiles: PostMedia[];
+  isDeleted: boolean;
 }
 
 export interface PostMedia {

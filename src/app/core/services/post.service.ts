@@ -113,4 +113,19 @@ export class PostService {
       ApiResponse<{ postId: string; longUrl: string; shortUrl: string }>
     >(`${API_BASE}/posts/${postId}/share`, { params: { baseUrl } });
   }
+
+  /**
+   * Chia sẻ lại bài viết lên trang cá nhân (repost).
+   * POST /api/posts/{originalPostId}/share-to-feed
+   */
+  sharePostToFeed(
+    originalPostId: string,
+    content: string | null,
+    privacy: PostPrivacy,
+  ): Observable<ApiResponse<Post>> {
+    return this.http.post<ApiResponse<Post>>(
+      `${API_BASE}/posts/${originalPostId}/share-to-feed`,
+      { content: content?.trim() || null, privacy },
+    );
+  }
 }

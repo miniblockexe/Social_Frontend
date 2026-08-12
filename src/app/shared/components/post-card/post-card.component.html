@@ -80,6 +80,68 @@
     <p class="sp-post-content">{{ post().content }}</p>
   }
 
+  <!-- Bài gốc nhúng bên trong (chỉ hiện khi đây là bài share) -->
+  @if (post().originalPost; as orig) {
+    <div class="sp-embedded-post sp-card">
+      @if (orig.isDeleted) {
+        <div class="sp-embedded-deleted">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          Bài viết gốc đã bị xóa.
+        </div>
+      } @else {
+        <div class="sp-post-header sp-embedded-header">
+          <a
+            [routerLink]="['/profile', orig.author.id]"
+            class="sp-post-author-link"
+          >
+            <app-avatar
+              [src]="orig.author.avatarUrl"
+              [name]="orig.author.fullName"
+              [size]="34"
+            />
+            <div class="sp-post-author-info">
+              <span class="sp-post-author-name">{{
+                orig.author.fullName
+              }}</span>
+              <span class="sp-post-time">{{ orig.createdAt | timeAgo }}</span>
+            </div>
+          </a>
+        </div>
+        @if (orig.content) {
+          <p class="sp-post-content sp-embedded-content">{{ orig.content }}</p>
+        }
+        @if (orig.mediaFiles?.length > 0) {
+          <div
+            class="sp-media-grid"
+            [class]="'sp-media-grid--' + Math.min(orig.mediaFiles.length, 4)"
+          >
+            @for (
+              media of orig.mediaFiles.slice(0, 4);
+              track media.id;
+              let i = $index
+            ) {
+              <div class="sp-media-item">
+                @if (media.mediaType === 0) {
+                  <img
+                    [src]="media.mediaUrl"
+                    [alt]="'Ảnh bài gốc ' + (i + 1)"
+                    loading="lazy"
+                  />
+                } @else {
+                  <video
+                    [src]="media.mediaUrl"
+                    preload="metadata"
+                    controls
+                  ></video>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+
   @if (post().mediaFiles && post().mediaFiles.length > 0) {
     <div
       class="sp-media-grid"
@@ -358,11 +420,132 @@
       class="sp-action-btn"
       (click)="onShare()"
       aria-label="Chia sẻ bài viết"
+      [attr.aria-expanded]="showShareMenu()"
     >
       <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
-      <span>Chia sẻ</span>
+      <span>{{
+        shareCount() > 0 ? (shareCount() | number) + " Chia sẻ" : "Chia sẻ"
+      }}</span>
     </button>
+
+    <!-- Share dropdown -->
+    @if (showShareMenu()) {
+      <div class="sp-share-menu sp-dropdown sp-fade-in" role="menu">
+        <button class="sp-dropdown-item" (click)="onCopyLink()" role="menuitem">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          Copy link
+        </button>
+        <button
+          class="sp-dropdown-item"
+          (click)="openSharePanel()"
+          role="menuitem"
+        >
+          <i class="fa-solid fa-share-from-square" aria-hidden="true"></i>
+          Chia sẻ lên trang cá nhân
+        </button>
+      </div>
+    }
   </div>
+
+  <!-- Share panel (caption + privacy + preview) -->
+  @if (showSharePanel()) {
+    <div class="sp-share-panel sp-fade-in">
+      <div class="sp-share-original-preview">
+        @if (post().originalPost; as orig) {
+          @if (orig.isDeleted) {
+            <p class="sp-share-deleted">Bài viết gốc đã bị xóa.</p>
+          } @else {
+            <div class="sp-share-orig-header">
+              <app-avatar
+                [src]="orig.author.avatarUrl"
+                [name]="orig.author.fullName"
+                [size]="28"
+              />
+              <span class="sp-share-orig-author">{{
+                orig.author.fullName
+              }}</span>
+              <span class="sp-share-orig-time">{{
+                orig.createdAt | timeAgo
+              }}</span>
+            </div>
+            @if (orig.content) {
+              <p class="sp-share-orig-content">{{ orig.content }}</p>
+            }
+          }
+        } @else {
+          <div class="sp-share-orig-header">
+            <app-avatar
+              [src]="post().author.avatarUrl"
+              [name]="post().author.fullName"
+              [size]="28"
+            />
+            <span class="sp-share-orig-author">{{
+              post().author.fullName
+            }}</span>
+            <span class="sp-share-orig-time">{{
+              post().createdAt | timeAgo
+            }}</span>
+          </div>
+          @if (post().content) {
+            <p class="sp-share-orig-content">{{ post().content }}</p>
+          }
+          @if (post().mediaFiles?.length > 0) {
+            <p class="sp-share-orig-media-hint">
+              <i class="fa-solid fa-image" aria-hidden="true"></i>
+              {{ post().mediaFiles.length }} ảnh / video
+            </p>
+          }
+        }
+      </div>
+
+      <!-- Caption -->
+      <textarea
+        class="sp-input sp-share-caption"
+        placeholder="Viết gì đó về bài viết này... (không bắt buộc)"
+        [(ngModel)]="shareCaption"
+        rows="3"
+        maxlength="1000"
+        aria-label="Caption khi chia sẻ"
+      ></textarea>
+
+      <!-- Privacy selector -->
+      <div class="sp-share-privacy">
+        <label class="sp-share-privacy-label">Quyền hiển thị:</label>
+        <select
+          class="sp-input sp-share-privacy-select"
+          [(ngModel)]="sharePrivacy"
+          aria-label="Quyền hiển thị bài share"
+        >
+          <option [ngValue]="0">🌐 Công khai</option>
+          <option [ngValue]="1">👥 Bạn bè</option>
+          <option [ngValue]="2">🔒 Chỉ mình tôi</option>
+        </select>
+      </div>
+
+      <!-- Actions -->
+      <div class="sp-share-actions">
+        <button
+          class="sp-btn sp-btn--ghost"
+          (click)="closeSharePanel()"
+          [disabled]="isSharing()"
+        >
+          Hủy
+        </button>
+        <button
+          class="sp-btn sp-btn--primary"
+          (click)="confirmShareToFeed()"
+          [disabled]="isSharing()"
+        >
+          @if (isSharing()) {
+            <span class="sp-spinner sp-spinner--sm sp-spinner--white"></span>
+          } @else {
+            <i class="fa-solid fa-share-from-square" aria-hidden="true"></i>
+            Chia sẻ ngay
+          }
+        </button>
+      </div>
+    </div>
+  }
 
   @if (showComments()) {
     <div class="sp-comments sp-fade-in">

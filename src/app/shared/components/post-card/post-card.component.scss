@@ -585,6 +585,7 @@
 .sp-post-actions {
   display: flex;
   padding: var(--sp-1) var(--sp-2);
+  position: relative; // anchor cho .sp-share-menu dropdown
 }
 
 .sp-action-btn {
@@ -1009,4 +1010,138 @@
   background: rgba(0, 0, 0, 0.5);
   padding: 4px 12px;
   border-radius: 20px;
+}
+
+// ─── Share menu & panel ──────────────────────────────────────────────────────
+
+.sp-share-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  z-index: 200;
+}
+
+.sp-share-panel {
+  margin: var(--sp-3) var(--sp-4) var(--sp-2);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-md);
+  padding: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  background: var(--sp-bg-2);
+}
+
+.sp-share-original-preview {
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-sm);
+  padding: var(--sp-3);
+  background: var(--sp-bg-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.sp-share-orig-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.sp-share-orig-author {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--sp-text-1);
+}
+
+.sp-share-orig-time {
+  font-size: 12px;
+  color: var(--sp-text-3);
+  margin-left: auto;
+}
+
+.sp-share-orig-content {
+  font-size: 13px;
+  color: var(--sp-text-2);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sp-share-orig-media-hint {
+  font-size: 12px;
+  color: var(--sp-text-3);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sp-share-deleted {
+  color: var(--sp-text-3);
+  font-size: 13px;
+  font-style: italic;
+  margin: 0;
+}
+
+.sp-share-caption {
+  resize: vertical;
+  min-height: 70px;
+  font-size: 14px;
+}
+
+.sp-share-privacy {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.sp-share-privacy-label {
+  font-size: 13px;
+  color: var(--sp-text-2);
+  white-space: nowrap;
+}
+
+.sp-share-privacy-select {
+  flex: 1;
+  font-size: 13px;
+  padding: var(--sp-1) var(--sp-2);
+  cursor: pointer;
+}
+
+.sp-share-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+}
+
+// ─── Embedded original post ───────────────────────────────────────────────────
+
+.sp-embedded-post {
+  margin: 0 var(--sp-4) var(--sp-3);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-md);
+  overflow: hidden;
+  padding: 0;
+}
+
+.sp-embedded-header {
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+}
+
+.sp-embedded-content {
+  padding: 0 var(--sp-3) var(--sp-2);
+}
+
+.sp-embedded-deleted {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  color: var(--sp-text-3);
+  font-size: 13px;
+  font-style: italic;
 }

@@ -21,7 +21,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { VideoVolumeService } from '../../../core/services/video-volume.service';
 import { VideoPlayerService } from '../../../core/services/video-player.service';
-import { Post, Comment } from '../../../core/models/post.models';
+import { Post, Comment, PostPrivacy } from '../../../core/models/post.models';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
@@ -69,6 +69,14 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
   hasMoreComments = signal(false);
   playingIndex = signal<number | null>(null);
 
+  // Share state
+  showShareMenu = signal(false);
+  showSharePanel = signal(false);
+  shareCaption = signal('');
+  sharePrivacy = signal<PostPrivacy>(PostPrivacy.Public);
+  isSharing = signal(false);
+  shareCount = signal(0);
+
   // Video controls state (per-card)
   videoTimes = signal<number[]>([]);
   videoDurations = signal<number[]>([]);
@@ -92,6 +100,7 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.isLiked.set(this.post().isLikedByMe);
     this.likeCount.set(this.post().likeCount);
+    this.shareCount.set(this.post().shareCount ?? 0);
   }
 
   ngAfterViewInit(): void {
@@ -325,6 +334,12 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onShare(): void {
+    this.showShareMenu.update((v) => !v);
+    this.showSharePanel.set(false);
+  }
+
+  onCopyLink(): void {
+    this.showShareMenu.set(false);
     this.postService.getShareUrl(this.post().id).subscribe({
       next: (res) => {
         navigator.clipboard.writeText(res.data.shortUrl).then(() => {
@@ -333,6 +348,41 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: () => this.toastService.error('Không thể lấy link chia sẻ'),
     });
+  }
+
+  openSharePanel(): void {
+    this.showShareMenu.set(false);
+    this.shareCaption.set('');
+    this.sharePrivacy.set(PostPrivacy.Public);
+    this.showSharePanel.set(true);
+  }
+
+  closeSharePanel(): void {
+    this.showSharePanel.set(false);
+  }
+
+  confirmShareToFeed(): void {
+    if (this.isSharing()) return;
+    this.isSharing.set(true);
+    this.postService
+      .sharePostToFeed(
+        this.post().originalPost?.id ?? this.post().id,
+        this.shareCaption(),
+        this.sharePrivacy(),
+      )
+      .subscribe({
+        next: () => {
+          this.shareCount.update((c) => c + 1);
+          this.showSharePanel.set(false);
+          this.toastService.success('Đã chia sẻ bài viết!');
+        },
+        error: (err) => {
+          const msg =
+            err?.error?.message ?? 'Không thể chia sẻ bài viết. Thử lại sau.';
+          this.toastService.error(msg);
+        },
+        complete: () => this.isSharing.set(false),
+      });
   }
 
   navigateToProfile(userId: string): void {
