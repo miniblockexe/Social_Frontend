@@ -19,7 +19,7 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then(
         (m) => m.LoginComponent,
       ),
-    canActivate: [loginGuard], 
+    canActivate: [loginGuard],
   },
   {
     path: 'auth/register',
@@ -27,7 +27,7 @@ export const routes: Routes = [
       import('./features/auth/register/register.component').then(
         (m) => m.RegisterComponent,
       ),
-    canActivate: [loginGuard], 
+    canActivate: [loginGuard],
   },
   {
     path: 'home',
@@ -56,6 +56,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/messages/messages.component').then(
         (m) => m.MessagesComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'posts/:id',
+    loadComponent: () =>
+      import('./features/post-detail/post-detail.component').then(
+        (m) => m.PostDetailComponent,
       ),
     canActivate: [authGuard],
   },

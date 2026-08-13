@@ -1,0 +1,89 @@
+<div class="pd-root">
+  <div class="pd-container">
+
+    <!-- Back button -->
+    <button class="pd-back-btn" (click)="goBack()" aria-label="Quay lại">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      <span>Quay lại</span>
+    </button>
+
+    <!-- ── LOADING SKELETON ───────────────────────────────────────────────── -->
+    @if (isLoading()) {
+      <div class="pd-skeleton-wrap" aria-busy="true" aria-label="Đang tải bài viết">
+        <!-- Header skeleton -->
+        <div class="pd-skeleton-header">
+          <div class="pd-skeleton pd-skeleton--avatar"></div>
+          <div class="pd-skeleton-lines">
+            <div class="pd-skeleton pd-skeleton--name"></div>
+            <div class="pd-skeleton pd-skeleton--meta"></div>
+          </div>
+        </div>
+        <!-- Content skeleton -->
+        <div class="pd-skeleton pd-skeleton--line pd-skeleton--line-full"></div>
+        <div class="pd-skeleton pd-skeleton--line pd-skeleton--line-3q"></div>
+        <div class="pd-skeleton pd-skeleton--line pd-skeleton--line-half"></div>
+        <!-- Media skeleton -->
+        <div class="pd-skeleton pd-skeleton--media"></div>
+        <!-- Actions skeleton -->
+        <div class="pd-skeleton-actions">
+          <div class="pd-skeleton pd-skeleton--action"></div>
+          <div class="pd-skeleton pd-skeleton--action"></div>
+          <div class="pd-skeleton pd-skeleton--action"></div>
+        </div>
+      </div>
+    }
+
+    <!-- ── ERROR STATES ───────────────────────────────────────────────────── -->
+    @if (!isLoading() && errorCode() !== null) {
+      <div class="pd-error-wrap">
+        @if (errorCode() === 403) {
+          <!-- Không có quyền xem -->
+          <div class="pd-error-icon">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+          </div>
+          <h2 class="pd-error-title">Bài viết này ở chế độ riêng tư</h2>
+          <p class="pd-error-desc">
+            Bạn không có quyền xem bài viết này. Có thể chủ bài viết đã đặt
+            quyền riêng tư hoặc giới hạn đối tượng xem.
+          </p>
+        } @else if (errorCode() === 404) {
+          <!-- Không tìm thấy -->
+          <div class="pd-error-icon">
+            <i class="fa-solid fa-file-circle-question" aria-hidden="true"></i>
+          </div>
+          <h2 class="pd-error-title">Bài viết không tồn tại</h2>
+          <p class="pd-error-desc">
+            Bài viết này đã bị xóa hoặc đường dẫn không hợp lệ.
+          </p>
+        } @else {
+          <!-- Lỗi server / network -->
+          <div class="pd-error-icon">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          </div>
+          <h2 class="pd-error-title">Đã xảy ra lỗi</h2>
+          <p class="pd-error-desc">
+            Không thể tải bài viết lúc này. Vui lòng thử lại sau.
+          </p>
+        }
+
+        <div class="pd-error-actions">
+          <a routerLink="/feed" class="pd-btn pd-btn--primary">
+            <i class="fa-solid fa-house" aria-hidden="true"></i>
+            Về trang chủ
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- ── POST CARD ───────────────────────────────────────────────────────── -->
+    @if (!isLoading() && post() !== null) {
+      <div class="pd-card-wrap sp-card sp-fade-in">
+        <app-post-card
+          [post]="post()!"
+          (postDeleted)="onPostDeleted()"
+        />
+      </div>
+    }
+
+  </div>
+</div>
