@@ -31,7 +31,6 @@
   margin-bottom: 0;
   padding: 0;
   overflow: visible;
-  // Đảm bảo dropdown con không bị clip bởi card cha
   contain: layout style;
 }
 
@@ -109,6 +108,10 @@
   margin: 0;
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// MEDIA GRID
+// ════════════════════════════════════════════════════════════════════════════
+
 .sp-media-grid {
   display: grid;
   gap: 2px;
@@ -175,6 +178,10 @@
     transform: scale(1.02);
   }
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// VIDEO
+// ════════════════════════════════════════════════════════════════════════════
 
 .sp-video-wrap {
   position: relative;
@@ -354,7 +361,6 @@
   }
 }
 
-// Khi hover volume wrap → bỏ overflow:hidden trên các ancestor để popup không bị clip
 .sp-media-item:has(.sp-vc-volume-wrap:hover),
 .sp-video-wrap:has(.sp-vc-volume-wrap:hover) {
   overflow: visible !important;
@@ -385,7 +391,6 @@
     opacity 0.18s ease,
     transform 0.18s ease;
 
-  // Bridge gap mouse không bị mất hover
   &::after {
     content: "";
     position: absolute;
@@ -405,10 +410,7 @@
   letter-spacing: 0.02em;
 }
 
-// ── Vertical slider container (wrapper cần thiết khi dùng rotate trick) ───────
 .sp-vc-volume-slider-wrap {
-  // Chiều cao thật của slider dọc = --vol-height
-  // rotate(90deg) đổi width↔height nên cần set kích thước ngược lại
   --vol-height: 90px;
   --vol-track-w: 6px;
   width: var(--vol-track-w);
@@ -419,14 +421,12 @@
   flex-shrink: 0;
 }
 
-// ── Vertical slider via rotate trick (slider-vertical deprecated Chrome 121+) ──
 .sp-vc-volume-slider {
   --vol-track-w: 6px;
   --vol-thumb-d: 18px;
   --vol-height: 90px;
   --vol-accent: #4fa3f7;
   --vol-track-bg: rgba(255, 255, 255, 0.18);
-  // --vol-val được set inline từ template (0–100), dùng để fill track
   --_pct: calc(var(--vol-val, 50) * 1%);
 
   appearance: none;
@@ -439,7 +439,6 @@
   outline: none;
   border: none;
   border-radius: 999px;
-  // Fill xanh từ 0 → thumb, trắng mờ từ thumb → 100
   background: linear-gradient(
     to right,
     var(--vol-accent) 0%,
@@ -448,11 +447,9 @@
     var(--vol-track-bg) 100%
   );
 
-  // ── WebKit ───────────────────────────────────────────────────────────────
   &::-webkit-slider-runnable-track {
     height: var(--vol-track-w);
     border-radius: 999px;
-    // Giữ gradient trên track
     background: transparent;
   }
 
@@ -478,7 +475,6 @@
       0 2px 10px rgba(0, 0, 0, 0.6);
   }
 
-  // ── Firefox ──────────────────────────────────────────────────────────────
   &::-moz-range-track {
     height: var(--vol-track-w);
     border-radius: 999px;
@@ -524,6 +520,10 @@
   font-weight: 800;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// STATS / DIVIDER / ACTIONS
+// ════════════════════════════════════════════════════════════════════════════
 
 .sp-post-stats {
   display: flex;
@@ -588,7 +588,7 @@
 .sp-post-actions {
   display: flex;
   padding: var(--sp-1) var(--sp-2);
-  position: relative; // anchor cho .sp-share-menu dropdown
+  position: relative;
 }
 
 .sp-action-btn {
@@ -652,6 +652,10 @@
     transform: scale(1);
   }
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// COMMENTS
+// ════════════════════════════════════════════════════════════════════════════
 
 .sp-comments {
   padding: var(--sp-3) var(--sp-4) var(--sp-4);
@@ -884,34 +888,9 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .sp-post-card {
-    transition: none;
-  }
-  .sp-media-img {
-    transition: none;
-  }
-  .sp-video-controls {
-    transition: none;
-  }
-  .sp-video-center-btn {
-    transition: none;
-  }
-  .sp-vc-seek,
-  .sp-vc-volume {
-    transition: none;
-  }
-  .sp-action-btn {
-    transition: none;
-  }
-  .sp-action-btn--liked i {
-    animation: none;
-  }
-  .sp-skeleton-comment {
-    animation: none;
-    opacity: 0.5;
-  }
-}
+// ════════════════════════════════════════════════════════════════════════════
+// LIGHTBOX
+// ════════════════════════════════════════════════════════════════════════════
 
 .sp-lightbox-backdrop {
   position: fixed;
@@ -968,7 +947,6 @@
   &:hover {
     background: rgba(255, 255, 255, 0.25);
   }
-
   &--prev {
     left: 16px;
   }
@@ -992,7 +970,6 @@
   border-radius: 8px;
   user-select: none;
   -webkit-user-drag: none;
-  // Không để kéo/lưu ảnh dễ dàng
   pointer-events: none;
 }
 
@@ -1015,20 +992,23 @@
   border-radius: 20px;
 }
 
-// ─── Share menu & panel ──────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+// SHARE MENU + SHARE PANEL
+// ════════════════════════════════════════════════════════════════════════════
 
 .sp-share-menu {
   position: absolute;
-  bottom: calc(100% + 4px); // mở lên phía trên nút Chia sẻ, tránh bị che bởi nội dung phía dưới
+  bottom: calc(100% + 4px);
   top: auto;
   right: 0;
   min-width: 220px;
   z-index: 500;
-  // shadow rõ hơn để nổi bật
   box-shadow:
     0 -4px 24px rgba(0, 0, 0, 0.25),
     0 2px 8px rgba(0, 0, 0, 0.15);
 }
+
+// ─── Share panel container ────────────────────────────────────────────────────
 
 .sp-share-panel {
   margin: var(--sp-3) var(--sp-4) var(--sp-2);
@@ -1041,6 +1021,8 @@
   background: var(--sp-bg-2);
 }
 
+// ─── Original post preview ────────────────────────────────────────────────────
+
 .sp-share-original-preview {
   border: 1px solid var(--sp-border);
   border-radius: var(--sp-r-sm);
@@ -1049,6 +1031,24 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
+  // Left accent strip — phân biệt rõ đây là nội dung gốc
+  position: relative;
+  padding-left: calc(var(--sp-3) + 10px);
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+    background: linear-gradient(
+      180deg,
+      var(--sp-primary) 0%,
+      rgba(255, 77, 61, 0.2) 100%
+    );
+  }
 }
 
 .sp-share-orig-header {
@@ -1071,21 +1071,13 @@
 
 .sp-share-orig-content {
   font-size: 13px;
+  line-height: 1.55;
   color: var(--sp-text-2);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.sp-share-orig-media-hint {
-  font-size: 12px;
-  color: var(--sp-text-3);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .sp-share-deleted {
@@ -1100,6 +1092,7 @@
 .sp-share-orig-media-preview {
   border-radius: var(--sp-r-sm);
   overflow: hidden;
+  margin-top: var(--sp-1);
 }
 
 .sp-share-orig-media-grid {
@@ -1159,20 +1152,13 @@
 
 .sp-share-orig-play-icon {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   color: #fff;
   font-size: 20px;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
   pointer-events: none;
-  // Canh giữa bằng flex trên icon FA không được, dùng pseudo trick
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: auto;
-  height: auto;
 }
 
 .sp-share-orig-more {
@@ -1187,38 +1173,257 @@
   font-weight: 700;
 }
 
+// ─── Caption textarea ─────────────────────────────────────────────────────────
+
 .sp-share-caption {
   resize: vertical;
-  min-height: 70px;
+  min-height: 80px;
+  max-height: 200px;
   font-size: 14px;
+  line-height: 1.55;
+  border-radius: var(--sp-r-sm);
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SHARE FOOTER  (privacy + actions, cùng 1 hàng)
+// ════════════════════════════════════════════════════════════════════════════
+
+.sp-share-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+
+  // Màn hình rất nhỏ: privacy xuống dòng, actions vẫn align-end
+  @media (max-width: 400px) {
+    flex-wrap: wrap;
+
+    .sp-share-privacy {
+      flex: 1 1 100%;
+    }
+    .sp-share-actions {
+      margin-left: auto;
+    }
+  }
+}
+
+// ─── Privacy row ──────────────────────────────────────────────────────────────
 
 .sp-share-privacy {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  flex-shrink: 0;
 }
 
 .sp-share-privacy-label {
   font-size: 13px;
   color: var(--sp-text-2);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.sp-share-privacy-select {
-  flex: 1;
-  font-size: 13px;
-  padding: var(--sp-1) var(--sp-2);
+.sp-privacy-select-wrap {
+  position: relative;
   cursor: pointer;
+  user-select: none;
 }
+
+.sp-privacy-selected {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: var(--sp-r-pill);
+  border: 1.5px solid rgba(255, 77, 61, 0.4);
+  background: rgba(255, 77, 61, 0.08);
+  color: var(--sp-text-1);
+  font-size: 13px;
+  font-family: var(--font-body, "Plus Jakarta Sans", sans-serif);
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
+
+  &:hover {
+    background: rgba(255, 77, 61, 0.13);
+    border-color: rgba(255, 77, 61, 0.6);
+    box-shadow: 0 0 0 3px rgba(255, 77, 61, 0.12);
+  }
+
+  // Globe / lock / group icon
+  i:first-child {
+    font-size: 13px;
+    color: var(--sp-primary);
+    width: 15px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+}
+
+.sp-privacy-chevron {
+  font-size: 10px;
+  color: var(--sp-text-3);
+  transition: transform 0.2s ease;
+  margin-left: 2px;
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+.sp-privacy-dropdown {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  top: auto;
+  left: 0;
+  min-width: 160px;
+  z-index: 600;
+  background: var(--sp-bg-2);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-md);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.sp-privacy-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  color: var(--sp-text-1);
+  font-size: 13.5px;
+  font-family: var(--font-body, "Plus Jakarta Sans", sans-serif);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+  touch-action: manipulation;
+
+  i {
+    font-size: 13px;
+    width: 16px;
+    text-align: center;
+    color: var(--sp-text-2);
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: var(--sp-bg-hover);
+  }
+
+  &--active {
+    background: rgba(255, 77, 61, 0.08);
+    color: var(--sp-primary);
+    font-weight: 600;
+    i {
+      color: var(--sp-primary);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: -2px;
+  }
+}
+
+// ─── Action buttons ───────────────────────────────────────────────────────────
 
 .sp-share-actions {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: var(--sp-2);
+  flex-shrink: 0;
 }
 
-// ─── Embedded original post ───────────────────────────────────────────────────
+// Base button used in share panel
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 18px;
+  border-radius: var(--sp-r-pill);
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+  transition:
+    background 0.14s,
+    color 0.14s,
+    border-color 0.14s,
+    transform 0.1s;
+  border: 1px solid transparent;
+
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  i {
+    font-size: 12px;
+  }
+
+  // Ghost variant — "Hủy"
+  &--ghost {
+    background: transparent;
+    border-color: var(--sp-border);
+    color: var(--sp-text-2);
+
+    &:hover:not(:disabled) {
+      background: var(--sp-bg-hover);
+      color: var(--sp-text-1);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    &:focus-visible {
+      outline-color: var(--sp-text-3);
+    }
+  }
+
+  // Primary variant — "Chia sẻ ngay"
+  &--primary {
+    background: var(--sp-primary);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 0 16px rgba(255, 77, 61, 0.35);
+
+    &:hover:not(:disabled) {
+      background: var(--sp-primary-hover);
+      box-shadow: 0 0 22px rgba(255, 77, 61, 0.5);
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.95);
+      box-shadow: none;
+    }
+
+    &:disabled {
+      box-shadow: none;
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// EMBEDDED ORIGINAL POST (bài share hiển thị bài gốc bên trong)
+// ════════════════════════════════════════════════════════════════════════════
 
 .sp-embedded-post {
   margin: 0 var(--sp-4) var(--sp-3);
@@ -1227,7 +1432,6 @@
   overflow: hidden;
   padding: 0;
 
-  // Ảnh/video trong embedded post phải fill đúng ô, không bị lệch
   .sp-media-item img,
   .sp-media-item video {
     width: 100%;
@@ -1253,4 +1457,30 @@
   color: var(--sp-text-3);
   font-size: 13px;
   font-style: italic;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// REDUCED MOTION
+// ════════════════════════════════════════════════════════════════════════════
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-post-card,
+  .sp-media-img,
+  .sp-video-controls,
+  .sp-video-center-btn,
+  .sp-vc-seek,
+  .sp-vc-volume,
+  .sp-action-btn,
+  .sp-privacy-chevron,
+  .sp-btn {
+    transition: none;
+  }
+
+  .sp-action-btn--liked i {
+    animation: none;
+  }
+  .sp-skeleton-comment {
+    animation: none;
+    opacity: 0.5;
+  }
 }

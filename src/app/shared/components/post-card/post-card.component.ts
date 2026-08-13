@@ -76,6 +76,8 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
   sharePrivacy = signal<PostPrivacy>(PostPrivacy.Public);
   isSharing = signal(false);
   shareCount = signal(0);
+  showPrivacyDropdown = signal(false);
+  readonly PostPrivacy = PostPrivacy;
 
   // Video controls state (per-card)
   videoTimes = signal<number[]>([]);
@@ -153,6 +155,7 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
   onDocumentClick(): void {
     this.showMenu.set(false);
     this.showShareMenu.set(false);
+    this.showPrivacyDropdown.set(false);
   }
 
   togglePostMenu(event: Event): void {
@@ -162,7 +165,6 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onEdit(): void {
     this.showMenu.set(false);
-    // Emit upward so parent can open an edit modal; minimal stub here
     this.toastService.info('Tính năng chỉnh sửa đang phát triển');
   }
 
@@ -361,6 +363,16 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   closeSharePanel(): void {
     this.showSharePanel.set(false);
+  }
+
+  togglePrivacyDropdown(e: Event): void {
+    e.stopPropagation();
+    this.showPrivacyDropdown.update((v) => !v);
+  }
+
+  setPrivacy(value: PostPrivacy): void {
+    this.sharePrivacy.set(value);
+    this.showPrivacyDropdown.set(false);
   }
 
   confirmShareToFeed(): void {

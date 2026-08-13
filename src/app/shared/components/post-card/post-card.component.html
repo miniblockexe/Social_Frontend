@@ -497,7 +497,10 @@
             <div class="sp-share-orig-media-preview">
               <div
                 class="sp-share-orig-media-grid"
-                [class]="'sp-share-orig-media-grid--' + Math.min(post().mediaFiles.length, 3)"
+                [class]="
+                  'sp-share-orig-media-grid--' +
+                  Math.min(post().mediaFiles.length, 3)
+                "
               >
                 @for (
                   media of post().mediaFiles.slice(0, 3);
@@ -513,8 +516,14 @@
                       />
                     } @else {
                       <div class="sp-share-orig-video-thumb">
-                        <video [src]="media.mediaUrl" preload="metadata"></video>
-                        <i class="fa-solid fa-play sp-share-orig-play-icon" aria-hidden="true"></i>
+                        <video
+                          [src]="media.mediaUrl"
+                          preload="metadata"
+                        ></video>
+                        <i
+                          class="fa-solid fa-play sp-share-orig-play-icon"
+                          aria-hidden="true"
+                        ></i>
                       </div>
                     }
                     @if (i === 2 && post().mediaFiles.length > 3) {
@@ -540,41 +549,89 @@
         aria-label="Caption khi chia sẻ"
       ></textarea>
 
-      <!-- Privacy selector -->
-      <div class="sp-share-privacy">
-        <label class="sp-share-privacy-label">Quyền hiển thị:</label>
-        <select
-          class="sp-input sp-share-privacy-select"
-          [(ngModel)]="sharePrivacy"
-          aria-label="Quyền hiển thị bài share"
-        >
-          <option [ngValue]="0">🌐 Công khai</option>
-          <option [ngValue]="1">👥 Bạn bè</option>
-          <option [ngValue]="2">🔒 Chỉ mình tôi</option>
-        </select>
-      </div>
+      <!-- Footer: privacy + actions cùng hàng -->
+      <div class="sp-share-footer">
+        <div class="sp-share-privacy">
+          <label class="sp-share-privacy-label">Hiển thị:</label>
+          <div
+            class="sp-privacy-select-wrap"
+            (click)="togglePrivacyDropdown($event)"
+          >
+            <div class="sp-privacy-selected">
+              @switch (sharePrivacy()) {
+                @case (PostPrivacy.Public) {
+                  <i class="fa-solid fa-earth-asia"></i><span>Công khai</span>
+                }
+                @case (PostPrivacy.Friends) {
+                  <i class="fa-solid fa-user-group"></i><span>Bạn bè</span>
+                }
+                @case (PostPrivacy.OnlyMe) {
+                  <i class="fa-solid fa-lock"></i><span>Chỉ mình tôi</span>
+                }
+              }
+              <i
+                class="fa-solid fa-chevron-down sp-privacy-chevron"
+                [class.sp-privacy-chevron--open]="showPrivacyDropdown()"
+              ></i>
+            </div>
+            @if (showPrivacyDropdown()) {
+              <div
+                class="sp-privacy-dropdown sp-fade-in"
+                (click)="$event.stopPropagation()"
+              >
+                <button
+                  class="sp-privacy-option"
+                  [class.sp-privacy-option--active]="
+                    sharePrivacy() === PostPrivacy.Public
+                  "
+                  (click)="setPrivacy(PostPrivacy.Public)"
+                >
+                  <i class="fa-solid fa-earth-asia"></i><span>Công khai</span>
+                </button>
+                <button
+                  class="sp-privacy-option"
+                  [class.sp-privacy-option--active]="
+                    sharePrivacy() === PostPrivacy.Friends
+                  "
+                  (click)="setPrivacy(PostPrivacy.Friends)"
+                >
+                  <i class="fa-solid fa-user-group"></i><span>Bạn bè</span>
+                </button>
+                <button
+                  class="sp-privacy-option"
+                  [class.sp-privacy-option--active]="
+                    sharePrivacy() === PostPrivacy.OnlyMe
+                  "
+                  (click)="setPrivacy(PostPrivacy.OnlyMe)"
+                >
+                  <i class="fa-solid fa-lock"></i><span>Chỉ mình tôi</span>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
 
-      <!-- Actions -->
-      <div class="sp-share-actions">
-        <button
-          class="sp-btn sp-btn--ghost"
-          (click)="closeSharePanel()"
-          [disabled]="isSharing()"
-        >
-          Hủy
-        </button>
-        <button
-          class="sp-btn sp-btn--primary"
-          (click)="confirmShareToFeed()"
-          [disabled]="isSharing()"
-        >
-          @if (isSharing()) {
-            <span class="sp-spinner sp-spinner--sm sp-spinner--white"></span>
-          } @else {
-            <i class="fa-solid fa-share-from-square" aria-hidden="true"></i>
-            Chia sẻ ngay
-          }
-        </button>
+        <div class="sp-share-actions">
+          <button
+            class="sp-btn sp-btn--ghost"
+            (click)="closeSharePanel()"
+            [disabled]="isSharing()"
+          >
+            Hủy
+          </button>
+          <button
+            class="sp-btn sp-btn--primary"
+            (click)="confirmShareToFeed()"
+            [disabled]="isSharing()"
+          >
+            @if (isSharing()) {
+              <span class="sp-spinner sp-spinner--sm sp-spinner--white"></span>
+            } @else {
+              <i class="fa-solid fa-share-from-square" aria-hidden="true"></i>
+              Chia sẻ ngay
+            }
+          </button>
+        </div>
       </div>
     </div>
   }
