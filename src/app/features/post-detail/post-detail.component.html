@@ -1,6 +1,5 @@
 <div class="pd-root">
   <div class="pd-container">
-
     <!-- Back button -->
     <button class="pd-back-btn" (click)="goBack()" aria-label="Quay lại">
       <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
@@ -9,7 +8,11 @@
 
     <!-- ── LOADING SKELETON ───────────────────────────────────────────────── -->
     @if (isLoading()) {
-      <div class="pd-skeleton-wrap" aria-busy="true" aria-label="Đang tải bài viết">
+      <div
+        class="pd-skeleton-wrap"
+        aria-busy="true"
+        aria-label="Đang tải bài viết"
+      >
         <!-- Header skeleton -->
         <div class="pd-skeleton-header">
           <div class="pd-skeleton pd-skeleton--avatar"></div>
@@ -67,7 +70,7 @@
         }
 
         <div class="pd-error-actions">
-          <a routerLink="/feed" class="pd-btn pd-btn--primary">
+          <a routerLink="/home" class="pd-btn pd-btn--primary">
             <i class="fa-solid fa-house" aria-hidden="true"></i>
             Về trang chủ
           </a>
@@ -78,12 +81,8 @@
     <!-- ── POST CARD ───────────────────────────────────────────────────────── -->
     @if (!isLoading() && post() !== null) {
       <div class="pd-card-wrap sp-card sp-fade-in">
-        <app-post-card
-          [post]="post()!"
-          (postDeleted)="onPostDeleted()"
-        />
+        <app-post-card [post]="post()!" (postDeleted)="onPostDeleted()" />
       </div>
     }
-
   </div>
 </div>

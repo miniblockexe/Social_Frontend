@@ -47,7 +47,6 @@ export class PostDetailComponent implements OnInit, OnDestroy {
     this.route.paramMap
       .pipe(
         tap(() => {
-          // Reset state khi navigate sang post khác
           this.post.set(null);
           this.isLoading.set(true);
           this.errorCode.set(null);
@@ -86,15 +85,14 @@ export class PostDetailComponent implements OnInit, OnDestroy {
   }
 
   onPostDeleted(): void {
-    this.router.navigate(['/feed']);
+    this.router.navigate(['/home']);
   }
 
   goBack(): void {
-    // Nếu có history thì back, không thì về feed
     if (history.length > 1) {
       history.back();
     } else {
-      this.router.navigate(['/feed']);
+      this.router.navigate(['/home']);
     }
   }
 
