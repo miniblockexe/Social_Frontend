@@ -19,8 +19,7 @@ export class LinkifyPipe implements PipeTransform {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-      .replace(/\n/g, '<br>');
+      .replace(/'/g, '&#39;');
 
     const linked = escaped.replace(
       LinkifyPipe.URL_REGEX,

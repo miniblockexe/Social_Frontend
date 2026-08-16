@@ -871,3 +871,10 @@ a.app-link {
     color: #93c5fd;
   }
 }
+
+.sp-post-content,
+.sp-share-orig-content,
+.sp-embedded-content,
+.msg-text {
+  white-space: pre-wrap;
+}

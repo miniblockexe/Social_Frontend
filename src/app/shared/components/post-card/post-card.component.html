@@ -804,15 +804,15 @@
 
     <!-- Media content -->
     <div class="sp-lightbox-content" (click)="$event.stopPropagation()">
-      @if (post().mediaFiles[lightboxIndex()!]?.mediaType === 0) {
+      @if (post().mediaFiles[lightboxIndex()!].mediaType === 0) {
         <img
-          [src]="post().mediaFiles[lightboxIndex()!]?.mediaUrl"
+          [src]="post().mediaFiles[lightboxIndex()!].mediaUrl"
           [alt]="'Ảnh ' + (lightboxIndex()! + 1)"
           class="sp-lightbox-img"
         />
       } @else {
         <video
-          [src]="post().mediaFiles[lightboxIndex()!]?.mediaUrl"
+          [src]="post().mediaFiles[lightboxIndex()!].mediaUrl"
           class="sp-lightbox-video"
           controls
           autoplay
