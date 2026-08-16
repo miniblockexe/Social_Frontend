@@ -17,6 +17,7 @@ export interface SharedPostPreviewDto {
   authorAvatarUrl?: string;
   contentSnippet?: string;
   thumbnailUrl?: string;
+  thumbnailMediaType?: 'image' | 'video';
   isDeleted: boolean;
 }
 

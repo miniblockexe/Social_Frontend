@@ -304,43 +304,48 @@
 
                 <!-- Bubble + meta -->
                 <div class="msg-bubble-wrap">
-                  <div
-                    class="msg-bubble"
-                    [class.msg-bubble--mine]="msg.senderId === currentUserId()"
-                    [class.msg-bubble--theirs]="
-                      msg.senderId !== currentUserId()
-                    "
-                    [class.msg-bubble--ai]="msg.isAi"
-                  >
-                    <!-- AI tag -->
-                    @if (msg.isAi) {
-                      <span class="msg-ai-tag" aria-label="Tin nhắn từ AI">
-                        <i
-                          class="fa-solid fa-wand-magic-sparkles"
-                          aria-hidden="true"
-                        ></i>
-                        AI
-                      </span>
-                    }
+                  <!-- Chỉ hiển thị bubble khi có nội dung thực (text hoặc media) -->
+                  @if (msg.content?.trim() || msg.mediaUrl || msg.isAi) {
+                    <div
+                      class="msg-bubble"
+                      [class.msg-bubble--mine]="
+                        msg.senderId === currentUserId()
+                      "
+                      [class.msg-bubble--theirs]="
+                        msg.senderId !== currentUserId()
+                      "
+                      [class.msg-bubble--ai]="msg.isAi"
+                    >
+                      <!-- AI tag -->
+                      @if (msg.isAi) {
+                        <span class="msg-ai-tag" aria-label="Tin nhắn từ AI">
+                          <i
+                            class="fa-solid fa-wand-magic-sparkles"
+                            aria-hidden="true"
+                          ></i>
+                          AI
+                        </span>
+                      }
 
-                    <!-- Media attachment -->
-                    @if (msg.mediaUrl) {
-                      <img
-                        [src]="msg.mediaUrl"
-                        [alt]="'Ảnh từ ' + msg.senderName"
-                        class="msg-media"
-                        loading="lazy"
-                      />
-                    }
+                      <!-- Media attachment -->
+                      @if (msg.mediaUrl) {
+                        <img
+                          [src]="msg.mediaUrl"
+                          [alt]="'Ảnh từ ' + msg.senderName"
+                          class="msg-media"
+                          loading="lazy"
+                        />
+                      }
 
-                    <!-- Text content -->
-                    @if (msg.content) {
-                      <p
-                        class="msg-text"
-                        [innerHTML]="msg.content | linkify"
-                      ></p>
-                    }
-                  </div>
+                      <!-- Text content -->
+                      @if (msg.content) {
+                        <p
+                          class="msg-text"
+                          [innerHTML]="msg.content | linkify"
+                        ></p>
+                      }
+                    </div>
+                  }
                   @if (msg.sharedPost) {
                     @if (msg.sharedPost.isDeleted) {
                       <div class="msg-shared-deleted">
@@ -363,6 +368,22 @@
                               alt="Ảnh bài viết"
                               loading="lazy"
                             />
+                          } @else if (
+                            msg.sharedPost.thumbnailMediaType === "video"
+                          ) {
+                            <div class="msg-shared-thumb-placeholder">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 576 512"
+                                class="msg-shared-thumb-svg"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  fill="currentColor"
+                                  d="M0 128C0 92.7 28.7 64 64 64H320c35.3 0 64 28.7 64 64V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128zM559.1 99.8c10.4 5.6 16.9 16.4 16.9 28.2V384c0 11.8-6.5 22.6-16.9 28.2s-23 5-32.9-1.6l-96-64L416 337.1V320 192 174.9l14.2-9.5 96-64c9.8-6.5 22.4-7.2 32.9-1.6z"
+                                />
+                              </svg>
+                            </div>
                           } @else {
                             <div class="msg-shared-thumb-placeholder">
                               <i class="fa-solid fa-photo-film"></i>
