@@ -130,9 +130,11 @@ export class PostService {
     caption?: string,
   ): Observable<ApiResponse<Message>> {
     const form = new FormData();
-    form.append('ConversationId', conversationId);
     form.append('SharedPostId', postId);
     if (caption?.trim()) form.append('Content', caption.trim());
-    return this.http.post<ApiResponse<Message>>(`${API_BASE}/messages`, form);
+    return this.http.post<ApiResponse<Message>>(
+      `${API_BASE}/conversations/${conversationId}/messages`,
+      form,
+    );
   }
 }
