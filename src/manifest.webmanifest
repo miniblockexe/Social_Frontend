@@ -7,6 +7,22 @@
   "background_color": "#0d0d0d",
   "theme_color": "#FF4D3D",
   "orientation": "portrait-primary",
+  "screenshots": [
+    {
+      "src": "assets/screenshots/screenshot-1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Social"
+    },
+    {
+      "src": "assets/screenshots/screenshot-2.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Social"
+    }
+  ],
   "icons": [
     {
       "src": "assets/icons/icon-72.png",
