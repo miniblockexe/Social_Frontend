@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { API_BASE } from '../constants/api.constants';
 import { ApiResponse, PagedResult } from '../models/api.models';
 import { Post, Comment, PostPrivacy } from '../models/post.models';
+import { Message } from '../models/message.models';
 
 @Injectable({ providedIn: 'root' })
 export class PostService {
@@ -101,8 +102,6 @@ export class PostService {
     return this.http.delete<ApiResponse<void>>(`${API_BASE}/comments/${id}`);
   }
 
-  // truyền baseUrl để BE tạo deeplink đúng (không fallback về socialapp.example.com)
-  // kiểu return khớp BE ShareUrlDto { postId, longUrl, shortUrl }
   getShareUrl(
     postId: string,
     baseUrl = window.location.origin,
@@ -114,10 +113,6 @@ export class PostService {
     >(`${API_BASE}/posts/${postId}/share`, { params: { baseUrl } });
   }
 
-  /**
-   * Chia sẻ lại bài viết lên trang cá nhân (repost).
-   * POST /api/posts/{originalPostId}/share-to-feed
-   */
   sharePostToFeed(
     originalPostId: string,
     content: string | null,
@@ -127,5 +122,17 @@ export class PostService {
       `${API_BASE}/posts/${originalPostId}/share-to-feed`,
       { content: content?.trim() || null, privacy },
     );
+  }
+
+  sharePostToConversation(
+    postId: string,
+    conversationId: string,
+    caption?: string,
+  ): Observable<ApiResponse<Message>> {
+    const form = new FormData();
+    form.append('ConversationId', conversationId);
+    form.append('SharedPostId', postId);
+    if (caption?.trim()) form.append('Content', caption.trim());
+    return this.http.post<ApiResponse<Message>>(`${API_BASE}/messages`, form);
   }
 }

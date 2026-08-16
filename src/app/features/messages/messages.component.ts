@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService } from '../../core/services/message.service';
 import { ChatHubService } from '../../core/services/chat-hub.service';
@@ -22,7 +22,11 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { GifService } from '../../core/services/gif.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Conversation, Message } from '../../core/models/message.models';
+import {
+  Conversation,
+  Message,
+  SharedPostPreviewDto,
+} from '../../core/models/message.models';
 import { UserSearchResult } from '../../core/models/user.models';
 import { GifItem } from '../../core/models/gif.models';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
@@ -66,6 +70,7 @@ export interface MessageVM {
   createdAt: string;
   isRead: boolean;
   isAi: boolean;
+  sharedPost?: SharedPostPreviewDto;
 }
 
 export interface MessageGroup {
@@ -83,6 +88,7 @@ export interface MessageGroup {
     LoadingSpinnerComponent,
     TimeAgoPipe,
     TruncatePipe,
+    RouterLink,
   ],
   templateUrl: './messages.component.html',
   styleUrl: './messages.component.scss',
@@ -483,6 +489,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       createdAt: msg.createdAt,
       isRead: msg.seenByUserIds.length > 1,
       isAi: msg.isAI,
+      sharedPost: msg.sharedPost,
     };
   }
 

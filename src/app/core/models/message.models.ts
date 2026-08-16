@@ -11,6 +11,15 @@ export interface Conversation {
   participants: UserBrief[];
 }
 
+export interface SharedPostPreviewDto {
+  postId: string;
+  authorName: string;
+  authorAvatarUrl?: string;
+  contentSnippet?: string;
+  thumbnailUrl?: string;
+  isDeleted: boolean;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
@@ -18,6 +27,7 @@ export interface Message {
   isAI: boolean;
   attachmentUrl: string | null;
   attachmentType: string | null;
+  sharedPost?: SharedPostPreviewDto;
   createdAt: string;
   isDeleted: boolean;
   sender: UserBrief;

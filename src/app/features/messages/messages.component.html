@@ -323,7 +323,48 @@
                       <p class="msg-text">{{ msg.content }}</p>
                     }
                   </div>
-
+                  @if (msg.sharedPost) {
+                    @if (msg.sharedPost.isDeleted) {
+                      <div class="msg-shared-deleted">
+                        <i
+                          class="fa-solid fa-triangle-exclamation"
+                          aria-hidden="true"
+                        ></i>
+                        Bài viết đã bị xóa
+                      </div>
+                    } @else {
+                      <a
+                        class="msg-shared-card"
+                        [routerLink]="['/posts', msg.sharedPost.postId]"
+                        (click)="$event.stopPropagation()"
+                      >
+                        @if (msg.sharedPost.thumbnailUrl) {
+                          <div class="msg-shared-thumb">
+                            <img
+                              [src]="msg.sharedPost.thumbnailUrl"
+                              alt="Ảnh bài viết"
+                              loading="lazy"
+                            />
+                          </div>
+                        }
+                        <div class="msg-shared-body">
+                          <div class="msg-shared-author">
+                            <app-avatar
+                              [src]="msg.sharedPost.authorAvatarUrl"
+                              [name]="msg.sharedPost.authorName"
+                              [size]="18"
+                            />
+                            <span>{{ msg.sharedPost.authorName }}</span>
+                          </div>
+                          @if (msg.sharedPost.contentSnippet) {
+                            <p class="msg-shared-snippet">
+                              {{ msg.sharedPost.contentSnippet }}
+                            </p>
+                          }
+                        </div>
+                      </a>
+                    }
+                  }
                   <!-- Timestamp + read status -->
                   <div class="msg-meta">
                     <span class="msg-time">{{

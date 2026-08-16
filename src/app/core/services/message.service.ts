@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { API_BASE } from '../constants/api.constants';
 import { ApiResponse, PagedResult } from '../models/api.models';
 import { Conversation, Message } from '../models/message.models';
@@ -41,10 +42,6 @@ export class MessageService {
     );
   }
 
-  // BE endpoint dùng [Consumes("multipart/form-data")] + [FromForm]
-  // → luôn dùng FormData dù có hay không có attachment
-  // Text-only nên ưu tiên gửi qua SignalR (chatHubService.sendMessage),
-  // HTTP endpoint này dùng khi cần gửi file đính kèm.
   sendMessage(
     conversationId: string,
     content: string,
@@ -72,5 +69,19 @@ export class MessageService {
     return this.http.delete<ApiResponse<Message>>(
       `${API_BASE}/messages/${messageId}`,
     );
+  }
+
+  sharePostToConversation(
+    postId: string,
+    conversationId: string,
+    caption?: string,
+  ): Observable<Message> {
+    const form = new FormData();
+    form.append('ConversationId', conversationId);
+    form.append('SharedPostId', postId);
+    if (caption?.trim()) form.append('Content', caption.trim());
+    return this.http
+      .post<ApiResponse<Message>>(`${API_BASE}/messages`, form)
+      .pipe(map((r) => r.data!));
   }
 }

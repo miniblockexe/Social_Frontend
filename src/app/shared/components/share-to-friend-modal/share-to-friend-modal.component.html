@@ -1,0 +1,104 @@
+<div
+  class="stf-overlay"
+  (click)="onOverlayClick($event)"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Chia sẻ cho bạn bè"
+>
+  <div class="stf-panel sp-fade-in">
+    <!-- Header -->
+    <div class="stf-header">
+      <h2 class="stf-title">Chia sẻ cho bạn bè</h2>
+      <button class="stf-close-btn" (click)="closed.emit()" aria-label="Đóng">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Caption input -->
+    <div class="stf-caption-wrap">
+      <textarea
+        class="sp-input stf-caption"
+        placeholder="Viết gì đó kèm theo... (không bắt buộc)"
+        [(ngModel)]="caption"
+        maxlength="500"
+        rows="2"
+        aria-label="Caption kèm theo"
+      ></textarea>
+    </div>
+
+    <div class="stf-divider" role="separator"></div>
+
+    <!-- Error -->
+    @if (errorMsg()) {
+      <p class="stf-error" role="alert">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ errorMsg() }}
+      </p>
+    }
+
+    <!-- Loading skeleton -->
+    @if (isLoading()) {
+      <div class="stf-list" aria-busy="true">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="stf-skeleton-row">
+            <div class="stf-skeleton stf-skeleton--avatar"></div>
+            <div class="stf-skeleton stf-skeleton--name"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Conversation list -->
+    @if (!isLoading()) {
+      @if (conversations().length === 0) {
+        <div class="stf-empty">
+          <i class="fa-regular fa-comment-dots"></i>
+          <p>Bạn chưa có hội thoại nào.</p>
+        </div>
+      } @else {
+        <ul class="stf-list" role="list">
+          @for (conv of conversations(); track trackByConv($index, conv)) {
+            <li class="stf-row" role="listitem">
+              <!-- Avatar + name -->
+              <div class="stf-row-info">
+                <app-avatar
+                  [src]="getConvAvatar(conv)"
+                  [name]="getConvName(conv)"
+                  [size]="40"
+                />
+                <span class="stf-row-name">{{ getConvName(conv) }}</span>
+              </div>
+
+              <!-- Action -->
+              @if (isSent(conv.id)) {
+                <button
+                  class="stf-btn stf-btn--sent"
+                  (click)="onGoToChat(conv)"
+                  aria-label="Đã gửi — xem tin nhắn"
+                >
+                  <i class="fa-solid fa-check"></i>
+                  Đã gửi
+                </button>
+              } @else {
+                <button
+                  class="stf-btn stf-btn--send"
+                  (click)="onSend(conv)"
+                  [disabled]="isSending()"
+                  [attr.aria-label]="'Gửi cho ' + getConvName(conv)"
+                >
+                  @if (isSending()) {
+                    <span
+                      class="sp-spinner sp-spinner--sm sp-spinner--white"
+                    ></span>
+                  } @else {
+                    Gửi
+                  }
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      }
+    }
+  </div>
+</div>

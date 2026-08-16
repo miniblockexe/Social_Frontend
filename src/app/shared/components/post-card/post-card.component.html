@@ -447,6 +447,14 @@
           <i class="fa-solid fa-share-from-square" aria-hidden="true"></i>
           Chia sẻ lên trang cá nhân
         </button>
+        <button
+          class="sp-dropdown-item"
+          (click)="openShareToFriendModal()"
+          role="menuitem"
+        >
+          <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+          Chia sẻ cho bạn bè
+        </button>
       </div>
     }
   </div>
@@ -744,7 +752,12 @@
     </div>
   }
 </article>
-
+@if (showShareToFriendModal()) {
+  <app-share-to-friend-modal
+    [postId]="post().id"
+    (closed)="closeShareToFriendModal()"
+  />
+}
 @if (lightboxIndex() !== null) {
   <div
     class="sp-lightbox-backdrop"

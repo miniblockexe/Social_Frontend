@@ -26,6 +26,7 @@ import { AvatarComponent } from '../avatar/avatar.component';
 import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
 import { VideoTimePipe } from '../../pipes/video-time.pipe';
+import { ShareToFriendModalComponent } from '../share-to-friend-modal/share-to-friend-modal.component';
 
 @Component({
   selector: 'app-post-card',
@@ -39,6 +40,7 @@ import { VideoTimePipe } from '../../pipes/video-time.pipe';
     TimeAgoPipe,
     VideoTimePipe,
     RouterLink,
+    ShareToFriendModalComponent,
   ],
   templateUrl: './post-card.component.html',
   styleUrl: './post-card.component.scss',
@@ -72,6 +74,7 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
   // Share state
   showShareMenu = signal(false);
   showSharePanel = signal(false);
+  showShareToFriendModal = signal(false);
   shareCaption = signal('');
   sharePrivacy = signal<PostPrivacy>(PostPrivacy.Public);
   isSharing = signal(false);
@@ -88,12 +91,8 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private observers: IntersectionObserver[] = [];
 
-  /** two-way bindable string for [(ngModel)] */
   commentText = '';
-
-  // Expose Math to template (for Math.min in media grid)
   readonly Math = Math;
-
   currentUser = computed(() => this.authService.currentUser());
 
   private commentsLoaded = false;
@@ -106,30 +105,24 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Khởi tạo mảng state theo số video
     const count = this.videoEls.length;
     this.videoTimes.set(new Array(count).fill(0));
     this.videoDurations.set(new Array(count).fill(0));
 
-    // IntersectionObserver: tự phát khi vào viewport, dừng khi ra
     this.videoEls.forEach((ref, i) => {
       const el = ref.nativeElement;
-      // Luôn muted lúc đầu để autoplay pass browser policy
       el.muted = true;
 
       const obs = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
-            // Sync volume state từ service TRƯỚC khi play
             el.volume = this.vol.volume();
             el.muted = this.vol.userHasInteracted() ? this.vol.muted() : true;
-            // VideoPlayerService sẽ tự dừng video đang phát ở card khác
             this.videoPlayer
               .play(el)
               .then(() => this.playingIndex.set(i))
               .catch(() => {});
           } else {
-            // Chỉ pause qua service (untrack active nếu cần)
             this.videoPlayer.pause(el);
             if (this.playingIndex() === i) this.playingIndex.set(null);
           }
@@ -150,7 +143,6 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // Close menu when clicking outside
   @HostListener('document:click')
   onDocumentClick(): void {
     this.showMenu.set(false);
@@ -173,7 +165,6 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
     const prevCount = this.likeCount();
     this.isLiked.set(!prev);
     this.likeCount.set(prev ? prevCount - 1 : prevCount + 1);
-
     this.postService.toggleLike(this.post().id).subscribe({
       error: () => {
         this.isLiked.set(prev);
@@ -245,13 +236,10 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
     const videos = this.videoEls.toArray();
     const target = videos[index]?.nativeElement;
     if (!target) return;
-
     if (this.playingIndex() === index) {
-      // User bấm pause
       this.videoPlayer.pause(target);
       this.playingIndex.set(null);
     } else {
-      // VideoPlayerService tự dừng mọi video khác (kể cả card khác)
       this.videoPlayer
         .play(target)
         .then(() => this.playingIndex.set(index))
@@ -278,7 +266,6 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onVideoEnded(index: number): void {
-    // loop đã bật nên không cần xử lý thêm
     if (this.playingIndex() === index) this.playingIndex.set(index);
   }
 
@@ -289,7 +276,6 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
     el.currentTime = Number(input.value);
   }
 
-  // Delegate tới VideoVolumeService – tự apply cho tất cả video trên trang
   onToggleMute(_index: number): void {
     this.vol.toggleMute();
   }
@@ -364,6 +350,17 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
   closeSharePanel(): void {
     this.showSharePanel.set(false);
   }
+
+  openShareToFriendModal(): void {
+    this.showShareMenu.set(false);
+    this.showShareToFriendModal.set(true);
+  }
+
+  closeShareToFriendModal(): void {
+    this.showShareToFriendModal.set(false);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
 
   togglePrivacyDropdown(e: Event): void {
     e.stopPropagation();
