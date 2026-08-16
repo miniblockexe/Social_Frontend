@@ -77,7 +77,7 @@
   </div>
 
   @if (post().content) {
-    <p class="sp-post-content">{{ post().content }}</p>
+    <p class="sp-post-content" [innerHTML]="post().content | linkify"></p>
   }
 
   <!-- Bài gốc nhúng bên trong (chỉ hiện khi đây là bài share) -->
@@ -108,7 +108,10 @@
           </a>
         </div>
         @if (orig.content) {
-          <p class="sp-post-content sp-embedded-content">{{ orig.content }}</p>
+          <p
+            class="sp-post-content sp-embedded-content"
+            [innerHTML]="orig.content | linkify"
+          ></p>
         }
         @if (orig.mediaFiles.length > 0) {
           <div
@@ -481,7 +484,10 @@
               }}</span>
             </div>
             @if (orig.content) {
-              <p class="sp-share-orig-content">{{ orig.content }}</p>
+              <p
+                class="sp-share-orig-content"
+                [innerHTML]="orig.content | linkify"
+              ></p>
             }
           }
         } @else {
@@ -499,7 +505,10 @@
             }}</span>
           </div>
           @if (post().content) {
-            <p class="sp-share-orig-content">{{ post().content }}</p>
+            <p
+              class="sp-share-orig-content"
+              [innerHTML]="post().content | linkify"
+            ></p>
           }
           @if (post().mediaFiles.length > 0) {
             <div class="sp-share-orig-media-preview">

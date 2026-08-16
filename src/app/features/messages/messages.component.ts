@@ -33,6 +33,7 @@ import { AvatarComponent } from '../../shared/components/avatar/avatar.component
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
 import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
+import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
 
 declare const gsap: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,6 +90,7 @@ export interface MessageGroup {
     TimeAgoPipe,
     TruncatePipe,
     RouterLink,
+    LinkifyPipe,
   ],
   templateUrl: './messages.component.html',
   styleUrl: './messages.component.scss',

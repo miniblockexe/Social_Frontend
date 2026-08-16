@@ -117,7 +117,22 @@
                       @if (conv.lastMessage.sender.id === currentUserId()) {
                         <span class="msg-conv-last-me">Bạn: </span>
                       }
-                      {{ conv.lastMessage.content | truncate: 38 }}
+                      @if (conv.lastMessage.content) {
+                        {{ conv.lastMessage.content | truncate: 38 }}
+                      } @else if (conv.lastMessage.sharedPost) {
+                        <i class="fa-solid fa-share-nodes"></i> Đã chia sẻ bài
+                        viết
+                      } @else if (conv.lastMessage.attachmentType === "image") {
+                        <i class="fa-solid fa-image"></i> Đã gửi ảnh
+                      } @else if (conv.lastMessage.attachmentType === "video") {
+                        <i class="fa-solid fa-video"></i> Đã gửi video
+                      } @else if (conv.lastMessage.attachmentType === "audio") {
+                        <i class="fa-solid fa-music"></i> Đã gửi audio
+                      } @else if (conv.lastMessage.attachmentUrl) {
+                        <i class="fa-solid fa-paperclip"></i> Đã gửi file
+                      } @else {
+                        <i class="fa-solid fa-message"></i> Tin nhắn
+                      }
                     } @else {
                       Bắt đầu trò chuyện...
                     }
@@ -320,7 +335,10 @@
 
                     <!-- Text content -->
                     @if (msg.content) {
-                      <p class="msg-text">{{ msg.content }}</p>
+                      <p
+                        class="msg-text"
+                        [innerHTML]="msg.content | linkify"
+                      ></p>
                     }
                   </div>
                   @if (msg.sharedPost) {
@@ -338,15 +356,19 @@
                         [routerLink]="['/posts', msg.sharedPost.postId]"
                         (click)="$event.stopPropagation()"
                       >
-                        @if (msg.sharedPost.thumbnailUrl) {
-                          <div class="msg-shared-thumb">
+                        <div class="msg-shared-thumb">
+                          @if (msg.sharedPost.thumbnailUrl) {
                             <img
                               [src]="msg.sharedPost.thumbnailUrl"
                               alt="Ảnh bài viết"
                               loading="lazy"
                             />
-                          </div>
-                        }
+                          } @else {
+                            <div class="msg-shared-thumb-placeholder">
+                              <i class="fa-solid fa-photo-film"></i>
+                            </div>
+                          }
+                        </div>
                         <div class="msg-shared-body">
                           <div class="msg-shared-author">
                             <app-avatar
