@@ -1,0 +1,457 @@
+@if (isLoading()) {
+  <div class="gd-loading"><app-loading-spinner size="lg" /></div>
+} @else if (group()) {
+<main class="gd-root">
+
+  <!-- ── Hero ── -->
+  <header class="gd-hero">
+    <div class="gd-cover" [style.background-image]="group()!.coverUrl ? 'url(' + group()!.coverUrl + ')' : null">
+      @if (!group()!.coverUrl) { <div class="gd-cover-placeholder"><i class="fa-solid fa-users"></i></div> }
+    </div>
+
+    <div class="gd-hero-content">
+      <div class="gd-hero-inner">
+        <div class="gd-avatar-wrap">
+          <img [src]="group()!.avatarUrl || 'assets/icons/icon-72x72.png'" [alt]="group()!.name" class="gd-avatar" />
+        </div>
+        <div class="gd-info">
+          <div class="gd-name-row">
+            <h1 class="gd-name">{{ group()!.name }}</h1>
+            @if (group()!.privacy === GroupPrivacy.Private) {
+              <span class="gd-privacy-tag"><i class="fa-solid fa-lock"></i> Riêng tư</span>
+            }
+          </div>
+          <div class="gd-meta">
+            <span><i class="fa-solid fa-users"></i> {{ group()!.memberCount | number }} thành viên</span>
+            <span>·</span>
+            <span><i class="fa-solid fa-{{ group()!.privacy === GroupPrivacy.Public ? 'earth-asia' : 'lock' }}"></i>
+              {{ group()!.privacy === GroupPrivacy.Public ? 'Công khai' : 'Riêng tư' }}</span>
+            @if (group()!.requirePostApproval) {
+              <span>· <i class="fa-solid fa-shield-halved"></i> Duyệt bài</span>
+            }
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="gd-actions">
+          @if (isAdmin()) {
+            <button class="btn-secondary btn-sm" (click)="openSettings()">
+              <i class="fa-solid fa-gear"></i> Chỉnh sửa nhóm
+            </button>
+          }
+          @switch (group()!.membershipStatus) {
+            @case (GroupMembershipStatus.Member) {
+              @if (!isOwner()) {
+                <button class="btn-ghost btn-sm" (click)="onLeave()">
+                  <i class="fa-solid fa-right-from-bracket"></i> Rời nhóm
+                </button>
+              }
+            }
+            @case (GroupMembershipStatus.PendingApproval) {
+              <button class="btn-pending" (click)="onCancelRequest()">
+                <i class="fa-solid fa-clock"></i> Đang chờ · Hủy đơn
+              </button>
+            }
+            @default {
+              <button class="btn-primary" (click)="onJoin()">
+                <i class="fa-solid fa-plus"></i>
+                {{ group()!.requireApproval ? 'Yêu cầu tham gia' : 'Tham gia nhóm' }}
+              </button>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <nav class="gd-tabs">
+        <button class="gd-tab" [class.active]="activeTab()==='feed'" (click)="setTab('feed')">
+          <i class="fa-solid fa-newspaper"></i> Bài đăng
+        </button>
+        <button class="gd-tab" [class.active]="activeTab()==='members'" (click)="setTab('members')">
+          <i class="fa-solid fa-users"></i> Thành viên
+        </button>
+        @if (isAdmin()) {
+          <button class="gd-tab gd-tab--admin" [class.active]="activeTab()==='pending-posts'" (click)="setTab('pending-posts')">
+            <i class="fa-solid fa-clock"></i> Bài chờ duyệt
+            @if (pendingPosts().length) { <span class="tab-badge">{{ pendingPosts().length }}</span> }
+          </button>
+          <button class="gd-tab gd-tab--admin" [class.active]="activeTab()==='pending-members'" (click)="setTab('pending-members')">
+            <i class="fa-solid fa-user-clock"></i> Đơn tham gia
+            @if (pendingReqs().length) { <span class="tab-badge">{{ pendingReqs().length }}</span> }
+          </button>
+        }
+      </nav>
+    </div>
+  </header>
+
+  <!-- ── Body ── -->
+  <div class="gd-body">
+    <div class="gd-body-inner">
+
+      <!-- Sidebar -->
+      <aside class="gd-sidebar">
+        <div class="gd-side-card">
+          <h3 class="side-title">Giới thiệu</h3>
+          @if (group()!.description) {
+            <p class="side-desc">{{ group()!.description }}</p>
+          } @else {
+            <p class="side-desc muted">Chưa có mô tả.</p>
+          }
+          <div class="side-stats">
+            <div class="stat"><i class="fa-solid fa-users"></i> <strong>{{ group()!.memberCount | number }}</strong> thành viên</div>
+            <div class="stat">
+              <i class="fa-solid fa-{{ group()!.privacy===GroupPrivacy.Public ? 'earth-asia' : 'lock' }}"></i>
+              {{ group()!.privacy===GroupPrivacy.Public ? 'Nhóm công khai' : 'Nhóm riêng tư' }}
+            </div>
+            @if (group()!.requireApproval) {
+              <div class="stat"><i class="fa-solid fa-door-closed"></i> Yêu cầu duyệt đơn</div>
+            }
+            @if (group()!.requirePostApproval) {
+              <div class="stat"><i class="fa-solid fa-shield-halved"></i> Yêu cầu duyệt bài</div>
+            }
+          </div>
+
+          @if (isAdmin()) {
+            <div class="side-admin-actions">
+              <button class="btn-secondary btn-sm w-full" (click)="openSettings()">
+                <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa thông tin
+              </button>
+              @if (isOwner()) {
+                <button class="btn-danger btn-sm w-full" (click)="openDeleteConfirm()">
+                  <i class="fa-solid fa-trash"></i> Xóa nhóm
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        @if (group()!.admins.length) {
+          <div class="gd-side-card">
+            <h3 class="side-title">Quản trị viên</h3>
+            <div class="admin-list">
+              @for (a of group()!.admins; track a.user.id) {
+                <a [routerLink]="['/profile', a.user.id]" class="admin-item">
+                  <app-avatar [src]="a.user.avatarUrl" [name]="a.user.fullName" [size]="36" />
+                  <div>
+                    <span class="admin-name">{{ a.user.fullName }}</span>
+                    <span class="admin-role {{ roleCls(a.role) }}">{{ roleLabel(a.role) }}</span>
+                  </div>
+                </a>
+              }
+            </div>
+          </div>
+        }
+      </aside>
+
+      <!-- Main panel -->
+      <section class="gd-main">
+
+        <!-- ── Feed ── -->
+        @if (activeTab() === 'feed') {
+          @if (canPost()) {
+            <div class="create-box">
+              <app-avatar [src]="me()?.avatarUrl" [name]="me()?.fullName || ''" [size]="40" />
+              <button class="create-trigger" (click)="showCreate.set(true)">Đăng gì đó vào nhóm...</button>
+            </div>
+          }
+          @if (showCreate()) {
+            <div class="create-form">
+              <div class="create-form__hdr">
+                <span class="create-form__title">Đăng bài vào nhóm</span>
+                <button class="icon-btn" (click)="showCreate.set(false)"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <div class="create-form__author">
+                <app-avatar [src]="me()?.avatarUrl" [name]="me()?.fullName || ''" [size]="36" />
+                <span>{{ me()?.fullName }}</span>
+                @if (group()!.requirePostApproval && !isAdmin()) {
+                  <span class="pending-hint"><i class="fa-solid fa-clock"></i> Sẽ chờ duyệt</span>
+                }
+              </div>
+              <textarea class="create-textarea" placeholder="Bạn đang nghĩ gì?" rows="4"
+                [value]="postContent()" (input)="postContent.set($any($event.target).value)"></textarea>
+              @if (postPreviews().length) {
+                <div class="file-previews">
+                  @for (f of postPreviews(); track $index) {
+                    @if (f.type === 'image') { <img [src]="f.url" class="file-thumb" /> }
+                    @else { <video [src]="f.url" class="file-thumb" muted></video> }
+                  }
+                </div>
+              }
+              <div class="create-form__ftr">
+                <label class="attach-btn" for="gPostFile">
+                  <i class="fa-solid fa-image"></i> Ảnh/Video
+                  <input id="gPostFile" type="file" multiple accept="image/*,video/*" class="sr-only" (change)="onFileChange($event)" />
+                </label>
+                <button class="btn-primary btn-sm"
+                  [disabled]="submitting() || (!postContent().trim() && !postFiles().length)"
+                  (click)="submitPost()">
+                  @if (submitting()) { <app-loading-spinner size="sm" /> } Đăng bài
+                </button>
+              </div>
+            </div>
+          }
+          <div class="feed-list">
+            @for (p of posts(); track p.id) {
+              <app-post-card [post]="p" (postDeleted)="onPostDeleted($event)" (postUpdated)="onPostUpdated($event)" />
+            }
+            @if (!posts().length && !loadingFeed()) {
+              <div class="empty-state"><i class="fa-solid fa-newspaper"></i><p>Chưa có bài đăng nào.</p></div>
+            }
+            @if (loadingFeed()) { <app-skeleton-card variant="post" [count]="posts().length === 0 ? 3 : 2" /> }
+            <div appInfiniteScroll [disabled]="!hasMore() || loadingFeed()" [threshold]="300"
+              (scrolled)="loadFeed()" class="scroll-sentinel" aria-hidden="true"></div>
+          </div>
+        }
+
+        <!-- ── Members ── -->
+        @if (activeTab() === 'members') {
+          <div class="member-list">
+            @for (m of members(); track m.user.id) {
+              <div class="member-item">
+                <a [routerLink]="['/profile', m.user.id]" class="member-link">
+                  <app-avatar [src]="m.user.avatarUrl" [name]="m.user.fullName" [size]="44" />
+                  <div>
+                    <span class="member-name">{{ m.user.fullName }}</span>
+                    <span class="member-sub">&#64;{{ m.user.username }}</span>
+                  </div>
+                </a>
+                <div class="member-right">
+                  <span class="role-badge role-badge--{{ roleCls(m.role) }}">{{ roleLabel(m.role) }}</span>
+                  @if (isOwner() && m.role !== GroupRole.Owner && m.user.id !== me()?.id) {
+                    <div class="member-menu">
+                      @if (m.role === GroupRole.Member) {
+                        <button class="menu-btn" (click)="updateRole(m.user.id, GroupRole.Admin)">
+                          <i class="fa-solid fa-shield"></i> Thăng Admin
+                        </button>
+                      } @else {
+                        <button class="menu-btn" (click)="updateRole(m.user.id, GroupRole.Member)">
+                          <i class="fa-solid fa-user"></i> Thu hồi Admin
+                        </button>
+                      }
+                      <button class="menu-btn danger" (click)="kickMember(m.user.id, m.user.fullName)">
+                        <i class="fa-solid fa-user-minus"></i> Kick
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+            @if (!members().length && !loadingMembers()) { <div class="empty-state"><p>Chưa có thành viên.</p></div> }
+            @if (loadingMembers()) { <app-skeleton-card variant="member" [count]="members().length === 0 ? 5 : 3" /> }
+            <div appInfiniteScroll [disabled]="!hasMoreMembers() || loadingMembers()" [threshold]="200"
+              (scrolled)="loadMembers()" class="scroll-sentinel" aria-hidden="true"></div>
+          </div>
+        }
+
+        <!-- ── Pending Posts ── -->
+        @if (activeTab() === 'pending-posts') {
+          <h3 class="panel-title">Bài đăng chờ duyệt</h3>
+          <div class="feed-list">
+            @for (p of pendingPosts(); track p.id) {
+              <div class="pending-post-wrap">
+                <app-post-card [post]="p" />
+                <div class="pending-actions">
+                  <button class="btn-primary btn-sm" (click)="reviewPost(p.id, true)"><i class="fa-solid fa-check"></i> Phê duyệt</button>
+                  <button class="btn-danger btn-sm" (click)="reviewPost(p.id, false)"><i class="fa-solid fa-xmark"></i> Từ chối</button>
+                </div>
+              </div>
+            }
+            @if (!pendingPosts().length && !loadingPendingPosts()) {
+              <div class="empty-state"><i class="fa-solid fa-circle-check"></i><p>Không có bài nào cần duyệt.</p></div>
+            }
+            @if (loadingPendingPosts()) { <app-skeleton-card variant="post" [count]="2" [showImage]="false" /> }
+          </div>
+        }
+
+        <!-- ── Pending Members ── -->
+        @if (activeTab() === 'pending-members') {
+          <h3 class="panel-title">Đơn xin tham gia</h3>
+          <div class="req-list">
+            @for (r of pendingReqs(); track r.id) {
+              <div class="req-item">
+                <a [routerLink]="['/profile', r.user.id]" class="req-user">
+                  <app-avatar [src]="r.user.avatarUrl" [name]="r.user.fullName" [size]="44" />
+                  <div>
+                    <span class="member-name">{{ r.user.fullName }}</span>
+                    <span class="member-sub">&#64;{{ r.user.username }}</span>
+                  </div>
+                </a>
+                <div class="req-actions">
+                  <button class="btn-primary btn-sm" (click)="reviewRequest(r.id, true)"><i class="fa-solid fa-check"></i> Chấp nhận</button>
+                  <button class="btn-ghost btn-sm" (click)="reviewRequest(r.id, false)"><i class="fa-solid fa-xmark"></i> Từ chối</button>
+                </div>
+              </div>
+            }
+            @if (!pendingReqs().length && !loadingPendingReqs()) {
+              <div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Không có đơn nào chờ duyệt.</p></div>
+            }
+            @if (loadingPendingReqs()) { <app-skeleton-card variant="request" [count]="3" /> }
+          </div>
+        }
+
+      </section>
+    </div>
+  </div>
+</main>
+}
+
+<!-- ══════════════════════════════════════════════
+     MODAL: Chỉnh sửa nhóm (admin/owner)
+     ══════════════════════════════════════════════ -->
+@if (showSettings()) {
+  <div class="modal-backdrop" (click)="closeSettings()">
+    <div class="modal-box modal-box--lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title"><i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa nhóm</h2>
+        <button class="icon-btn" (click)="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Cover upload -->
+        <div class="edit-cover-section">
+          <div class="edit-cover-preview"
+            [style.background-image]="editCoverPreview() ? 'url(' + editCoverPreview() + ')' : (group()!.coverUrl ? 'url(' + group()!.coverUrl + ')' : null)">
+            @if (!editCoverPreview() && !group()!.coverUrl) {
+              <div class="cover-ph"><i class="fa-solid fa-users"></i></div>
+            }
+            <label class="cover-edit-btn" for="editCoverInput">
+              <i class="fa-solid fa-camera"></i> Thay ảnh bìa
+            </label>
+          </div>
+          <input id="editCoverInput" type="file" accept="image/*" class="sr-only" (change)="onEditCoverChange($event)" />
+        </div>
+
+        <!-- Avatar upload -->
+        <div class="edit-avatar-section">
+          <label class="edit-avatar-label" for="editAvatarInput">
+            <div class="edit-avatar-preview"
+              [style.background-image]="editAvatarPreview() ? 'url(' + editAvatarPreview() + ')' : (group()!.avatarUrl ? 'url(' + group()!.avatarUrl + ')' : null)">
+              @if (!editAvatarPreview() && !group()!.avatarUrl) {
+                <i class="fa-solid fa-users edit-avatar-icon"></i>
+              }
+              <div class="avatar-cam-overlay"><i class="fa-solid fa-camera"></i></div>
+            </div>
+            <span class="edit-avatar-hint">Ảnh đại diện</span>
+          </label>
+          <input id="editAvatarInput" type="file" accept="image/*" class="sr-only" (change)="onEditAvatarChange($event)" />
+        </div>
+
+        <!-- Tên nhóm -->
+        <div class="field">
+          <label class="field-label">Tên nhóm <span class="req">*</span></label>
+          <input class="field-input" type="text" maxlength="100" placeholder="Nhập tên nhóm..."
+            [value]="editName()" (input)="editName.set($any($event.target).value)" />
+        </div>
+
+        <!-- Mô tả -->
+        <div class="field">
+          <label class="field-label">Mô tả</label>
+          <textarea class="field-textarea" rows="3" maxlength="1000" placeholder="Mô tả về nhóm..."
+            [value]="editDesc()" (input)="editDesc.set($any($event.target).value)"></textarea>
+        </div>
+
+        <!-- Privacy -->
+        <div class="field">
+          <label class="field-label">Loại nhóm</label>
+          <div class="radio-group">
+            <label class="radio-item" [class.selected]="editPrivacy() === GroupPrivacy.Public">
+              <input type="radio" name="editPrivacy" class="sr-only"
+                [checked]="editPrivacy() === GroupPrivacy.Public"
+                (change)="editPrivacy.set(GroupPrivacy.Public)" />
+              <span class="radio-icon blue"><i class="fa-solid fa-earth-asia"></i></span>
+              <span class="radio-content">
+                <span class="radio-title">Công khai</span>
+                <span class="radio-desc">Ai cũng thấy và tham gia được</span>
+              </span>
+              @if (editPrivacy() === GroupPrivacy.Public) {
+                <i class="fa-solid fa-circle-check radio-check"></i>
+              }
+            </label>
+            <label class="radio-item" [class.selected]="editPrivacy() === GroupPrivacy.Private">
+              <input type="radio" name="editPrivacy" class="sr-only"
+                [checked]="editPrivacy() === GroupPrivacy.Private"
+                (change)="editPrivacy.set(GroupPrivacy.Private)" />
+              <span class="radio-icon gray"><i class="fa-solid fa-lock"></i></span>
+              <span class="radio-content">
+                <span class="radio-title">Riêng tư</span>
+                <span class="radio-desc">Bài đăng chỉ hiển thị với thành viên</span>
+              </span>
+              @if (editPrivacy() === GroupPrivacy.Private) {
+                <i class="fa-solid fa-circle-check radio-check"></i>
+              }
+            </label>
+          </div>
+        </div>
+
+        <!-- Toggles -->
+        <div class="field">
+          <label class="field-label">Tùy chọn</label>
+          <div class="toggle-list">
+            <div class="toggle-item">
+              <div class="toggle-content">
+                <span class="toggle-title">Yêu cầu duyệt đơn tham gia</span>
+                <span class="toggle-desc">Admin/Owner duyệt trước khi vào nhóm</span>
+              </div>
+              <button type="button" class="toggle-switch" [class.on]="editRequireApproval()"
+                (click)="editRequireApproval.set(!editRequireApproval())">
+                <span class="toggle-thumb"></span>
+              </button>
+            </div>
+            <div class="toggle-item">
+              <div class="toggle-content">
+                <span class="toggle-title">Yêu cầu duyệt bài đăng</span>
+                <span class="toggle-desc">Bài của thành viên cần admin duyệt trước khi hiển thị</span>
+              </div>
+              <button type="button" class="toggle-switch" [class.on]="editRequirePostApproval()"
+                (click)="editRequirePostApproval.set(!editRequirePostApproval())">
+                <span class="toggle-thumb"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-ghost" (click)="closeSettings()">Hủy</button>
+        <button class="btn-primary" [disabled]="isSavingSettings() || !editName().trim()" (click)="saveSettings()">
+          @if (isSavingSettings()) { <app-loading-spinner size="sm" /> }
+          Lưu thay đổi
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════════════════════
+     MODAL: Xác nhận xóa nhóm (owner only)
+     ══════════════════════════════════════════════ -->
+@if (showDeleteConfirm()) {
+  <div class="modal-backdrop" (click)="closeDeleteConfirm()">
+    <div class="modal-box modal-box--sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title danger-title"><i class="fa-solid fa-triangle-exclamation"></i> Xóa nhóm</h2>
+        <button class="icon-btn" (click)="closeDeleteConfirm()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="delete-warning">
+          <p>Hành động này <strong>không thể hoàn tác</strong>. Toàn bộ bài đăng, thành viên và dữ liệu của nhóm sẽ bị xóa vĩnh viễn.</p>
+          <p class="delete-confirm-label">
+            Nhập tên nhóm <strong>{{ group()!.name }}</strong> để xác nhận:
+          </p>
+          <input class="field-input" type="text" placeholder="{{ group()!.name }}"
+            [value]="deleteConfirmText()"
+            (input)="deleteConfirmText.set($any($event.target).value)" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" (click)="closeDeleteConfirm()">Hủy</button>
+        <button class="btn-danger" [disabled]="!canDeleteConfirm() || isDeletingGroup()" (click)="confirmDelete()">
+          @if (isDeletingGroup()) { <app-loading-spinner size="sm" /> }
+          Xóa nhóm vĩnh viễn
+        </button>
+      </div>
+    </div>
+  </div>
+}

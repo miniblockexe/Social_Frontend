@@ -172,50 +172,20 @@
           </div>
         }
 
-        <!-- Skeleton loading -->
+        <!-- Skeleton loading (initial + load-more) -->
         @if (isLoading) {
-          <div
-            class="feed-skeleton"
-            aria-busy="true"
-            aria-label="Đang tải bài viết..."
-          >
-            @for (sk of [0, 1, 2]; track sk) {
-              <div class="skeleton-card">
-                <div class="sk-header">
-                  <div class="sk-avatar"></div>
-                  <div class="sk-lines">
-                    <div class="sk-line sk-line--name"></div>
-                    <div class="sk-line sk-line--time"></div>
-                  </div>
-                  <div class="sk-line sk-line--menu"></div>
-                </div>
-                <div class="sk-body">
-                  <div class="sk-line sk-line--text"></div>
-                  <div class="sk-line sk-line--text sk-line--short"></div>
-                  <div class="sk-line sk-line--text sk-line--xshort"></div>
-                </div>
-                <div class="sk-image"></div>
-                <div class="sk-actions">
-                  <div class="sk-action-btn"></div>
-                  <div class="sk-action-btn"></div>
-                  <div class="sk-action-btn"></div>
-                </div>
-              </div>
-            }
-          </div>
+          <app-skeleton-card variant="post" [count]="posts.length === 0 ? 3 : 2" [showImage]="true" />
         }
 
-        <!-- Load more button -->
-        @if (hasMore && !isLoading && posts.length > 0) {
-          <button
-            class="load-more-btn"
-            (click)="onLoadMore()"
-            aria-label="Tải thêm bài viết"
-          >
-            <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
-            Xem thêm bài viết
-          </button>
-        }
+        <!-- Infinite scroll sentinel -->
+        <div
+          appInfiniteScroll
+          [disabled]="!hasMore || isLoading"
+          [threshold]="300"
+          (scrolled)="onLoadMore()"
+          class="scroll-sentinel"
+          aria-hidden="true"
+        ></div>
 
         <!-- Empty state: không có bài nào -->
         @if (!isLoading && posts.length === 0) {

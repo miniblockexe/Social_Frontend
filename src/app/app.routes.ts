@@ -89,5 +89,19 @@ export const routes: Routes = [
       import('./features/admin/admin.component').then((m) => m.AdminComponent),
     canActivate: [authGuard, roleGuard],
   },
+  {
+    path: 'groups',
+    loadComponent: () =>
+      import('./features/groups/groups.component').then((m) => m.GroupsComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'groups/:id',
+    loadComponent: () =>
+      import('./features/groups/group-detail/group-detail.component').then(
+        (m) => m.GroupDetailComponent,
+      ),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'home' },
 ];

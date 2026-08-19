@@ -565,6 +565,14 @@
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
+
+// ── Infinite scroll sentinel ────────────────────────────────────────────────
+.scroll-sentinel {
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
+}
+
 @keyframes shimmer {
   0%,
   100% {

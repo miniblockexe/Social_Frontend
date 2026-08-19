@@ -1,0 +1,163 @@
+// ── Shimmer animation ───────────────────────────────────────────────────────
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+.sk-pulse {
+  animation: shimmer 1.6s ease-in-out infinite;
+  background: var(--c-surface2, #3a3b3c);
+  border-radius: 6px;
+}
+
+// ── List containers ─────────────────────────────────────────────────────────
+.sk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &--group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1rem;
+  }
+
+  &--member,
+  &--request {
+    gap: 4px;
+  }
+}
+
+// ── Shared primitives ───────────────────────────────────────────────────────
+.sk-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sk-line {
+  height: 11px;
+  border-radius: 6px;
+}
+
+.sk-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+// ── Post skeleton ───────────────────────────────────────────────────────────
+.sk-card {
+  background: var(--c-surface, #1c1c21);
+  border: 1px solid var(--c-border, rgba(240,240,242,.08));
+  border-radius: var(--r-lg, 16px);
+  overflow: hidden;
+  padding: 16px 16px 0;
+}
+
+.sk-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.sk-body {
+  margin-bottom: 14px;
+}
+
+.sk-image {
+  height: 180px;
+  border-radius: 0;
+  margin: 0 -16px;
+}
+
+.sk-actions {
+  display: flex;
+  gap: 4px;
+  padding: 10px 0;
+}
+
+.sk-action-btn {
+  flex: 1;
+  height: 34px;
+  border-radius: var(--r-sm, 8px);
+}
+
+// ── Group card skeleton ─────────────────────────────────────────────────────
+.sk-group-card {
+  background: var(--c-surface, #1c1c21);
+  border: 1px solid var(--c-border, rgba(240,240,242,.08));
+  border-radius: var(--r-lg, 16px);
+  overflow: hidden;
+}
+
+.sk-group-cover {
+  height: 110px;
+  border-radius: 0;
+}
+
+.sk-group-body {
+  padding: 10px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.sk-group-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm, 8px);
+  margin-top: -22px;
+  border: 3px solid var(--c-surface, #1c1c21);
+  margin-bottom: 6px;
+}
+
+.sk-btn-full {
+  height: 34px;
+  border-radius: var(--r-sm, 8px);
+  margin-top: 12px;
+}
+
+// ── Member skeleton ─────────────────────────────────────────────────────────
+.sk-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--c-surface, #1c1c21);
+  border: 1px solid var(--c-border, rgba(240,240,242,.08));
+  border-radius: var(--r-md, 12px);
+}
+
+.sk-badge {
+  width: 64px;
+  height: 22px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+// ── Request skeleton ────────────────────────────────────────────────────────
+.sk-req {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--c-surface, #1c1c21);
+  border: 1px solid var(--c-border, rgba(240,240,242,.08));
+  border-radius: var(--r-md, 12px);
+}
+
+.sk-btn-pair {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.sk-btn-sm {
+  flex: 1;
+  height: 30px;
+  border-radius: var(--r-sm, 8px);
+}

@@ -29,6 +29,8 @@ import { FeedCacheService } from '../../core/services/feed-cache.service'; // TH
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { CreatePostComponent } from '../../shared/components/create-post/create-post.component';
+import { InfiniteScrollDirective } from '../../shared/directives/infinite-scroll.directive';
+import { SkeletonCardComponent } from '../../shared/components/skeleton-card/skeleton-card.component';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -45,6 +47,8 @@ gsap.registerPlugin(ScrollTrigger);
     PostCardComponent,
     AvatarComponent,
     CreatePostComponent,
+    InfiniteScrollDirective,
+    SkeletonCardComponent,
   ],
   templateUrl: './feed.component.html',
   styleUrl: './feed.component.scss',
@@ -103,6 +107,12 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
       label: 'Thông báo',
       route: '/notifications',
       color: 'amber',
+    },
+    {
+      icon: 'fa-solid fa-users',
+      label: 'Hội nhóm',
+      route: '/groups',
+      color: 'green',
     },
     {
       icon: 'fa-solid fa-gear',

@@ -1,0 +1,276 @@
+<main class="groups-root">
+  <div class="groups-layout">
+
+    <!-- Sidebar -->
+    <aside class="groups-sidebar">
+      <div class="gs-header">
+        <h2 class="gs-title">Hội nhóm</h2>
+        <button class="btn-primary btn-sm" (click)="openCreateModal()">
+          <i class="fa-solid fa-plus"></i> Tạo nhóm
+        </button>
+      </div>
+
+      <div class="gs-search">
+        <i class="fa-solid fa-magnifying-glass gs-search-icon"></i>
+        <input
+          class="gs-search-input"
+          type="search"
+          placeholder="Tìm kiếm nhóm..."
+          [value]="keyword()"
+          (input)="onKeywordChange($any($event.target).value)"
+        />
+      </div>
+
+      <nav class="gs-nav">
+        <button class="gs-nav-item" [class.active]="activeTab() === 'discover'" (click)="setTab('discover')">
+          <span class="gs-nav-icon blue"><i class="fa-solid fa-compass"></i></span>
+          Khám phá nhóm
+        </button>
+        <button class="gs-nav-item" [class.active]="activeTab() === 'mine'" (click)="setTab('mine')">
+          <span class="gs-nav-icon green"><i class="fa-solid fa-users"></i></span>
+          Nhóm của tôi
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <section class="groups-main">
+      <!-- Discover -->
+      @if (activeTab() === 'discover') {
+        <div class="section-header">
+          <h3 class="section-title">
+            {{ keyword() ? 'Kết quả: "' + keyword() + '"' : 'Khám phá nhóm' }}
+          </h3>
+          <span class="section-count">{{ discoverGroups().length }} nhóm</span>
+        </div>
+
+        <div class="groups-grid">
+          @for (g of discoverGroups(); track g.id) {
+            <article class="group-card">
+              <a [routerLink]="['/groups', g.id]" class="group-card__cover-link">
+                <div class="group-card__cover"
+                  [style.background-image]="g.coverUrl ? 'url(' + g.coverUrl + ')' : null">
+                  @if (!g.coverUrl) {
+                    <div class="cover-placeholder"><i class="fa-solid fa-users"></i></div>
+                  }
+                  <div class="group-card__avatar-wrap">
+                    <img [src]="g.avatarUrl || 'assets/icons/icon-72x72.png'" [alt]="g.name" class="group-card__avatar" />
+                  </div>
+                </div>
+              </a>
+              <div class="group-card__body">
+                <a [routerLink]="['/groups', g.id]" class="group-card__name">{{ g.name }}</a>
+                <div class="group-card__meta">
+                  <i class="fa-solid fa-{{ privacyIcon(g.privacy) }}"></i>
+                  {{ privacyLabel(g.privacy) }} · {{ g.memberCount | number }} thành viên
+                </div>
+                @if (g.description) {
+                  <p class="group-card__desc">{{ g.description }}</p>
+                }
+              </div>
+              <div class="group-card__footer">
+                @switch (g.membershipStatus) {
+                  @case (GroupMembershipStatus.Member) {
+                    <a [routerLink]="['/groups', g.id]" class="btn-secondary w-full">
+                      <i class="fa-solid fa-arrow-right-to-bracket"></i> Xem nhóm
+                    </a>
+                  }
+                  @case (GroupMembershipStatus.PendingApproval) {
+                    <button class="btn-pending w-full" (click)="onCancelRequest(g)">
+                      <i class="fa-solid fa-clock"></i> Đang chờ duyệt
+                    </button>
+                  }
+                  @default {
+                    <button class="btn-primary w-full" (click)="onJoin(g)">
+                      <i class="fa-solid fa-plus"></i>
+                      {{ g.requireApproval ? 'Yêu cầu tham gia' : 'Tham gia' }}
+                    </button>
+                  }
+                }
+              </div>
+            </article>
+          }
+          @if (!discoverGroups().length && !isLoadingDiscover()) {
+            <div class="empty-state">
+              <i class="fa-solid fa-users-slash"></i>
+              <p>Không tìm thấy nhóm nào.</p>
+            </div>
+          }
+        </div>
+        @if (isLoadingDiscover()) { <app-skeleton-card variant="group" [count]="discoverGroups().length === 0 ? 8 : 4" /> }
+        <div
+          appInfiniteScroll
+          [disabled]="!hasMoreDiscover() || isLoadingDiscover()"
+          [threshold]="300"
+          (scrolled)="loadDiscover()"
+          class="scroll-sentinel"
+          aria-hidden="true"
+        ></div>
+      }
+
+      <!-- Mine -->
+      @if (activeTab() === 'mine') {
+        <div class="section-header">
+          <h3 class="section-title">Nhóm của tôi</h3>
+          <span class="section-count">{{ myGroups().length }} nhóm</span>
+        </div>
+        <div class="groups-grid">
+          @for (g of myGroups(); track g.id) {
+            <article class="group-card">
+              <a [routerLink]="['/groups', g.id]" class="group-card__cover-link">
+                <div class="group-card__cover"
+                  [style.background-image]="g.coverUrl ? 'url(' + g.coverUrl + ')' : null">
+                  @if (!g.coverUrl) {
+                    <div class="cover-placeholder"><i class="fa-solid fa-users"></i></div>
+                  }
+                  <div class="group-card__avatar-wrap">
+                    <img [src]="g.avatarUrl || 'assets/icons/icon-72x72.png'" [alt]="g.name" class="group-card__avatar" />
+                  </div>
+                </div>
+              </a>
+              <div class="group-card__body">
+                <a [routerLink]="['/groups', g.id]" class="group-card__name">{{ g.name }}</a>
+                <div class="group-card__meta">
+                  <i class="fa-solid fa-{{ privacyIcon(g.privacy) }}"></i>
+                  {{ privacyLabel(g.privacy) }} · {{ g.memberCount | number }} thành viên
+                </div>
+                @if (g.viewerRole !== null && g.viewerRole !== undefined) {
+                  <span class="role-badge role-badge--{{ g.viewerRole === 2 ? 'owner' : g.viewerRole === 1 ? 'admin' : 'member' }}">
+                    {{ g.viewerRole === 2 ? 'Owner' : g.viewerRole === 1 ? 'Admin' : 'Thành viên' }}
+                  </span>
+                }
+              </div>
+              <div class="group-card__footer">
+                <a [routerLink]="['/groups', g.id]" class="btn-secondary w-full">
+                  <i class="fa-solid fa-arrow-right-to-bracket"></i> Xem nhóm
+                </a>
+              </div>
+            </article>
+          }
+          @if (!myGroups().length && !isLoadingMine()) {
+            <div class="empty-state">
+              <i class="fa-solid fa-users-slash"></i>
+              <p>Bạn chưa tham gia nhóm nào.</p>
+              <button class="btn-primary" style="margin-top:12px" (click)="setTab('discover')">Khám phá nhóm</button>
+            </div>
+          }
+        </div>
+        @if (isLoadingMine()) { <app-skeleton-card variant="group" [count]="myGroups().length === 0 ? 6 : 3" /> }
+        <div
+          appInfiniteScroll
+          [disabled]="!hasMoreMine() || isLoadingMine()"
+          [threshold]="300"
+          (scrolled)="loadMyGroups()"
+          class="scroll-sentinel"
+          aria-hidden="true"
+        ></div>
+      }
+    </section>
+  </div>
+</main>
+
+<!-- Modal tạo nhóm -->
+@if (showCreateModal()) {
+  <div class="modal-backdrop" (click)="closeCreateModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Tạo hội nhóm mới</h2>
+        <button class="modal-close" (click)="closeCreateModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Avatar -->
+        <label class="avatar-upload" for="gAvatarInput">
+          <div class="avatar-preview" [style.background-image]="avatarPreview() ? 'url(' + avatarPreview() + ')' : null">
+            @if (!avatarPreview()) { <i class="fa-solid fa-camera"></i> }
+          </div>
+          <span class="avatar-hint">Ảnh đại diện nhóm</span>
+        </label>
+        <input id="gAvatarInput" type="file" accept="image/*" class="sr-only" (change)="onAvatarChange($event)" />
+
+        <!-- Tên -->
+        <div class="field">
+          <label class="field-label">Tên nhóm <span class="req">*</span></label>
+          <input class="field-input" type="text" placeholder="Nhập tên nhóm..." maxlength="100"
+            [value]="createForm().name" (input)="updateForm({ name: $any($event.target).value })" />
+        </div>
+
+        <!-- Mô tả -->
+        <div class="field">
+          <label class="field-label">Mô tả</label>
+          <textarea class="field-textarea" placeholder="Mô tả về nhóm..." maxlength="1000" rows="3"
+            [value]="createForm().description || ''"
+            (input)="updateForm({ description: $any($event.target).value })"></textarea>
+        </div>
+
+        <!-- Privacy -->
+        <div class="field">
+          <label class="field-label">Loại nhóm</label>
+          <div class="radio-group">
+            <label class="radio-item" [class.selected]="createForm().privacy === GroupPrivacy.Public">
+              <input type="radio" name="privacy" class="sr-only"
+                [checked]="createForm().privacy === GroupPrivacy.Public"
+                (change)="updateForm({ privacy: GroupPrivacy.Public })" />
+              <span class="radio-icon blue"><i class="fa-solid fa-earth-asia"></i></span>
+              <span class="radio-content">
+                <span class="radio-title">Công khai</span>
+                <span class="radio-desc">Ai cũng thấy và tham gia được</span>
+              </span>
+              @if (createForm().privacy === GroupPrivacy.Public) {
+                <i class="fa-solid fa-circle-check radio-check"></i>
+              }
+            </label>
+            <label class="radio-item" [class.selected]="createForm().privacy === GroupPrivacy.Private">
+              <input type="radio" name="privacy" class="sr-only"
+                [checked]="createForm().privacy === GroupPrivacy.Private"
+                (change)="updateForm({ privacy: GroupPrivacy.Private })" />
+              <span class="radio-icon gray"><i class="fa-solid fa-lock"></i></span>
+              <span class="radio-content">
+                <span class="radio-title">Riêng tư</span>
+                <span class="radio-desc">Bài đăng chỉ hiển thị với thành viên</span>
+              </span>
+              @if (createForm().privacy === GroupPrivacy.Private) {
+                <i class="fa-solid fa-circle-check radio-check"></i>
+              }
+            </label>
+          </div>
+        </div>
+
+        <!-- Toggles -->
+        <div class="field">
+          <label class="field-label">Tùy chọn</label>
+          <div class="toggle-list">
+            <div class="toggle-item">
+              <div class="toggle-content">
+                <span class="toggle-title">Yêu cầu duyệt đơn tham gia</span>
+                <span class="toggle-desc">Admin/Owner duyệt trước khi vào nhóm</span>
+              </div>
+              <button type="button" class="toggle-switch" [class.on]="createForm().requireApproval"
+                (click)="updateForm({ requireApproval: !createForm().requireApproval })">
+                <span class="toggle-thumb"></span>
+              </button>
+            </div>
+            <div class="toggle-item">
+              <div class="toggle-content">
+                <span class="toggle-title">Yêu cầu duyệt bài đăng</span>
+                <span class="toggle-desc">Bài của thành viên cần admin duyệt trước khi hiển thị</span>
+              </div>
+              <button type="button" class="toggle-switch" [class.on]="createForm().requirePostApproval"
+                (click)="updateForm({ requirePostApproval: !createForm().requirePostApproval })">
+                <span class="toggle-thumb"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-ghost" (click)="closeCreateModal()">Hủy</button>
+        <button class="btn-primary" [disabled]="isCreating() || !createForm().name.trim()" (click)="submitCreate()">
+          @if (isCreating()) { <app-loading-spinner size="sm" /> } @else { <i class="fa-solid fa-plus"></i> }
+          Tạo nhóm
+        </button>
+      </div>
+    </div>
+  </div>
+}
