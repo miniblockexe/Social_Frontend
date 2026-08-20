@@ -26,6 +26,19 @@ import { CommonModule } from '@angular/common';
       @for (i of items; track i) {
         @switch (variant) {
 
+          @case ('group-hero') {
+            <div class="sk-hero">
+              <div class="sk-hero-cover sk-pulse"></div>
+              <div class="sk-hero-content">
+                <div class="sk-hero-avatar sk-pulse"></div>
+                <div class="sk-hero-info">
+                  <div class="sk-line sk-pulse" style="width:220px;height:20px"></div>
+                  <div class="sk-line sk-pulse" style="width:160px;margin-top:10px"></div>
+                </div>
+              </div>
+            </div>
+          }
+
           @case ('post') {
             <div class="sk-card">
               <div class="sk-header">
@@ -95,7 +108,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './skeleton-card.component.scss',
 })
 export class SkeletonCardComponent {
-  @Input() variant: 'post' | 'group' | 'member' | 'request' = 'post';
+  @Input() variant: 'post' | 'group' | 'member' | 'request' | 'group-hero' = 'post';
   @Input() count = 3;
   @Input() showImage = true;
 
