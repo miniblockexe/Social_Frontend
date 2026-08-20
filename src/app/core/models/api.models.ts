@@ -5,10 +5,12 @@ export interface ApiResponse<T> {
   errors: string[];
 }
 
+// Khớp đúng field JSON thực tế do backend trả về (CamelCase JsonNamingPolicy
+// áp lên PagedResult<T>.PageNumber / .PageSize của C# — KHÔNG PHẢI "page"/"size").
 export interface PagedResult<T> {
   items: T[];
   totalCount: number;
-  page: number;
-  size: number;
+  pageNumber: number;
+  pageSize: number;
   totalPages: number;
 }

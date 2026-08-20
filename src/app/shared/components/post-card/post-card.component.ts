@@ -187,7 +187,7 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.postService.getComments(this.post().id, 1, this.PAGE_SIZE).subscribe({
       next: (res) => {
         this.comments.set(res.data.items);
-        this.hasMoreComments.set(res.data.page < res.data.totalPages);
+        this.hasMoreComments.set(res.data.pageNumber < res.data.totalPages);
         this.commentPage.set(1);
         this.commentsLoaded = true;
       },
@@ -204,7 +204,7 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe({
         next: (res) => {
           this.comments.update((list) => [...list, ...res.data.items]);
-          this.hasMoreComments.set(res.data.page < res.data.totalPages);
+          this.hasMoreComments.set(res.data.pageNumber < res.data.totalPages);
           this.commentPage.set(next);
         },
         error: () => this.toastService.error('Không thể tải thêm bình luận'),

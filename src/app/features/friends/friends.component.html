@@ -1,0 +1,194 @@
+<main class="friends-root">
+  <div class="friends-layout">
+
+    <!-- Sidebar -->
+    <aside class="friends-sidebar">
+      <div class="fs-header">
+        <h2 class="fs-title">Bạn bè</h2>
+      </div>
+
+      <nav class="fs-nav">
+        <button class="fs-nav-item" [class.active]="activeTab() === 'all'" (click)="setTab('all')">
+          <span class="fs-nav-icon blue"><i class="fa-solid fa-user-group"></i></span>
+          Tất cả bạn bè
+          @if (friends().length) { <span class="fs-nav-count">{{ friends().length }}</span> }
+        </button>
+
+        <button class="fs-nav-item" [class.active]="activeTab() === 'requests'" (click)="setTab('requests')">
+          <span class="fs-nav-icon orange"><i class="fa-solid fa-user-clock"></i></span>
+          Lời mời kết bạn
+          @if (pendingRequests().length) { <span class="fs-nav-count">{{ pendingRequests().length }}</span> }
+        </button>
+
+        <button class="fs-nav-item" [class.active]="activeTab() === 'suggestions'" (click)="setTab('suggestions')">
+          <span class="fs-nav-icon green"><i class="fa-solid fa-user-plus"></i></span>
+          Gợi ý kết bạn
+        </button>
+
+        <button class="fs-nav-item" [class.active]="activeTab() === 'sent'" (click)="setTab('sent')">
+          <span class="fs-nav-icon purple"><i class="fa-solid fa-paper-plane"></i></span>
+          Lời mời đã gửi
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <section class="friends-main">
+
+      <!-- Tất cả bạn bè -->
+      @if (activeTab() === 'all') {
+        <div class="section-header">
+          <h3 class="section-title">Tất cả bạn bè</h3>
+          <span class="section-count">{{ friends().length }} bạn bè</span>
+        </div>
+
+        @if (!friends().length && !isLoadingFriends()) {
+          <div class="empty-state">
+            <i class="fa-solid fa-user-group empty-icon"></i>
+            <p>Bạn chưa có người bạn nào.</p>
+            <button class="btn-primary btn-sm" (click)="setTab('suggestions')">Tìm bạn bè</button>
+          </div>
+        }
+
+        <div class="friends-grid">
+          @for (item of friends(); track trackByUserId($index, item)) {
+            <article class="friend-card">
+              <a [routerLink]="['/profile', item.user.id]" class="friend-card__avatar-link">
+                <app-avatar [src]="item.user.avatarUrl" [name]="item.user.fullName" [size]="72" />
+              </a>
+              <a [routerLink]="['/profile', item.user.id]" class="friend-card__name">{{ item.user.fullName }}</a>
+              @if (item.mutualFriendsCount > 0) {
+                <span class="friend-card__mutual">{{ item.mutualFriendsCount }} bạn chung</span>
+              }
+              <button class="btn-ghost btn-sm" (click)="unfriend(item)">
+                <i class="fa-solid fa-user-xmark"></i> Hủy kết bạn
+              </button>
+            </article>
+          }
+        </div>
+
+        @if (isLoadingFriends()) {
+          <div class="loading-row"><app-loading-spinner size="md" /></div>
+        }
+        @if (hasMoreFriends() && !isLoadingFriends() && friends().length) {
+          <button class="btn-ghost btn-sm load-more" (click)="loadFriends()">Xem thêm</button>
+        }
+      }
+
+      <!-- Lời mời kết bạn -->
+      @if (activeTab() === 'requests') {
+        <div class="section-header">
+          <h3 class="section-title">Lời mời kết bạn</h3>
+          <span class="section-count">{{ pendingRequests().length }} lời mời</span>
+        </div>
+
+        @if (!pendingRequests().length && !isLoadingPending()) {
+          <div class="empty-state">
+            <i class="fa-solid fa-user-clock empty-icon"></i>
+            <p>Không có lời mời kết bạn nào.</p>
+          </div>
+        }
+
+        <div class="requests-list">
+          @for (req of pendingRequests(); track trackByRequestId($index, req)) {
+            <article class="request-card">
+              <a [routerLink]="['/profile', req.sender.id]">
+                <app-avatar [src]="req.sender.avatarUrl" [name]="req.sender.fullName" [size]="56" />
+              </a>
+              <div class="request-card__info">
+                <a [routerLink]="['/profile', req.sender.id]" class="request-card__name">{{ req.sender.fullName }}</a>
+                <span class="request-card__username">&#64;{{ req.sender.username }}</span>
+              </div>
+              <div class="request-card__actions">
+                <button class="btn-primary btn-sm" (click)="acceptRequest(req)">Chấp nhận</button>
+                <button class="btn-ghost btn-sm" (click)="rejectRequest(req)">Từ chối</button>
+              </div>
+            </article>
+          }
+        </div>
+
+        @if (isLoadingPending()) {
+          <div class="loading-row"><app-loading-spinner size="md" /></div>
+        }
+        @if (hasMorePending() && !isLoadingPending() && pendingRequests().length) {
+          <button class="btn-ghost btn-sm load-more" (click)="loadPending()">Xem thêm</button>
+        }
+      }
+
+      <!-- Gợi ý kết bạn -->
+      @if (activeTab() === 'suggestions') {
+        <div class="section-header">
+          <h3 class="section-title">Những người bạn có thể biết</h3>
+        </div>
+
+        @if (!suggestions().length && !isLoadingSuggestions()) {
+          <div class="empty-state">
+            <i class="fa-solid fa-user-plus empty-icon"></i>
+            <p>Hiện chưa có gợi ý nào.</p>
+          </div>
+        }
+
+        <div class="friends-grid">
+          @for (sug of suggestions(); track trackBySuggestionId($index, sug)) {
+            <article class="friend-card">
+              <a [routerLink]="['/profile', sug.user.id]" class="friend-card__avatar-link">
+                <app-avatar [src]="sug.user.avatarUrl" [name]="sug.user.fullName" [size]="72" />
+              </a>
+              <a [routerLink]="['/profile', sug.user.id]" class="friend-card__name">{{ sug.user.fullName }}</a>
+              @if (sug.mutualFriendsCount > 0) {
+                <span class="friend-card__mutual">{{ sug.mutualFriendsCount }} bạn chung</span>
+              }
+              <button class="btn-primary btn-sm" (click)="addFriend(sug)">
+                <i class="fa-solid fa-user-plus"></i> Kết bạn
+              </button>
+            </article>
+          }
+        </div>
+
+        @if (isLoadingSuggestions()) {
+          <div class="loading-row"><app-loading-spinner size="md" /></div>
+        }
+        @if (hasMoreSuggestions() && !isLoadingSuggestions() && suggestions().length) {
+          <button class="btn-ghost btn-sm load-more" (click)="loadSuggestions()">Xem thêm</button>
+        }
+      }
+
+      <!-- Lời mời đã gửi -->
+      @if (activeTab() === 'sent') {
+        <div class="section-header">
+          <h3 class="section-title">Lời mời đã gửi</h3>
+          <span class="section-count">{{ sentRequests().length }} lời mời</span>
+        </div>
+
+        @if (!sentRequests().length && !isLoadingSent()) {
+          <div class="empty-state">
+            <i class="fa-solid fa-paper-plane empty-icon"></i>
+            <p>Bạn chưa gửi lời mời kết bạn nào.</p>
+          </div>
+        }
+
+        <div class="requests-list">
+          @for (req of sentRequests(); track trackByRequestId($index, req)) {
+            <article class="request-card">
+              <a [routerLink]="['/profile', req.receiver.id]">
+                <app-avatar [src]="req.receiver.avatarUrl" [name]="req.receiver.fullName" [size]="56" />
+              </a>
+              <div class="request-card__info">
+                <a [routerLink]="['/profile', req.receiver.id]" class="request-card__name">{{ req.receiver.fullName }}</a>
+                <span class="request-card__username">Đang chờ phản hồi...</span>
+              </div>
+            </article>
+          }
+        </div>
+
+        @if (isLoadingSent()) {
+          <div class="loading-row"><app-loading-spinner size="md" /></div>
+        }
+        @if (hasMoreSent() && !isLoadingSent() && sentRequests().length) {
+          <button class="btn-ghost btn-sm load-more" (click)="loadSent()">Xem thêm</button>
+        }
+      }
+
+    </section>
+  </div>
+</main>

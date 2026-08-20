@@ -45,8 +45,7 @@ export interface NotificationUI extends Notification {
   styleUrl: './notifications.component.scss',
 })
 export class NotificationsComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly notificationHubService = inject(NotificationHubService);
   private readonly friendService = inject(FriendService);
@@ -254,7 +253,7 @@ export class NotificationsComponent
       next: (res) => {
         if (res.success) {
           this.notifications.set(res.data.items.map((n) => this.toUI(n)));
-          this.hasMore.set(res.data.page < res.data.totalPages);
+          this.hasMore.set(res.data.pageNumber < res.data.totalPages);
 
           this.animateListIn();
         }
@@ -276,7 +275,7 @@ export class NotificationsComponent
             ...list,
             ...res.data.items.map((n) => this.toUI(n)),
           ]);
-          this.hasMore.set(res.data.page < res.data.totalPages);
+          this.hasMore.set(res.data.pageNumber < res.data.totalPages);
           // Animate chỉ items mới load thêm
           setTimeout(() => {
             const items = document.querySelectorAll('.notif-item');
@@ -360,11 +359,11 @@ export class NotificationsComponent
           list.map((n) =>
             n.id === notif.id
               ? {
-                  ...n,
-                  isPending: false,
-                  isRead: true,
-                  type: NotificationType.FriendAccepted,
-                }
+                ...n,
+                isPending: false,
+                isRead: true,
+                type: NotificationType.FriendAccepted,
+              }
               : n,
           ),
         );

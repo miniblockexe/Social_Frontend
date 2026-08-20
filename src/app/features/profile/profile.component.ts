@@ -250,7 +250,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
           this.posts.update((prev) => [...prev, ...res.data.items]);
         }
-        this.postsHasMore = res.data.page < res.data.totalPages;
+        this.postsHasMore = res.data.pageNumber < res.data.totalPages;
         this.feedCache.saveProfilePosts(
           id,
           this.posts(),

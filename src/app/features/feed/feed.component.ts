@@ -197,7 +197,7 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (res) => {
         if (res.success && res.data) {
           this.posts = [...this.posts, ...res.data.items];
-          this.hasMore = res.data.page < res.data.totalPages;
+          this.hasMore = res.data.pageNumber < res.data.totalPages;
           const last = res.data.items.at(-1);
           if (last) this.cursorId = last.id;
 
@@ -214,20 +214,33 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /** Fetch trang 1 trong nền, cập nhật cache + UI nếu có dữ liệu mới */
+  /**
+   * Fetch trang 1 trong nền để lấy bài MỚI (đăng sau lần load gần nhất).
+   * QUAN TRỌNG: chỉ được PREPEND bài mới, không được ghi đè this.posts,
+   * nếu không sẽ xóa mất các bài đã tải thêm qua infinite scroll
+   * (bug cũ: reset feed về 10 bài mỗi khi cache quá 45s).
+   */
   private revalidateFeedSilently(): void {
     this.postService.getFeed(1, 10).subscribe({
       next: (res) => {
         if (!res.success || !res.data) return;
         const fresh = res.data.items;
-        const last = fresh.at(-1);
-        const cursor = last?.id;
-        const hasMore = res.data.page < res.data.totalPages;
 
-        this.posts = fresh;
-        this.cursorId = cursor;
-        this.hasMore = hasMore;
-        this.feedCache.saveFeed(fresh, cursor, hasMore);
+        // Chỉ thêm bài chưa từng có trong danh sách hiện tại
+        const existingIds = new Set(this.posts.map((p) => p.id));
+        const newPosts = fresh.filter((p) => !existingIds.has(p.id));
+        if (newPosts.length > 0) {
+          this.posts = [...newPosts, ...this.posts];
+        }
+
+        // Chỉ khởi tạo cursor/hasMore nếu đây là lần đầu (feed đang trống)
+        if (!this.cursorId) {
+          const last = fresh.at(-1);
+          this.cursorId = last?.id;
+          this.hasMore = res.data.pageNumber < res.data.totalPages;
+        }
+
+        this.feedCache.saveFeed(this.posts, this.cursorId, this.hasMore);
         this.cdr.markForCheck();
       },
     });
