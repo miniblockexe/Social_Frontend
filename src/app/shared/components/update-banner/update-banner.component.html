@@ -1,0 +1,18 @@
+@if (swUpdateService.hasUpdate()) {
+  <div class="update-banner">
+    <div class="update-banner__content">
+      <i class="fa-solid fa-rocket update-banner__icon"></i>
+      <span class="update-banner__text">Có phiên bản mới!</span>
+    </div>
+    <button class="update-banner__btn" (click)="swUpdateService.applyUpdate()">
+      Cập nhật ngay
+    </button>
+    <button
+      class="update-banner__close"
+      (click)="swUpdateService.dismiss()"
+      aria-label="Đóng"
+    >
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+}

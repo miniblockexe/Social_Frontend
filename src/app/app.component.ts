@@ -8,19 +8,28 @@ import { ChatHubService } from './core/services/chat-hub.service';
 import { WebRtcService } from './core/services/webrtc.service';
 import { AuthService } from './core/services/auth.service';
 import { CallOverlayComponent } from './shared/components/call-overlay/call-overlay.component';
+import { SwUpdateService } from './core/services/sw-update.service';
+import { UpdateBannerComponent } from './shared/components/update-banner/update-banner.component';
 
 const NO_NAVBAR_ROUTES = ['/', '/auth/login', '/auth/register'];
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, NavbarComponent, CallOverlayComponent],
+  imports: [
+    RouterOutlet,
+    CommonModule,
+    NavbarComponent,
+    CallOverlayComponent,
+    UpdateBannerComponent,
+  ],
   template: `
     @if (showNavbar()) {
       <app-navbar />
     }
     <router-outlet />
     <app-call-overlay />
+    <app-update-banner />
   `,
   styleUrl: './app.component.scss',
 })
@@ -29,6 +38,7 @@ export class AppComponent {
   private readonly chatHubService = inject(ChatHubService);
   private readonly webRtcService = inject(WebRtcService);
   private readonly authService = inject(AuthService);
+  private readonly swUpdateService = inject(SwUpdateService);
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -44,6 +54,7 @@ export class AppComponent {
   });
 
   constructor() {
+    this.swUpdateService.init();
     effect(
       () => {
         const incoming = this.chatHubService.incomingCall();
