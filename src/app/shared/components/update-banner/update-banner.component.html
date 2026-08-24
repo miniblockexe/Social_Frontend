@@ -1,5 +1,6 @@
 @if (swUpdateService.isUpdating()) {
   <div
+    #overlayRef
     class="update-overlay"
     role="status"
     aria-live="polite"
@@ -61,7 +62,7 @@
 }
 
 @if (swUpdateService.hasUpdate()) {
-  <div class="update-banner" role="alert" aria-live="assertive">
+  <div #bannerRef class="update-banner" role="alert" aria-live="assertive">
     <div class="update-banner__glow" aria-hidden="true"></div>
     <div class="update-banner__left">
       <div class="update-banner__badge" aria-hidden="true">
