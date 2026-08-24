@@ -21,7 +21,15 @@ export class SwUpdateService {
   }
 
   applyUpdate(): void {
-    this.swUpdate.activateUpdate().then(() => window.location.reload());
+    this.swUpdate.activateUpdate().then(() => {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(() => {
+          window.location.reload();
+        });
+      } else {
+        window.location.reload();
+      }
+    });
   }
 
   dismiss(): void {
