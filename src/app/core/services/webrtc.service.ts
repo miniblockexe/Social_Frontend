@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, OnDestroy } from '@angular/core';
+import { Injectable, inject, signal, OnDestroy, NgZone } from '@angular/core';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
 import { ChatHubService } from './chat-hub.service';
@@ -35,6 +35,7 @@ export class WebRtcService implements OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly chatHubService = inject(ChatHubService);
   private callTimeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly ngZone = inject(NgZone);
 
   // State
   callState = signal<CallState>('idle');
@@ -158,9 +159,14 @@ export class WebRtcService implements OnDestroy {
 
     this.ws.onmessage = (event) => this.handleSignal(JSON.parse(event.data));
     this.ws.onclose = () => {
-      if (this.callState() === 'connected' || this.callState() === 'calling') {
-        this.cleanup();
-      }
+      this.ngZone.run(() => {
+        if (
+          this.callState() === 'connected' ||
+          this.callState() === 'calling'
+        ) {
+          this.cleanup();
+        }
+      });
     };
 
     await new Promise<void>((resolve, reject) => {
