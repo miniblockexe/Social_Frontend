@@ -106,19 +106,22 @@ export class CallOverlayComponent implements OnInit, OnDestroy {
       }
     });
 
-    effect(() => {
-      const state = this.webRtcService.callState();
+    effect(
+      () => {
+        const state = this.webRtcService.callState();
 
-      if (state === 'connected') {
-        if (!this.durationInterval) {
+        if (state === 'connected') {
+          if (!this.durationInterval) {
+            this.callDuration.set(0);
+            this.startDurationTimer();
+          }
+        } else {
+          this.stopDurationTimer();
           this.callDuration.set(0);
-          this.startDurationTimer();
         }
-      } else {
-        this.stopDurationTimer();
-        this.callDuration.set(0);
-      }
-    });
+      },
+      { allowSignalWrites: true }, 
+    );
 
     afterNextRender(() => {
       this.setupGsapContext();

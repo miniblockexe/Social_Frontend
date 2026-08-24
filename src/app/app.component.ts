@@ -61,7 +61,8 @@ export class AppComponent {
         if (!incoming) return;
 
         const me = this.authService.currentUser();
-        if (incoming.callerId === me?.id) return;
+        if (!me?.id) return;
+        if (incoming.callerId === me.id) return;
 
         this.webRtcService.session.set({
           conversationId: incoming.conversationId,
@@ -75,11 +76,14 @@ export class AppComponent {
       },
       { allowSignalWrites: true },
     );
-    effect(() => {
-      const user = this.authService.currentUser();
-      if (user) {
-        this.chatHubService.startConnection();
-      }
-    });
+    effect(
+      () => {
+        const user = this.authService.currentUser();
+        if (user) {
+          this.chatHubService.startConnection();
+        }
+      },
+      { allowSignalWrites: true },
+    );
   }
 }

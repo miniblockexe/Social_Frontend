@@ -153,6 +153,8 @@ export class WebRtcService implements OnDestroy {
 
   public async connectSignaling(conversationId: string): Promise<void> {
     const userId = this.authService.currentUser()?.id ?? '';
+    if (!userId)
+      throw new Error('User not authenticated — cannot connect signaling');
     const url = `${SIGNALING_URL}/ws/${conversationId}?userId=${userId}`;
 
     this.ws = new WebSocket(url);
