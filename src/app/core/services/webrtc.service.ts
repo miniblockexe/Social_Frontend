@@ -80,7 +80,6 @@ export class WebRtcService implements OnDestroy {
     await this.createOffer();
   }
 
-  /** Bắt máy khi có cuộc gọi đến */
   async answerCall(): Promise<void> {
     this.stopRingtone();
     const sess = this.session();
@@ -89,11 +88,16 @@ export class WebRtcService implements OnDestroy {
     this.callState.set('connected');
     await this.initLocalStream(sess.mode);
 
-    // Flush pending ICE candidates nhận được trước khi answer
     for (const c of this.pendingCandidates) {
       await this.pc?.addIceCandidate(new RTCIceCandidate(c));
     }
     this.pendingCandidates = [];
+
+    if (this.pc && this.pc.remoteDescription) {
+      const answer = await this.pc.createAnswer();
+      await this.pc.setLocalDescription(answer);
+      this.sendSignal({ type: 'answer', sdp: answer.sdp });
+    }
   }
 
   async connectSignalingForIncoming(conversationId: string): Promise<void> {
@@ -191,11 +195,6 @@ export class WebRtcService implements OnDestroy {
           this.callState.set('receiving');
           this.startRingtone('incoming');
           this.onIncomingCall?.(sess);
-        } else if (this.callState() === 'connected') {
-          // Đã bắt máy rồi, tạo answer luôn
-          const answer = await this.pc!.createAnswer();
-          await this.pc!.setLocalDescription(answer);
-          this.sendSignal({ type: 'answer', sdp: answer.sdp });
         }
         break;
       }
