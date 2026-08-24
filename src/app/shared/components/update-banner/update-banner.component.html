@@ -1,18 +1,104 @@
-@if (swUpdateService.hasUpdate()) {
-  <div class="update-banner">
-    <div class="update-banner__content">
-      <i class="fa-solid fa-rocket update-banner__icon"></i>
-      <span class="update-banner__text">Có phiên bản mới!</span>
+@if (swUpdateService.isUpdating()) {
+  <div
+    class="update-overlay"
+    role="status"
+    aria-live="polite"
+    aria-label="Đang cập nhật ứng dụng"
+  >
+    <div class="update-overlay__card">
+      <div class="update-overlay__icon-wrap">
+        <svg
+          class="update-overlay__ring"
+          viewBox="0 0 44 44"
+          fill="none"
+          aria-hidden="true"
+        >
+          <circle
+            cx="22"
+            cy="22"
+            r="18"
+            stroke="rgba(16,185,129,0.15)"
+            stroke-width="3"
+          />
+          <circle
+            cx="22"
+            cy="22"
+            r="18"
+            stroke="#10b981"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-dasharray="28 84"
+            class="update-overlay__arc"
+          />
+        </svg>
+        <svg
+          class="update-overlay__icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 16V8M12 8l-3 3M12 8l3 3"
+            stroke="#10b981"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0Z"
+            stroke="#10b981"
+            stroke-width="1.75"
+          />
+        </svg>
+      </div>
+      <p class="update-overlay__title">Đang cập nhật</p>
+      <p class="update-overlay__sub">Vui lòng chờ trong giây lát…</p>
+      <div class="update-overlay__dots" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
     </div>
-    <button class="update-banner__btn" (click)="swUpdateService.applyUpdate()">
-      Cập nhật ngay
-    </button>
-    <button
-      class="update-banner__close"
-      (click)="swUpdateService.dismiss()"
-      aria-label="Đóng"
-    >
-      <i class="fa-solid fa-xmark"></i>
-    </button>
+  </div>
+}
+
+@if (swUpdateService.hasUpdate()) {
+  <div class="update-banner" role="alert" aria-live="assertive">
+    <div class="update-banner__glow" aria-hidden="true"></div>
+    <div class="update-banner__left">
+      <div class="update-banner__badge" aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="none">
+          <path
+            d="M10 2.5 L11.8 7.6 H17.3 L12.9 10.8 L14.7 16 L10 12.8 L5.3 16 L7.1 10.8 L2.7 7.6 H8.2 Z"
+            fill="#10b981"
+          />
+        </svg>
+      </div>
+      <div>
+        <p class="update-banner__title">Phiên bản mới!</p>
+        <p class="update-banner__sub">Cập nhật để trải nghiệm tốt hơn</p>
+      </div>
+    </div>
+    <div class="update-banner__actions">
+      <button
+        class="update-banner__btn"
+        (click)="swUpdateService.applyUpdate()"
+        aria-label="Cập nhật ngay"
+      >
+        Cập nhật
+      </button>
+      <button
+        class="update-banner__close"
+        (click)="swUpdateService.dismiss()"
+        aria-label="Đóng thông báo"
+      >
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path
+            d="M4 4l8 8M12 4l-8 8"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+    </div>
   </div>
 }

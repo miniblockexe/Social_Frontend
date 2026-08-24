@@ -6,6 +6,7 @@ import { filter } from 'rxjs';
 export class SwUpdateService {
   private readonly swUpdate = inject(SwUpdate);
   hasUpdate = signal(false);
+  isUpdating = signal(false);
 
   init(): void {
     if (!this.swUpdate.isEnabled) return;
@@ -21,15 +22,14 @@ export class SwUpdateService {
   }
 
   applyUpdate(): void {
-    this.swUpdate.activateUpdate().then(() => {
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.ready.then(() => {
-          window.location.reload();
-        });
-      } else {
-        window.location.reload();
-      }
-    });
+    this.hasUpdate.set(false);
+    this.isUpdating.set(true);
+
+    const doReload = () => {
+      setTimeout(() => window.location.reload(), 400);
+    };
+
+    this.swUpdate.activateUpdate().then(doReload).catch(doReload);
   }
 
   dismiss(): void {
