@@ -64,5 +64,11 @@ export class AppComponent {
       },
       { allowSignalWrites: true },
     );
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user) {
+        this.chatHubService.startConnection();
+      }
+    });
   }
 }

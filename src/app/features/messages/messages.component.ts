@@ -179,7 +179,6 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.chatHubService.startConnection();
     this.loadConversations();
 
     this.route.params
