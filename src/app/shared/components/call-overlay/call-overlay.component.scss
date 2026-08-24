@@ -1,24 +1,42 @@
 // ═══════════════════════════════════════════════════════════════
-// Call Overlay — Dark Premium, Angular 17
-// Palette: Zinc-950 base · Zinc-800 surface · Emerald-500 accent
+// Call Overlay — Redesign
+// Zinc-950 base · Zinc-900 surface · Emerald-500 accent
+// Responsive: 320px → ∞ | PiP đúng tỉ lệ khung hình người gọi
 // ═══════════════════════════════════════════════════════════════
 
 :host {
+  // ── Design tokens ─────────────────────────────────────────
   --co-bg: #09090b; // zinc-950
   --co-surface: #18181b; // zinc-900
   --co-surface-2: #27272a; // zinc-800
   --co-border: rgba(255, 255, 255, 0.08);
+  --co-border-lg: rgba(255, 255, 255, 0.15);
   --co-text: #fafafa;
-  --co-text-muted: rgba(250, 250, 250, 0.5);
+  --co-muted: rgba(250, 250, 250, 0.45);
   --co-accent: #10b981; // emerald-500
   --co-danger: #ef4444;
   --co-answer: #22c55e;
-  --co-radius: 16px;
-  --co-pip-w: 140px;
-  --co-pip-h: 188px;
+
+  // Radius
+  --co-radius: 14px;
+  --co-radius-sm: 10px;
+  --co-pill: 999px;
+
+  // Button sizes
+  --co-btn: 56px;
+  --co-btn-main: 64px;
+
+  // Font
+  --co-font: "Outfit", "Inter", system-ui, sans-serif;
+
+  // PiP — mobile portrait (3:4)
+  --co-pip-w: 88px;
+  --co-pip-h: 116px; // 3:4 ratio
+
+  // PiP — desktop landscape (16:9), set via media query below
 }
 
-// ── Reset ────────────────────────────────────────────────────
+// ── Reset ──────────────────────────────────────────────────────
 
 *,
 *::before,
@@ -28,7 +46,7 @@
   padding: 0;
 }
 
-// ── Root overlay ─────────────────────────────────────────────
+// ── Root overlay ───────────────────────────────────────────────
 
 .call-overlay {
   position: fixed;
@@ -38,39 +56,30 @@
   flex-direction: column;
   background: var(--co-bg);
   color: var(--co-text);
-  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-family: var(--co-font);
   overflow: hidden;
-  animation: co-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  // GSAP animates this in, do not add CSS animation here
 
   &--video {
     background: #000;
   }
 }
 
-@keyframes co-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.97) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-// ── Background (audio call) ───────────────────────────────────
+// ── Ambient background blur orbs (audio call) ─────────────────
 
 .call-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
 
   &__img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: blur(48px) saturate(0.4) brightness(0.35);
-    transform: scale(1.1);
+    filter: blur(60px) saturate(0.35) brightness(0.3);
+    transform: scale(1.12);
   }
 
   &__dim {
@@ -78,14 +87,14 @@
     inset: 0;
     background: linear-gradient(
       180deg,
-      rgba(9, 9, 11, 0.6) 0%,
-      rgba(9, 9, 11, 0.85) 50%,
+      rgba(9, 9, 11, 0.55) 0%,
+      rgba(9, 9, 11, 0.82) 50%,
       rgba(9, 9, 11, 0.97) 100%
     );
   }
 }
 
-// ── Video streams ─────────────────────────────────────────────
+// ── Video streams ──────────────────────────────────────────────
 
 .call-video {
   &--remote {
@@ -99,53 +108,76 @@
   }
 }
 
-// ── PiP (local video) ─────────────────────────────────────────
+// ── PiP (local camera) ────────────────────────────────────────
+//
+//  Tỉ lệ PiP phải khớp tỉ lệ khung hình người dùng đang thấy:
+//  • Mobile portrait  → 3:4  (selfie camera)
+//  • Desktop / tablet → 16:9 (webcam ngang)
+//
+//  GSAP Draggable gắn vào [#localVideo] ngoài component này.
+//  Chỉ set kích thước và vị trí mặc định (bottom-right).
+//
 
 .call-pip {
   position: absolute;
-  bottom: 120px;
-  right: 20px;
+  bottom: 108px;
+  right: 16px;
   width: var(--co-pip-w);
   height: var(--co-pip-h);
   border-radius: var(--co-radius);
   overflow: hidden;
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  z-index: 10;
+  border: 1.5px solid var(--co-border-lg);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(0, 0, 0, 0.3) inset;
+  z-index: 12;
   cursor: grab;
-  animation: co-pip-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+  // GSAP animate-in: opacity + scale; defined in .component.ts
+
+  &:active {
+    cursor: grabbing;
+  }
 
   &__video {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; // fill khung đúng tỉ lệ đã set
     display: block;
+    background: var(--co-surface);
   }
 
   &__off {
     position: absolute;
     inset: 0;
-    background: var(--co-surface);
+    background: var(--co-surface-2);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    color: var(--co-text-muted);
+    font-size: 1.35rem;
+    color: var(--co-muted);
+  }
+
+  &__label {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.45);
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
   }
 }
 
-@keyframes co-pip-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.8) translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-// ── INCOMING CALL ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// INCOMING CALL
+// ═══════════════════════════════════════════════════════════════
 
 .call-incoming {
   position: relative;
@@ -158,157 +190,207 @@
   gap: 0;
   padding: 48px 24px 40px;
 
+  // ── Avatar + ring ──────────────────────────────────────────
+
   &__ring {
     position: relative;
-    width: 112px;
-    height: 112px;
-    margin-bottom: 28px;
+    width: 96px;
+    height: 96px;
+    margin-bottom: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   &__avatar {
-    width: 112px;
-    height: 112px;
+    width: 96px;
+    height: 96px;
     border-radius: 50%;
     object-fit: cover;
     position: relative;
     z-index: 2;
-    border: 2.5px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.06);
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
 
     &--placeholder {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--co-surface-2);
-      font-size: 2.5rem;
-      color: var(--co-text-muted);
+      background: linear-gradient(135deg, var(--co-surface-2) 0%, #3f3f46 100%);
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--co-text);
       position: relative;
       z-index: 2;
+      letter-spacing: -0.02em;
     }
   }
 
   &__name {
     font-size: 1.75rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     line-height: 1;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     text-align: center;
   }
 
   &__label {
-    font-size: 0.9rem;
-    color: var(--co-text-muted);
+    font-size: 0.85rem;
+    color: var(--co-muted);
     margin-bottom: 52px;
     text-align: center;
+    letter-spacing: 0.01em;
   }
 
   &__actions {
     display: flex;
-    gap: 48px;
+    gap: 44px;
     align-items: center;
   }
 }
 
-// Ring pulse animation
+// Ring pulse — emerald-tinted for incoming
 .call-ring-anim {
   position: absolute;
-  inset: -14px;
+  inset: -12px;
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border: 1.5px solid rgba(34, 197, 94, 0.3);
   animation: co-ring 2s ease-out infinite;
   z-index: 1;
 
   &--2 {
-    inset: -28px;
-    animation-delay: 0.7s;
-    border-color: rgba(255, 255, 255, 0.09);
+    inset: -26px;
+    animation-delay: 0.65s;
+    border-color: rgba(34, 197, 94, 0.15);
+  }
+
+  &--3 {
+    inset: -40px;
+    animation-delay: 1.3s;
+    border-color: rgba(34, 197, 94, 0.07);
   }
 }
 
 @keyframes co-ring {
   0% {
-    transform: scale(0.85);
+    transform: scale(0.88);
     opacity: 0.9;
   }
-  60% {
+  70% {
     transform: scale(1);
-    opacity: 0.3;
+    opacity: 0.2;
   }
   100% {
-    transform: scale(1.1);
+    transform: scale(1.12);
     opacity: 0;
   }
 }
 
-// ── TOP BAR ───────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// TOP BAR (audio + video)
+// ═══════════════════════════════════════════════════════════════
 
 .call-topbar {
   position: relative;
   z-index: 10;
-  padding: 52px 24px 16px;
+  padding: 52px 20px 16px;
   display: flex;
   align-items: flex-start;
+  gap: 14px;
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.6) 0%,
     transparent 100%
   );
-
-  &__peer {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-
-    &--overlay {
-      // minimal text when video is showing
-      .call-topbar__name {
-        font-size: 1rem;
-      }
-      .call-topbar__status {
-        font-size: 0.8rem;
-      }
-    }
-  }
 
   &__avatar {
     width: 44px;
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    border: 1.5px solid rgba(255, 255, 255, 0.18);
     flex-shrink: 0;
 
     &--placeholder {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--co-surface-2);
-      font-size: 1.1rem;
-      color: var(--co-text-muted);
+      background: linear-gradient(135deg, var(--co-surface-2) 0%, #3f3f46 100%);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--co-text);
       flex-shrink: 0;
+      letter-spacing: -0.02em;
     }
   }
 
+  &__info {
+    flex: 1;
+  }
+
   &__name {
-    font-size: 1.15rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-size: 1.1rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
     line-height: 1.2;
   }
 
-  &__status {
-    font-size: 0.8rem;
-    color: var(--co-text-muted);
-    margin-top: 2px;
-    font-variant-numeric: tabular-nums;
+  &__status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 5px;
   }
 }
 
-// ── CONTROLS BAR ─────────────────────────────────────────────
+// ── Timer badge ────────────────────────────────────────────────
+
+.call-timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 0.5px solid rgba(16, 185, 129, 0.35);
+  border-radius: var(--co-pill);
+  padding: 3px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--co-accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.025em;
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--co-accent);
+    animation: co-dot-blink 1.6s ease infinite;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes co-dot-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+// ── Calling label ──────────────────────────────────────────────
+
+.call-status-text {
+  font-size: 0.8rem;
+  color: var(--co-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTROLS BAR
+// ═══════════════════════════════════════════════════════════════
 
 .call-controls {
   position: relative;
@@ -316,68 +398,58 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  padding: 24px 24px 48px;
+  gap: 20px;
+  padding: 20px 20px 48px;
   margin-top: auto;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, transparent 100%);
-  animation: co-controls-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
 }
 
-@keyframes co-controls-enter {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-// ── Action group (btn + label) ────────────────────────────────
+// ── Action group ───────────────────────────────────────────────
 
 .call-action-group {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 0; // label positioned by margin on btn-label
 }
 
 .call-btn-label {
-  font-size: 0.75rem;
-  color: var(--co-text-muted);
+  font-size: 10.5px;
+  color: var(--co-muted);
   letter-spacing: 0.01em;
   white-space: nowrap;
   user-select: none;
+  margin-top: 8px;
+  text-align: center;
 }
 
-// ── Buttons ───────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// BUTTONS
+// ═══════════════════════════════════════════════════════════════
 
 .call-btn {
-  width: 60px;
-  height: 60px;
+  width: var(--co-btn);
+  height: var(--co-btn);
   border-radius: 50%;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   color: var(--co-text);
-  background: var(--co-surface-2);
-  transition:
-    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
-    background 0.15s,
-    opacity 0.15s;
   position: relative;
   outline: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 
+  // Focus ring via pseudo-element (not outline, avoids layout shift)
   &::after {
     content: "";
     position: absolute;
-    inset: -3px;
+    inset: -4px;
     border-radius: 50%;
-    border: 1.5px solid transparent;
+    border: 2px solid transparent;
     transition: border-color 0.15s;
   }
 
@@ -385,27 +457,39 @@
     border-color: var(--co-accent);
   }
 
-  &:hover {
-    transform: scale(1.08);
-  }
-  &:active {
-    transform: scale(0.94);
+  // ── Variants ────────────────────────────────────────────────
+
+  // Control button (mic, camera, speaker, …)
+  &--ctrl {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    &:active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    // "Active" = feature is OFF (muted / cam off)
+    &.call-btn--active,
+    &[aria-pressed="true"] {
+      background: rgba(250, 250, 250, 0.9);
+      color: #18181b;
+    }
   }
 
-  // active = feature is OFF (muted, camera off)
-  &--active {
-    background: rgba(250, 250, 250, 0.92);
-    color: #18181b;
-  }
-
-  // incoming: answer
+  // Answer button
   &--answer {
-    width: 68px;
-    height: 68px;
-    font-size: 1.35rem;
+    width: var(--co-btn-main);
+    height: var(--co-btn-main);
+    font-size: 1.4rem;
     background: var(--co-answer);
     color: #fff;
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
     animation: co-answer-pulse 2s ease infinite;
 
     &:hover {
@@ -413,31 +497,18 @@
     }
   }
 
-  // incoming: decline / in-call: end
+  // Decline / End call
   &--decline,
   &--end {
-    width: 68px;
-    height: 68px;
-    font-size: 1.35rem;
+    width: var(--co-btn-main);
+    height: var(--co-btn-main);
+    font-size: 1.4rem;
     background: var(--co-danger);
     color: #fff;
+    transition: background 0.15s;
 
     &:hover {
       background: #dc2626;
-    }
-  }
-
-  // generic in-call control
-  &--ctrl {
-    background: rgba(250, 250, 250, 0.12);
-    backdrop-filter: blur(8px);
-
-    &:hover {
-      background: rgba(250, 250, 250, 0.2);
-    }
-    &.call-btn--active {
-      background: rgba(250, 250, 250, 0.9);
-      color: #18181b;
     }
   }
 }
@@ -447,14 +518,16 @@
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
   }
   60% {
-    box-shadow: 0 0 0 14px rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 16px rgba(34, 197, 94, 0);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
   }
 }
 
-// ── ENDED state ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// ENDED STATE
+// ═══════════════════════════════════════════════════════════════
 
 .call-ended {
   position: relative;
@@ -464,43 +537,123 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  animation: co-enter 0.25s ease both;
+  gap: 12px;
 
   &__icon {
-    font-size: 2.5rem;
-    color: var(--co-text-muted);
-    opacity: 0.5;
+    font-size: 2.25rem;
+    color: var(--co-muted);
+    opacity: 0.4;
   }
 
   &__text {
-    font-size: 1.1rem;
-    color: var(--co-text-muted);
+    font-size: 1rem;
+    color: var(--co-muted);
     letter-spacing: -0.01em;
   }
 }
 
-// ── Responsive ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// RESPONSIVE — tablet + desktop
+// ═══════════════════════════════════════════════════════════════
 
-@media (max-width: 480px) {
-  .call-controls {
-    gap: 16px;
-    padding: 20px 16px 40px;
-  }
-  .call-btn {
-    width: 54px;
-    height: 54px;
-    font-size: 1rem;
-  }
-  .call-btn--answer,
-  .call-btn--decline,
-  .call-btn--end {
-    width: 62px;
-    height: 62px;
-    font-size: 1.2rem;
-  }
+// ── Tablet (≥ 640px) ───────────────────────────────────────────
+@media (min-width: 640px) {
   :host {
-    --co-pip-w: 108px;
-    --co-pip-h: 148px;
+    --co-btn: 60px;
+    --co-btn-main: 68px;
+    --co-pip-w: 140px;
+    --co-pip-h: 104px; // ≈ 4:3 transitional
+  }
+
+  .call-controls {
+    gap: 28px;
+  }
+
+  .call-incoming {
+    &__ring,
+    &__avatar {
+      width: 108px;
+      height: 108px;
+    }
+    &__name {
+      font-size: 2rem;
+    }
+  }
+}
+
+// ── Desktop (≥ 1024px) — PiP menjadi 16:9 landscape ───────────
+@media (min-width: 1024px) {
+  :host {
+    --co-btn: 60px;
+    --co-btn-main: 68px;
+    // 16:9 webcam ratio — đúng với khung người dùng đang thấy mình
+    --co-pip-w: 224px;
+    --co-pip-h: 126px;
+  }
+
+  .call-pip {
+    bottom: 116px;
+    right: 28px;
+    border-radius: var(--co-radius);
+  }
+
+  .call-controls {
+    gap: 32px;
+    padding: 24px 32px 52px;
+  }
+
+  .call-topbar {
+    padding: 56px 28px 20px;
+  }
+
+  .call-incoming {
+    &__ring,
+    &__avatar {
+      width: 120px;
+      height: 120px;
+    }
+    &__name {
+      font-size: 2.25rem;
+    }
+    &__actions {
+      gap: 56px;
+    }
+  }
+}
+
+// ── Wide desktop (≥ 1440px) ────────────────────────────────────
+@media (min-width: 1440px) {
+  :host {
+    --co-pip-w: 280px;
+    --co-pip-h: 157px; // 16:9 larger
+  }
+}
+
+// ── Tiny phones (< 360px) ──────────────────────────────────────
+@media (max-width: 359px) {
+  :host {
+    --co-btn: 50px;
+    --co-btn-main: 58px;
+    --co-pip-w: 76px;
+    --co-pip-h: 100px;
+  }
+
+  .call-controls {
+    gap: 14px;
+    padding: 16px 12px 40px;
+  }
+  .call-btn-label {
+    font-size: 9.5px;
+  }
+}
+
+// ── Reduced motion ─────────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  .call-ring-anim,
+  .call-btn--answer {
+    animation: none !important;
+  }
+  .call-timer-badge__dot {
+    animation: none !important;
   }
 }
