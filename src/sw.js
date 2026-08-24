@@ -1,9 +1,6 @@
-// Service Worker — Social PWA
-const CACHE_NAME = "social-v1";
+const CACHE_NAME = "social-v2"; // tăng version mỗi khi sửa SW
 
 const STATIC_ASSETS = [
-  "/",
-  "/index.html",
   "/favicon.ico",
   "/assets/icons/icon-192.png",
   "/assets/icons/icon-512.png",
@@ -37,9 +34,11 @@ self.addEventListener("fetch", (event) => {
 
   if (event.request.mode === "navigate") {
     event.respondWith(
-      caches
-        .match("/index.html")
-        .then((cached) => cached || fetch(event.request)),
+      fetch(event.request).catch(() =>
+        caches
+          .match("/index.html")
+          .then((cached) => cached || Response.error()),
+      ),
     );
     return;
   }
