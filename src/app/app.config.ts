@@ -2,17 +2,16 @@ import {
   ApplicationConfig,
   APP_INITIALIZER,
   inject,
+  isDevMode,
 } from '@angular/core';
 import {
   provideRouter,
   withPreloading,
   PreloadAllModules,
 } from '@angular/router';
-import {
-  provideHttpClient,
-  withInterceptors,
-} from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
@@ -38,5 +37,9 @@ export const appConfig: ApplicationConfig = {
       useFactory: initAuth,
       multi: true,
     },
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };

@@ -1,39 +1,27 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { filter } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class SwUpdateService {
+  private readonly swUpdate = inject(SwUpdate);
   hasUpdate = signal(false);
-  private currentHash = '';
 
   init(): void {
-    this.getCurrentHash().then((h) => {
-      this.currentHash = h;
-      setInterval(() => this.checkForUpdate(), 2 * 60 * 1000);
-    });
-  }
+    if (!this.swUpdate.isEnabled) return;
 
-  private async getCurrentHash(): Promise<string> {
-    try {
-      const res = await fetch('/index.html?_=' + Date.now(), {
-        cache: 'no-store',
+    this.swUpdate.versionUpdates
+      .pipe(filter((e): e is VersionReadyEvent => e.type === 'VERSION_READY'))
+      .subscribe(() => {
+        this.hasUpdate.set(true);
       });
-      const text = await res.text();
-      const match = text.match(/main\.[a-f0-9]+\.js/);
-      return match?.[0] ?? '';
-    } catch {
-      return '';
-    }
-  }
 
-  private async checkForUpdate(): Promise<void> {
-    const newHash = await this.getCurrentHash();
-    if (newHash && newHash !== this.currentHash) {
-      this.hasUpdate.set(true);
-    }
+    this.swUpdate.checkForUpdate();
+    setInterval(() => this.swUpdate.checkForUpdate(), 2 * 60 * 1000);
   }
 
   applyUpdate(): void {
-    window.location.reload();
+    this.swUpdate.activateUpdate().then(() => window.location.reload());
   }
 
   dismiss(): void {
