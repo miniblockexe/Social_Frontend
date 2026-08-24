@@ -37,23 +37,30 @@ import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
 import { WebRtcService } from '../../core/services/webrtc.service';
 
 declare const gsap: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   from(targets: any, vars: Record<string, unknown>): void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fromTo(
     targets: any,
     fromVars: Record<string, unknown>,
     toVars: Record<string, unknown>,
   ): void;
   timeline(vars?: Record<string, unknown>): {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     from(
       targets: any,
       vars: Record<string, unknown>,
       position?: string | number,
     ): unknown;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     to(
+      targets: any,
+      vars: Record<string, unknown>,
+      position?: string | number,
+    ): unknown;
+    fromTo(
+      targets: any,
+      fromVars: Record<string, unknown>,
+      toVars: Record<string, unknown>,
+      position?: string | number,
+    ): unknown;
+    set(
       targets: any,
       vars: Record<string, unknown>,
       position?: string | number,
@@ -200,42 +207,75 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private runEntranceAnimation(): void {
-    // Respect prefers-reduced-motion
     if (
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
     )
       return;
 
-    // Guard: GSAP may not be loaded yet (CDN async)
     if (typeof gsap === 'undefined') return;
 
     const host = this.elRef.nativeElement as HTMLElement;
-
-    // Mark host ready — CSS keeps elements visible by default
     host.classList.add('gsap-ready');
 
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    const tl = gsap.timeline({
+      defaults: { ease: 'power3.out', clearProps: 'all' },
+    });
 
-    // Sidebar slides in from left
+    // 1 — Sidebar panel: x-slide + fade
     tl.from(
       host.querySelector('.msg-sidebar'),
-      { x: -24, opacity: 0, duration: 0.55 },
+      { x: -20, autoAlpha: 0, duration: 0.5 },
       0,
     );
 
-    // Chat window fades in slightly delayed
+    // 2 — Chat window: fade only (no x-shift; feels heavier)
     tl.from(
       host.querySelector('.msg-chat-window'),
-      { opacity: 0, duration: 0.45 },
-      0.15,
+      { autoAlpha: 0, duration: 0.42 },
+      0.08,
     );
 
-    // Sidebar header elements stagger
+    // 3 — Sidebar header elements stagger
     tl.from(
-      host.querySelectorAll('.msg-sidebar-title, .msg-icon-btn'),
-      { y: 10, opacity: 0, duration: 0.4, stagger: 0.06 },
-      0.2,
+      host.querySelectorAll(
+        '.msg-sidebar-title, .msg-sidebar-header .msg-icon-btn',
+      ),
+      { y: -8, autoAlpha: 0, duration: 0.32, stagger: 0.06 },
+      0.16,
+    );
+
+    // 4 — Search bar slides down
+    tl.from(
+      host.querySelector('.msg-search-wrap'),
+      { y: -6, autoAlpha: 0, duration: 0.28 },
+      0.24,
+    );
+
+    // 5 — Conversation items stagger in with slight y offset
+    tl.from(
+      host.querySelectorAll('.msg-conv-item'),
+      {
+        y: 8,
+        autoAlpha: 0,
+        duration: 0.36,
+        stagger: { each: 0.04, from: 'start' },
+      },
+      0.28,
+    );
+
+    // 6 — Chat header (slides down from slightly above)
+    tl.from(
+      host.querySelector('.msg-chat-header'),
+      { y: -10, autoAlpha: 0, duration: 0.36 },
+      0.3,
+    );
+
+    // 7 — Input bar rises from bottom
+    tl.from(
+      host.querySelector('.msg-input-bar'),
+      { y: 10, autoAlpha: 0, duration: 0.32 },
+      0.36,
     );
   }
 
@@ -355,7 +395,6 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       complete: () => {
         this.isLoadingMessages.set(false);
-        // Scroll to bottom after messages load
         setTimeout(() => this.scrollToBottom(), 60);
       },
     });
@@ -424,7 +463,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!file || !this.activeConversation()) return;
 
     const convId = this.activeConversation()!.id;
-    const MAX_BYTES = 50 * 1024 * 1024; // 50MB — khớp BE MaxAttachmentBytes
+    const MAX_BYTES = 50 * 1024 * 1024;
     if (file.size > MAX_BYTES) {
       this.toastService.error('File không được vượt quá 50MB');
       input.value = '';
@@ -468,7 +507,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   isOnline(conv: Conversation): boolean {
-    // Stub — tích hợp presence hub sau
+    // Stub — integrate presence hub later
     return false;
   }
 
@@ -505,6 +544,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       this.chatHubService.sendTyping(this.activeConversation()!.id, false);
     }
   }
+
   async onStartCall(mode: 'audio' | 'video'): Promise<void> {
     const conv = this.activeConversation();
     if (!conv || conv.isGroup) return;
