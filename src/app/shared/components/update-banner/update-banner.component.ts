@@ -12,3 +12,4 @@ import { SwUpdateService } from '../../../core/services/sw-update.service';
 export class UpdateBannerComponent {
   readonly swUpdateService = inject(SwUpdateService);
 }
+ 
