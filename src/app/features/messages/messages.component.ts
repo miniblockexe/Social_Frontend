@@ -35,7 +35,6 @@ import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
 import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
 import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
 import { WebRtcService } from '../../core/services/webrtc.service';
-import { CallOverlayComponent } from '../../shared/components/call-overlay/call-overlay.component';
 
 declare const gsap: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -93,7 +92,6 @@ export interface MessageGroup {
     TruncatePipe,
     RouterLink,
     LinkifyPipe,
-    CallOverlayComponent,
   ],
   templateUrl: './messages.component.html',
   styleUrl: './messages.component.scss',
@@ -178,26 +176,6 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       const updated = allMessages.get(activeId) ?? [];
       untracked(() => this.rawMessages.set([...updated]));
     });
-    effect(
-      () => {
-        const incoming = this.chatHubService.incomingCall();
-        if (!incoming) return;
-
-        const me = this.authService.currentUser();
-        if (incoming.callerId === me?.id) return;
-
-        this.webRtcService.session.set({
-          conversationId: incoming.conversationId,
-          peerId: incoming.callerId,
-          peerName: incoming.callerName,
-          peerAvatar: incoming.callerAvatar,
-          mode: incoming.mode,
-        });
-        this.webRtcService.callState.set('receiving');
-        this.webRtcService.connectSignalingForIncoming(incoming.conversationId);
-      },
-      { allowSignalWrites: true },
-    );
   }
 
   ngOnInit(): void {

@@ -209,6 +209,7 @@ export class WebRtcService implements OnDestroy {
               sdp: msg['sdp'] as string,
             }),
           );
+          this.callState.set('connected');
         }
         break;
 
