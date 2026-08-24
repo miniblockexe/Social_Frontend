@@ -1,40 +1,39 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { ToastService } from './toast.service';
+import { Injectable, signal } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class SwUpdateService {
-  private waitingWorker: ServiceWorker | null = null;
   hasUpdate = signal(false);
+  private currentHash = '';
 
   init(): void {
-    if (!('serviceWorker' in navigator)) return;
-
-    navigator.serviceWorker.ready.then((reg) => {
-      reg.update();
-
-      reg.addEventListener('updatefound', () => {
-        const newWorker = reg.installing;
-        if (!newWorker) return;
-
-        newWorker.addEventListener('statechange', () => {
-          if (
-            newWorker.state === 'installed' &&
-            navigator.serviceWorker.controller
-          ) {
-            this.waitingWorker = newWorker;
-            this.hasUpdate.set(true);
-          }
-        });
-      });
-    });
-
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
+    this.getCurrentHash().then((h) => {
+      this.currentHash = h;
+      setInterval(() => this.checkForUpdate(), 2 * 60 * 1000);
     });
   }
 
+  private async getCurrentHash(): Promise<string> {
+    try {
+      const res = await fetch('/index.html?_=' + Date.now(), {
+        cache: 'no-store',
+      });
+      const text = await res.text();
+      const match = text.match(/main\.[a-f0-9]+\.js/);
+      return match?.[0] ?? '';
+    } catch {
+      return '';
+    }
+  }
+
+  private async checkForUpdate(): Promise<void> {
+    const newHash = await this.getCurrentHash();
+    if (newHash && newHash !== this.currentHash) {
+      this.hasUpdate.set(true);
+    }
+  }
+
   applyUpdate(): void {
-    this.waitingWorker?.postMessage({ type: 'SKIP_WAITING' });
+    window.location.reload();
   }
 
   dismiss(): void {
