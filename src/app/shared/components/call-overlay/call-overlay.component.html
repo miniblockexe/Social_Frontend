@@ -1,0 +1,147 @@
+@if (isVisible()) {
+  <div class="call-overlay" [class.call-overlay--video]="isVideo()">
+
+    <!-- ══ BACKGROUND BLUR (audio call) ══ -->
+    @if (!isVideo()) {
+      <div class="call-bg">
+        @if (webRtcService.session()?.peerAvatar) {
+          <img class="call-bg__img" [src]="webRtcService.session()!.peerAvatar!" alt="" />
+        }
+        <div class="call-bg__dim"></div>
+      </div>
+    }
+
+    <!-- ══ VIDEO STREAMS ══ -->
+    @if (isVideo()) {
+      <video #remoteVideo class="call-video call-video--remote" autoplay playsinline></video>
+
+      <!-- Local PiP -->
+      <div class="call-pip" [class.call-pip--camera-off]="webRtcService.isCameraOff()">
+        <video #localVideo class="call-pip__video" autoplay playsinline muted></video>
+        @if (webRtcService.isCameraOff()) {
+          <div class="call-pip__off">
+            <i class="fa-solid fa-video-slash"></i>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ══ INCOMING CALL ══ -->
+    @if (webRtcService.callState() === 'receiving') {
+      <div class="call-incoming">
+        <div class="call-incoming__ring">
+          <div class="call-ring-anim"></div>
+          <div class="call-ring-anim call-ring-anim--2"></div>
+          @if (webRtcService.session()?.peerAvatar) {
+            <img class="call-incoming__avatar" [src]="webRtcService.session()!.peerAvatar!" alt="" />
+          } @else {
+            <div class="call-incoming__avatar call-incoming__avatar--placeholder">
+              <i class="fa-solid fa-user"></i>
+            </div>
+          }
+        </div>
+
+        <p class="call-incoming__name">{{ webRtcService.session()?.peerName }}</p>
+        <p class="call-incoming__label">
+          {{ webRtcService.session()?.mode === 'video' ? 'Cuộc gọi video đến' : 'Cuộc gọi thoại đến' }}
+        </p>
+
+        <div class="call-incoming__actions">
+          <div class="call-action-group">
+            <button class="call-btn call-btn--decline" (click)="onDecline()" aria-label="Từ chối">
+              <i class="fa-solid fa-phone-slash"></i>
+            </button>
+            <span class="call-btn-label">Từ chối</span>
+          </div>
+          <div class="call-action-group">
+            <button class="call-btn call-btn--answer" (click)="onAnswer()" aria-label="Bắt máy">
+              <i class="fa-solid fa-phone"></i>
+            </button>
+            <span class="call-btn-label">Bắt máy</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ══ CALLING / CONNECTED ══ -->
+    @if (webRtcService.callState() === 'calling' || webRtcService.callState() === 'connected') {
+
+      <!-- Top bar -->
+      <div class="call-topbar">
+        @if (!isVideo() || webRtcService.callState() !== 'connected') {
+          <div class="call-topbar__peer">
+            @if (webRtcService.session()?.peerAvatar) {
+              <img class="call-topbar__avatar" [src]="webRtcService.session()!.peerAvatar!" alt="" />
+            } @else {
+              <div class="call-topbar__avatar call-topbar__avatar--placeholder">
+                <i class="fa-solid fa-user"></i>
+              </div>
+            }
+            <div>
+              <p class="call-topbar__name">{{ webRtcService.session()?.peerName }}</p>
+              <p class="call-topbar__status">{{ callStateLabel() }}</p>
+            </div>
+          </div>
+        } @else {
+          <!-- Khi video connected: chỉ hiện tên + thời gian nhỏ góc trái -->
+          <div class="call-topbar__peer call-topbar__peer--overlay">
+            <p class="call-topbar__name">{{ webRtcService.session()?.peerName }}</p>
+            <p class="call-topbar__status">{{ callStateLabel() }}</p>
+          </div>
+        }
+      </div>
+
+      <!-- Controls bottom bar -->
+      <div class="call-controls">
+        <!-- Mute -->
+        <div class="call-action-group">
+          <button
+            class="call-btn call-btn--ctrl"
+            [class.call-btn--active]="webRtcService.isMuted()"
+            (click)="onToggleMute()"
+          >
+            <i class="fa-solid"
+               [class.fa-microphone]="!webRtcService.isMuted()"
+               [class.fa-microphone-slash]="webRtcService.isMuted()"
+            ></i>
+          </button>
+          <span class="call-btn-label">{{ webRtcService.isMuted() ? 'Bật mic' : 'Tắt mic' }}</span>
+        </div>
+
+        <!-- Camera (chỉ video) -->
+        @if (isVideo()) {
+          <div class="call-action-group">
+            <button
+              class="call-btn call-btn--ctrl"
+              [class.call-btn--active]="webRtcService.isCameraOff()"
+              (click)="onToggleCamera()"
+            >
+              <i class="fa-solid"
+                 [class.fa-video]="!webRtcService.isCameraOff()"
+                 [class.fa-video-slash]="webRtcService.isCameraOff()"
+              ></i>
+            </button>
+            <span class="call-btn-label">{{ webRtcService.isCameraOff() ? 'Bật camera' : 'Tắt camera' }}</span>
+          </div>
+        }
+
+        <!-- End call -->
+        <div class="call-action-group">
+          <button class="call-btn call-btn--end" (click)="onEndCall()" aria-label="Kết thúc">
+            <i class="fa-solid fa-phone-slash"></i>
+          </button>
+          <span class="call-btn-label">Kết thúc</span>
+        </div>
+      </div>
+    }
+
+    <!-- ══ ENDED ══ -->
+    @if (webRtcService.callState() === 'ended') {
+      <div class="call-ended">
+        <i class="fa-solid fa-phone-slash call-ended__icon"></i>
+        <p class="call-ended__text">Cuộc gọi đã kết thúc</p>
+      </div>
+    }
+
+  </div>
+}

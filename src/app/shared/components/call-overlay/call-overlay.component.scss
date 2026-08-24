@@ -1,0 +1,431 @@
+// ═══════════════════════════════════════════════════════════════
+// Call Overlay — Dark Premium, Angular 17
+// Palette: Zinc-950 base · Zinc-800 surface · Emerald-500 accent
+// ═══════════════════════════════════════════════════════════════
+
+:host {
+  --co-bg:          #09090b;      // zinc-950
+  --co-surface:     #18181b;      // zinc-900
+  --co-surface-2:   #27272a;      // zinc-800
+  --co-border:      rgba(255,255,255,.08);
+  --co-text:        #fafafa;
+  --co-text-muted:  rgba(250,250,250,.5);
+  --co-accent:      #10b981;      // emerald-500
+  --co-danger:      #ef4444;
+  --co-answer:      #22c55e;
+  --co-radius:      16px;
+  --co-pip-w:       140px;
+  --co-pip-h:       188px;
+}
+
+// ── Reset ────────────────────────────────────────────────────
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+// ── Root overlay ─────────────────────────────────────────────
+
+.call-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  background: var(--co-bg);
+  color: var(--co-text);
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+  animation: co-enter .3s cubic-bezier(.16,1,.3,1) both;
+
+  &--video {
+    background: #000;
+  }
+}
+
+@keyframes co-enter {
+  from { opacity: 0; transform: scale(.97) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)   translateY(0); }
+}
+
+// ── Background (audio call) ───────────────────────────────────
+
+.call-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(48px) saturate(.4) brightness(.35);
+    transform: scale(1.1);
+  }
+
+  &__dim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(9,9,11,.6) 0%,
+      rgba(9,9,11,.85) 50%,
+      rgba(9,9,11,.97) 100%
+    );
+  }
+}
+
+// ── Video streams ─────────────────────────────────────────────
+
+.call-video {
+  &--remote {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+}
+
+// ── PiP (local video) ─────────────────────────────────────────
+
+.call-pip {
+  position: absolute;
+  bottom: 120px;
+  right: 20px;
+  width: var(--co-pip-w);
+  height: var(--co-pip-h);
+  border-radius: var(--co-radius);
+  overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,.18);
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  z-index: 10;
+  cursor: grab;
+  animation: co-pip-enter .4s cubic-bezier(.16,1,.3,1) .15s both;
+
+  &__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__off {
+    position: absolute;
+    inset: 0;
+    background: var(--co-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--co-text-muted);
+  }
+}
+
+@keyframes co-pip-enter {
+  from { opacity: 0; transform: scale(.8) translateY(12px); }
+  to   { opacity: 1; transform: scale(1)  translateY(0); }
+}
+
+// ── INCOMING CALL ─────────────────────────────────────────────
+
+.call-incoming {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 48px 24px 40px;
+
+  &__ring {
+    position: relative;
+    width: 112px;
+    height: 112px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__avatar {
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    object-fit: cover;
+    position: relative;
+    z-index: 2;
+    border: 2.5px solid rgba(255,255,255,.15);
+    box-shadow: 0 0 0 4px rgba(255,255,255,.06);
+
+    &--placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--co-surface-2);
+      font-size: 2.5rem;
+      color: var(--co-text-muted);
+      position: relative;
+      z-index: 2;
+    }
+  }
+
+  &__name {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  &__label {
+    font-size: .9rem;
+    color: var(--co-text-muted);
+    margin-bottom: 52px;
+    text-align: center;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 48px;
+    align-items: center;
+  }
+}
+
+// Ring pulse animation
+.call-ring-anim {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.18);
+  animation: co-ring 2s ease-out infinite;
+  z-index: 1;
+
+  &--2 {
+    inset: -28px;
+    animation-delay: .7s;
+    border-color: rgba(255,255,255,.09);
+  }
+}
+
+@keyframes co-ring {
+  0%   { transform: scale(.85); opacity: .9; }
+  60%  { transform: scale(1);   opacity: .3; }
+  100% { transform: scale(1.1); opacity: 0; }
+}
+
+// ── TOP BAR ───────────────────────────────────────────────────
+
+.call-topbar {
+  position: relative;
+  z-index: 10;
+  padding: 52px 24px 16px;
+  display: flex;
+  align-items: flex-start;
+  background: linear-gradient(to bottom, rgba(0,0,0,.55) 0%, transparent 100%);
+
+  &__peer {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    &--overlay {
+      // minimal text when video is showing
+      .call-topbar__name { font-size: 1rem; }
+      .call-topbar__status { font-size: .8rem; }
+    }
+  }
+
+  &__avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid rgba(255,255,255,.2);
+    flex-shrink: 0;
+
+    &--placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--co-surface-2);
+      font-size: 1.1rem;
+      color: var(--co-text-muted);
+      flex-shrink: 0;
+    }
+  }
+
+  &__name {
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    line-height: 1.2;
+  }
+
+  &__status {
+    font-size: .8rem;
+    color: var(--co-text-muted);
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// ── CONTROLS BAR ─────────────────────────────────────────────
+
+.call-controls {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 24px 24px 48px;
+  margin-top: auto;
+  background: linear-gradient(to top, rgba(0,0,0,.65) 0%, transparent 100%);
+  animation: co-controls-enter .4s cubic-bezier(.16,1,.3,1) .1s both;
+}
+
+@keyframes co-controls-enter {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Action group (btn + label) ────────────────────────────────
+
+.call-action-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.call-btn-label {
+  font-size: .75rem;
+  color: var(--co-text-muted);
+  letter-spacing: .01em;
+  white-space: nowrap;
+  user-select: none;
+}
+
+// ── Buttons ───────────────────────────────────────────────────
+
+.call-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  color: var(--co-text);
+  background: var(--co-surface-2);
+  transition: transform .15s cubic-bezier(.34,1.56,.64,1), background .15s, opacity .15s;
+  position: relative;
+  outline: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    transition: border-color .15s;
+  }
+
+  &:focus-visible::after {
+    border-color: var(--co-accent);
+  }
+
+  &:hover  { transform: scale(1.08); }
+  &:active { transform: scale(.94); }
+
+  // active = feature is OFF (muted, camera off)
+  &--active {
+    background: rgba(250,250,250,.92);
+    color: #18181b;
+  }
+
+  // incoming: answer
+  &--answer {
+    width: 68px;
+    height: 68px;
+    font-size: 1.35rem;
+    background: var(--co-answer);
+    color: #fff;
+    box-shadow: 0 0 0 0 rgba(34,197,94,.4);
+    animation: co-answer-pulse 2s ease infinite;
+
+    &:hover { background: #16a34a; }
+  }
+
+  // incoming: decline / in-call: end
+  &--decline,
+  &--end {
+    width: 68px;
+    height: 68px;
+    font-size: 1.35rem;
+    background: var(--co-danger);
+    color: #fff;
+
+    &:hover { background: #dc2626; }
+  }
+
+  // generic in-call control
+  &--ctrl {
+    background: rgba(250,250,250,.12);
+    backdrop-filter: blur(8px);
+
+    &:hover { background: rgba(250,250,250,.2); }
+    &.call-btn--active {
+      background: rgba(250,250,250,.9);
+      color: #18181b;
+    }
+  }
+}
+
+@keyframes co-answer-pulse {
+  0%   { box-shadow: 0 0 0 0   rgba(34,197,94,.5); }
+  60%  { box-shadow: 0 0 0 14px rgba(34,197,94,0); }
+  100% { box-shadow: 0 0 0 0   rgba(34,197,94,0); }
+}
+
+// ── ENDED state ───────────────────────────────────────────────
+
+.call-ended {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  animation: co-enter .25s ease both;
+
+  &__icon {
+    font-size: 2.5rem;
+    color: var(--co-text-muted);
+    opacity: .5;
+  }
+
+  &__text {
+    font-size: 1.1rem;
+    color: var(--co-text-muted);
+    letter-spacing: -.01em;
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────
+
+@media (max-width: 480px) {
+  .call-controls { gap: 16px; padding: 20px 16px 40px; }
+  .call-btn       { width: 54px; height: 54px; font-size: 1rem; }
+  .call-btn--answer,
+  .call-btn--decline,
+  .call-btn--end  { width: 62px; height: 62px; font-size: 1.2rem; }
+  :host           { --co-pip-w: 108px; --co-pip-h: 148px; }
+}

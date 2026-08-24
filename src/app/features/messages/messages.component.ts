@@ -34,6 +34,8 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
 import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
 import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
+import { WebRtcService } from '../../core/services/webrtc.service';
+import { CallOverlayComponent } from '../../shared/components/call-overlay/call-overlay.component';
 
 declare const gsap: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -91,6 +93,7 @@ export interface MessageGroup {
     TruncatePipe,
     RouterLink,
     LinkifyPipe,
+    CallOverlayComponent,
   ],
   templateUrl: './messages.component.html',
   styleUrl: './messages.component.scss',
@@ -106,6 +109,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly elRef = inject(ElementRef<HTMLElement>);
+  readonly webRtcService = inject(WebRtcService) as WebRtcService;
 
   @ViewChild('messagesArea') messagesAreaRef?: ElementRef<HTMLElement>;
   @ViewChild('fileInput') fileInputRef?: ElementRef<HTMLInputElement>;
@@ -174,6 +178,26 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       const updated = allMessages.get(activeId) ?? [];
       untracked(() => this.rawMessages.set([...updated]));
     });
+    effect(
+      () => {
+        const incoming = this.chatHubService.incomingCall();
+        if (!incoming) return;
+
+        const me = this.authService.currentUser();
+        if (incoming.callerId === me?.id) return;
+
+        this.webRtcService.session.set({
+          conversationId: incoming.conversationId,
+          peerId: incoming.callerId,
+          peerName: incoming.callerName,
+          peerAvatar: incoming.callerAvatar,
+          mode: incoming.mode,
+        });
+        this.webRtcService.callState.set('receiving');
+        this.webRtcService.connectSignalingForIncoming(incoming.conversationId);
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   ngOnInit(): void {
@@ -502,6 +526,30 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.activeConversation()) {
       this.chatHubService.sendTyping(this.activeConversation()!.id, false);
+    }
+  }
+  async onStartCall(mode: 'audio' | 'video'): Promise<void> {
+    const conv = this.activeConversation();
+    if (!conv || conv.isGroup) return;
+
+    const me = this.authService.currentUser();
+    const peer = conv.participants.find((p) => p.id !== me?.id);
+    if (!peer) return;
+
+    try {
+      await this.webRtcService.startCall(
+        conv.id,
+        peer.id,
+        peer.fullName,
+        peer.avatarUrl ?? null,
+        mode,
+      );
+    } catch {
+      this.toastService.error(
+        mode === 'video'
+          ? 'Không thể truy cập camera/microphone'
+          : 'Không thể truy cập microphone',
+      );
     }
   }
 }

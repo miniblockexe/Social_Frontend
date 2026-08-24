@@ -216,10 +216,20 @@
           role="group"
           aria-label="Tùy chọn hội thoại"
         >
-          <button class="msg-icon-btn" aria-label="Gọi thoại">
+          <button
+            class="msg-icon-btn"
+            aria-label="Gọi thoại"
+            (click)="onStartCall('audio')"
+            [disabled]="webRtcService.callState() !== 'idle'"
+          >
             <i class="fa-solid fa-phone" aria-hidden="true"></i>
           </button>
-          <button class="msg-icon-btn" aria-label="Gọi video">
+          <button
+            class="msg-icon-btn"
+            aria-label="Gọi video"
+            (click)="onStartCall('video')"
+            [disabled]="webRtcService.callState() !== 'idle'"
+          >
             <i class="fa-solid fa-video" aria-hidden="true"></i>
           </button>
           <button class="msg-icon-btn" aria-label="Thông tin hội thoại">
@@ -633,3 +643,4 @@
     </div>
   </div>
 }
+<app-call-overlay></app-call-overlay>

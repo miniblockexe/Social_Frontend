@@ -51,6 +51,13 @@ export class ChatHubService {
    * Navbar dùng để cập nhật unread badge và reload conv nếu thiếu.
    */
   incomingMessages = signal<IncomingMessage[]>([]);
+  incomingCall = signal<{
+    conversationId: string;
+    callerId: string;
+    callerName: string;
+    callerAvatar: string | null;
+    mode: 'audio' | 'video';
+  } | null>(null);
 
   latestMessageByConv = signal<Map<string, IncomingMessage>>(new Map());
 
@@ -240,6 +247,13 @@ export class ChatHubService {
         this.toastService.error(message);
       },
     );
+    this.connection.on('IncomingCall', (data) => {
+      this.incomingCall.set(data);
+    });
+
+    this.connection.on('CallDeclined', () => {
+      // Caller nhận được — sẽ xử lý ở WebRtcService
+    });
   }
 
   async sendMessage(conversationId: string, content: string): Promise<void> {
@@ -257,6 +271,17 @@ export class ChatHubService {
 
   async deleteMessage(messageId: string): Promise<void> {
     await this.connection?.invoke('DeleteMessage', messageId);
+  }
+
+  async callInvite(
+    conversationId: string,
+    mode: 'audio' | 'video',
+  ): Promise<void> {
+    await this.connection?.invoke('CallInvite', conversationId, mode);
+  }
+
+  async callDeclined(conversationId: string): Promise<void> {
+    await this.connection?.invoke('CallDeclined', conversationId);
   }
 
   setActiveConversation(id: string | null): void {
