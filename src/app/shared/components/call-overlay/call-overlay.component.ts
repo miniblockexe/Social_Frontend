@@ -66,6 +66,7 @@ export class CallOverlayComponent implements OnInit, OnDestroy {
     // Bắt đầu đếm thời gian khi connected
     effect(() => {
       if (this.webRtcService.callState() === 'connected') {
+        this.callDuration.set(0);
         this.startDurationTimer();
       } else {
         this.stopDurationTimer();

@@ -34,6 +34,7 @@ const ICE_SERVERS: RTCIceServer[] = [
 export class WebRtcService implements OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly chatHubService = inject(ChatHubService);
+  private callTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // State
   callState = signal<CallState>('idle');
@@ -46,6 +47,7 @@ export class WebRtcService implements OnDestroy {
   private ws: WebSocket | null = null;
   private pc: RTCPeerConnection | null = null;
   private pendingCandidates: RTCIceCandidateInit[] = [];
+  private pingInterval: ReturnType<typeof setInterval> | null = null;
 
   // Callback để component hiển thị incoming call UI
   onIncomingCall?: (session: CallSession) => void;
@@ -72,6 +74,12 @@ export class WebRtcService implements OnDestroy {
     this.session.set(sess);
     this.callState.set('calling');
     this.startRingtone('outgoing');
+
+    this.callTimeout = setTimeout(() => {
+      if (this.callState() === 'calling') {
+        this.endCall();
+      }
+    }, 60000);
 
     await this.chatHubService.callInvite(conversationId, mode);
 
@@ -157,7 +165,15 @@ export class WebRtcService implements OnDestroy {
 
     await new Promise<void>((resolve, reject) => {
       if (!this.ws) return reject();
-      this.ws.onopen = () => resolve();
+      this.ws.onopen = () => {
+        // Keepalive ping mỗi 25s để Worker không đóng connection
+        this.pingInterval = setInterval(() => {
+          if (this.ws?.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type: 'ping' }));
+          }
+        }, 25000);
+        resolve();
+      };
       this.ws.onerror = () => reject(new Error('Signaling connect failed'));
     });
   }
@@ -305,6 +321,10 @@ export class WebRtcService implements OnDestroy {
 
   private cleanup(): void {
     this.stopRingtone();
+    if (this.callTimeout) {
+      clearTimeout(this.callTimeout);
+      this.callTimeout = null;
+    }
     this.localStream()
       ?.getTracks()
       .forEach((t) => t.stop());
@@ -320,7 +340,10 @@ export class WebRtcService implements OnDestroy {
     this.isMuted.set(false);
     this.isCameraOff.set(false);
     this.callState.set('ended');
-
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
     // Reset về idle sau 1.5s để hiển thị "Cuộc gọi đã kết thúc"
     setTimeout(() => {
       this.callState.set('idle');
