@@ -25,6 +25,27 @@ export class SwUpdateService {
     this.hasUpdate.set(false);
     this.isUpdating.set(true);
 
+    const blocker = document.createElement('div');
+    blocker.style.cssText = [
+      'position:fixed',
+      'inset:0',
+      'z-index:99999',
+      'background:#111113',
+      'display:flex',
+      'align-items:center',
+      'justify-content:center',
+    ].join(';');
+    blocker.innerHTML = `
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="22" r="18" stroke="rgba(16,185,129,0.15)" stroke-width="3"/>
+        <circle cx="22" cy="22" r="18" stroke="#10b981" stroke-width="3"
+          stroke-linecap="round" stroke-dasharray="28 84"
+          style="transform-origin:center;animation:sw-spin 1.1s linear infinite"/>
+      </svg>
+      <style>@keyframes sw-spin{to{transform:rotate(360deg)}}</style>
+    `;
+    document.body.appendChild(blocker);
+
     const doReload = () => {
       setTimeout(() => window.location.reload(), 400);
     };
