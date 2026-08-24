@@ -14,8 +14,20 @@ export class SwUpdateService {
     this.swUpdate.versionUpdates
       .pipe(filter((e): e is VersionReadyEvent => e.type === 'VERSION_READY'))
       .subscribe(() => {
-        this.hasUpdate.set(true);
+        this.swUpdate.activateUpdate().then(() => {
+          this.hasUpdate.set(true);
+        });
       });
+
+    this.swUpdate.versionUpdates.subscribe((event) => {
+      if (event.type === 'VERSION_INSTALLATION_FAILED') {
+        console.warn('[SW] Cài đặt phiên bản mới thất bại, đang reset SW...');
+        navigator.serviceWorker
+          .getRegistrations()
+          .then((regs) => regs.forEach((r) => r.unregister()))
+          .finally(() => window.location.reload());
+      }
+    });
 
     this.swUpdate.checkForUpdate();
     setInterval(() => this.swUpdate.checkForUpdate(), 2 * 60 * 1000);
@@ -46,15 +58,10 @@ export class SwUpdateService {
     `;
     document.body.appendChild(blocker);
 
-    const doReload = () => {
-      setTimeout(() => window.location.reload(), 400);
-    };
-
-    this.swUpdate.activateUpdate().then(doReload).catch(doReload);
+    setTimeout(() => window.location.reload(), 400);
   }
 
   dismiss(): void {
     this.hasUpdate.set(false);
   }
 }
-//test
