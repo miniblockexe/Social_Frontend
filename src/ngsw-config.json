@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@angular/service-worker/config/schema.json",
   "index": "/index.html",
-  "navigationRequestStrategy": "freshness",
+  "navigationRequestStrategy": "performance",
   "assetGroups": [
     {
       "name": "app-shell",
@@ -13,8 +13,18 @@
           "/index.html",
           "/manifest.webmanifest",
           "/*.css",
-          "/*.js"
+          "/main-*.js",
+          "/polyfills-*.js",
+          "/runtime-*.js"
         ]
+      }
+    },
+    {
+      "name": "lazy-chunks",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": ["/chunk-*.js"]
       }
     },
     {

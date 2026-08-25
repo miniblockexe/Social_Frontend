@@ -305,7 +305,31 @@ export class WebRtcService implements OnDestroy {
       if (this.pc) {
         stream.getTracks().forEach((t) => this.pc!.addTrack(t, stream));
       }
-    } catch {
+    } catch (err: unknown) {
+      const name = err instanceof DOMException ? err.name : '';
+
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        throw new Error(
+          mode === 'video'
+            ? 'PERMISSION_DENIED_VIDEO'
+            : 'PERMISSION_DENIED_AUDIO',
+        );
+      }
+
+      if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+        throw new Error(
+          mode === 'video'
+            ? 'Không tìm thấy camera hoặc microphone trên thiết bị này'
+            : 'Không tìm thấy microphone trên thiết bị này',
+        );
+      }
+
+      if (name === 'NotReadableError' || name === 'TrackStartError') {
+        throw new Error(
+          'Thiết bị đang được ứng dụng khác sử dụng, vui lòng đóng lại và thử lại',
+        );
+      }
+
       throw new Error(
         mode === 'video'
           ? 'Không thể truy cập camera/microphone'

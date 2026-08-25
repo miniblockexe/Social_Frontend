@@ -561,11 +561,30 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
         peer.avatarUrl ?? null,
         mode,
       );
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+
+      if (msg === 'PERMISSION_DENIED_VIDEO') {
+        this.toastService.warning(
+          'Bạn chưa cấp quyền truy cập camera và microphone. ' +
+            'Vào cài đặt trình duyệt → Quyền trang web để bật lại.',
+        );
+        return;
+      }
+
+      if (msg === 'PERMISSION_DENIED_AUDIO') {
+        this.toastService.warning(
+          'Bạn chưa cấp quyền truy cập microphone. ' +
+            'Vào cài đặt trình duyệt → Quyền trang web để bật lại.',
+        );
+        return;
+      }
+
       this.toastService.error(
-        mode === 'video'
-          ? 'Không thể truy cập camera/microphone'
-          : 'Không thể truy cập microphone',
+        msg ||
+          (mode === 'video'
+            ? 'Không thể truy cập camera/microphone'
+            : 'Không thể truy cập microphone'),
       );
     }
   }

@@ -12,8 +12,10 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WebRtcService } from '../../../core/services/webrtc.service';
+import gsap from 'gsap';
+import { Draggable } from 'gsap/Draggable';
 
-declare const gsap: any;
+gsap.registerPlugin(Draggable);
 
 const BP_TABLET = 640;
 const BP_DESKTOP = 1024;
@@ -120,7 +122,7 @@ export class CallOverlayComponent implements OnInit, OnDestroy {
           this.callDuration.set(0);
         }
       },
-      { allowSignalWrites: true }, 
+      { allowSignalWrites: true },
     );
 
     afterNextRender(() => {
@@ -167,8 +169,6 @@ export class CallOverlayComponent implements OnInit, OnDestroy {
   }
 
   private setupGsapContext(): void {
-    if (typeof gsap === 'undefined') return;
-
     this.ctx?.revert();
     this.ctx = gsap.context(() => {
       const overlay = this.overlayRef?.nativeElement;
@@ -232,7 +232,6 @@ export class CallOverlayComponent implements OnInit, OnDestroy {
     const pip = this.pipRef?.nativeElement;
     if (!pip) return;
 
-    // Entrance animation
     gsap.from(pip, {
       opacity: 0,
       scale: 0.7,
@@ -241,9 +240,9 @@ export class CallOverlayComponent implements OnInit, OnDestroy {
       ease: 'back.out(1.5)',
     });
 
-    if (typeof gsap.Draggable !== 'undefined') {
+    if (typeof Draggable !== 'undefined') {
       this.draggableInstance?.forEach((d: any) => d.kill());
-      this.draggableInstance = gsap.Draggable.create(pip, {
+      this.draggableInstance = Draggable.create(pip, {
         bounds: pip.parentElement,
         edgeResistance: 0.65,
         inertia: true,
@@ -290,7 +289,6 @@ export class CallOverlayComponent implements OnInit, OnDestroy {
   }
 
   private animateButtonPress(selector: string): void {
-    if (typeof gsap === 'undefined') return;
     const el = this.overlayRef?.nativeElement?.querySelector(selector);
     if (!el) return;
     gsap.from(el, { scale: 0.88, duration: 0.3, ease: 'back.out(2)' });
