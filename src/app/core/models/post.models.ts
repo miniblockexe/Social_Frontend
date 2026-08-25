@@ -16,6 +16,10 @@ export interface Post {
   shareCount: number;
   isSharedByMe: boolean;
   originalPost: SharedPost | null;
+
+  // Bài đăng trong nhóm — null nếu là bài cá nhân
+  groupId?: string;
+  groupName?: string;
 }
 
 export interface SharedPost {

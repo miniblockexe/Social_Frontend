@@ -62,7 +62,7 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly friendService = inject(FriendService);
   private readonly authService = inject(AuthService);
   private readonly toastService = inject(ToastService);
-  private readonly feedCache = inject(FeedCacheService); 
+  private readonly feedCache = inject(FeedCacheService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   me = computed(() => this.authService.currentUser());
@@ -72,6 +72,8 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
   hasMore = true;
   showScrollTop = false;
   private cursorId?: string;
+  private feedErrorCount = 0;
+  private readonly FEED_MAX_ERRORS = 3;
 
   pendingRequests: FriendRequest[] = [];
   isLoadingRequests = false;
@@ -201,6 +203,9 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
           const last = res.data.items.at(-1);
           if (last) this.cursorId = last.id;
 
+          // Reset error counter khi load thành công
+          this.feedErrorCount = 0;
+
           // Lưu vào cache
           this.feedCache.saveFeed(this.posts, this.cursorId, this.hasMore);
         }
@@ -208,6 +213,11 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: () => {
+        this.feedErrorCount++;
+        // Dừng infinite scroll sau nhiều lỗi liên tiếp để tránh spam API
+        if (this.feedErrorCount >= this.FEED_MAX_ERRORS) {
+          this.hasMore = false;
+        }
         this.isLoading = false;
         this.cdr.markForCheck();
       },
