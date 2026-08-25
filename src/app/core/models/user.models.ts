@@ -9,6 +9,7 @@ export interface UserProfile {
   bio: string | null;
   avatarUrl: string | null;
   coverPhotoUrl: string | null;
+  ringtoneUrl: string | null;
   createdAt: string;
   friendCount: number;
   postCount: number;

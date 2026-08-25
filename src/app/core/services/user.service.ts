@@ -44,6 +44,19 @@ export class UserService {
     );
   }
 
+  updateRingtone(file: File): Observable<ApiResponse<string>> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.put<ApiResponse<string>>(
+      `${API_BASE}/users/me/ringtone`,
+      form,
+    );
+  }
+
+  deleteRingtone(): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`${API_BASE}/users/me/ringtone`);
+  }
+
   // BE trả UserSearchResultDto (khác UserProfile — không có bio, coverPhotoUrl,...)
   searchUsers(
     keyword: string,

@@ -22,13 +22,15 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
+import { WebRtcService } from '../../core/services/webrtc.service';
 
 export type SettingsSection =
   | 'profile'
   | 'security'
   | 'privacy'
   | 'notifications'
-  | 'appearance';
+  | 'appearance'
+  | 'ringtone';
 
 interface NavItem {
   key: SettingsSection;
@@ -87,12 +89,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
   @ViewChild('sidebarEl') private sidebarEl!: ElementRef<HTMLElement>;
   @ViewChild('contentPanel') private contentPanel!: ElementRef<HTMLElement>;
   @ViewChild('avatarInput') private avatarInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('ringtoneInput')
+  private ringtoneInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('audioPreview')
+  private audioPreview!: ElementRef<HTMLAudioElement>;
 
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly webRtcService = inject(WebRtcService);
 
   currentUser = this.auth.currentUser;
   activeSection = signal<SettingsSection>('profile');
@@ -114,6 +121,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
   showNewPw = signal(false);
   showConfirmPw = signal(false);
   passwordStrength = signal(0);
+
+  // Ringtone
+  currentRingtoneUrl = signal<string | null>(null);
+  ringtoneSaving = signal(false);
+  ringtoneDeleting = signal(false);
+  isPlaying = signal(false);
 
   private gsap: any;
   private gsapCtx: any;
@@ -149,6 +162,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
       label: 'Giao diện',
       icon: 'fa-solid fa-palette',
       color: 'gray',
+    },
+    {
+      key: 'ringtone',
+      label: 'Nhạc chuông',
+      icon: 'fa-solid fa-music',
+      color: 'purple',
     },
   ];
 
@@ -234,6 +253,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this._buildForms();
     this._loadCurrentBio();
+    this._loadRingtone();
     this._loadGSAP();
   }
 
@@ -408,6 +428,89 @@ export class SettingsComponent implements OnInit, OnDestroy {
     if (s === 2) return 'Trung bình';
     if (s === 3) return 'Mạnh';
     return 'Rất mạnh';
+  }
+  private _loadRingtone(): void {
+    this.userService.getMyProfile().subscribe({
+      next: (res) => {
+        if (res.success) {
+          const url = (res.data as any).ringtoneUrl ?? null;
+          this.currentRingtoneUrl.set(url);
+          this.webRtcService.customRingtoneUrl = url;
+        }
+      },
+      error: () => {},
+    });
+  }
+
+  triggerRingtoneUpload(): void {
+    this.ringtoneInput.nativeElement.click();
+  }
+
+  onRingtoneChange(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.show('File không được vượt quá 5MB', 'error');
+      return;
+    }
+
+    this.ringtoneSaving.set(true);
+    this.userService.updateRingtone(file).subscribe({
+      next: (res) => {
+        this.ringtoneSaving.set(false);
+        if (res.success) {
+          this.currentRingtoneUrl.set(res.data);
+          this.webRtcService.customRingtoneUrl = res.data;
+          this.toast.show('Đã cập nhật nhạc chuông', 'success');
+        }
+        // Reset input để có thể chọn lại cùng file
+        this.ringtoneInput.nativeElement.value = '';
+      },
+      error: () => {
+        this.ringtoneSaving.set(false);
+        this.toast.show('Tải lên thất bại', 'error');
+        this.ringtoneInput.nativeElement.value = '';
+      },
+    });
+  }
+
+  deleteRingtone(): void {
+    this.ringtoneDeleting.set(true);
+    this.stopPreview();
+    this.userService.deleteRingtone().subscribe({
+      next: () => {
+        this.ringtoneDeleting.set(false);
+        this.currentRingtoneUrl.set(null);
+        this.webRtcService.customRingtoneUrl = null;
+        this.toast.show('Đã xóa nhạc chuông tuỳ chỉnh', 'success');
+      },
+      error: () => {
+        this.ringtoneDeleting.set(false);
+        this.toast.show('Xóa thất bại', 'error');
+      },
+    });
+  }
+
+  togglePreview(): void {
+    if (this.isPlaying()) {
+      this.stopPreview();
+    } else {
+      const audio = this.audioPreview?.nativeElement;
+      if (!audio) return;
+      audio.play();
+      this.isPlaying.set(true);
+      audio.onended = () => this.isPlaying.set(false);
+    }
+  }
+
+  private stopPreview(): void {
+    const audio = this.audioPreview?.nativeElement;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    this.isPlaying.set(false);
   }
 
   saveProfile(): void {

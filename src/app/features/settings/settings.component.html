@@ -716,6 +716,133 @@
           </div>
         </div>
       }
+      @if (activeSection() === "ringtone") {
+        <div class="sp-settings-section" @sectionFade>
+          <div class="sp-settings-section-header">
+            <div>
+              <h3 class="sp-settings-section-title">Nhạc chuông</h3>
+              <p class="sp-settings-section-desc">
+                Tuỳ chỉnh nhạc chuông khi có cuộc gọi đến. Tối đa 5MB, định dạng
+                mp3/ogg/wav/m4a.
+              </p>
+            </div>
+          </div>
+
+          <div class="sp-card sp-settings-card">
+            <!-- Preview nhạc chuông hiện tại -->
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <div class="sp-settings-label">Nhạc chuông hiện tại</div>
+                <div class="sp-settings-desc">
+                  @if (currentRingtoneUrl()) {
+                    File tuỳ chỉnh đang được sử dụng.
+                  } @else {
+                    Đang dùng nhạc chuông mặc định.
+                  }
+                </div>
+              </div>
+              <div class="sp-settings-row-right">
+                @if (currentRingtoneUrl()) {
+                  <div class="sp-ringtone-preview">
+                    <audio
+                      #audioPreview
+                      [src]="currentRingtoneUrl()!"
+                      preload="none"
+                    ></audio>
+                    <button
+                      class="sp-btn-ghost sp-btn--sm"
+                      (click)="togglePreview()"
+                      [attr.aria-label]="isPlaying() ? 'Dừng' : 'Nghe thử'"
+                    >
+                      <i
+                        [class]="
+                          isPlaying() ? 'fa-solid fa-stop' : 'fa-solid fa-play'
+                        "
+                        aria-hidden="true"
+                      ></i>
+                      {{ isPlaying() ? "Dừng" : "Nghe thử" }}
+                    </button>
+                  </div>
+                } @else {
+                  <span class="sp-settings-desc">—</span>
+                }
+              </div>
+            </div>
+
+            <div class="sp-settings-row-divider"></div>
+
+            <!-- Upload nhạc chuông mới -->
+            <div class="sp-settings-row">
+              <div class="sp-settings-row-left">
+                <div class="sp-settings-label">Tải lên nhạc chuông</div>
+                <div class="sp-settings-desc">
+                  mp3, ogg, wav, m4a — tối đa 5MB.
+                </div>
+              </div>
+              <div class="sp-settings-row-right">
+                <div class="sp-settings-avatar-ctrl">
+                  <button
+                    class="sp-btn-ghost sp-btn--sm"
+                    (click)="triggerRingtoneUpload()"
+                    [disabled]="ringtoneSaving()"
+                  >
+                    <i class="fa-solid fa-music" aria-hidden="true"></i>
+                    Chọn file
+                  </button>
+                  <input
+                    #ringtoneInput
+                    type="file"
+                    accept="audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/x-m4a,.mp3,.ogg,.wav,.m4a"
+                    class="sp-visually-hidden"
+                    (change)="onRingtoneChange($event)"
+                  />
+                  @if (ringtoneSaving()) {
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    ></span>
+                    <span class="sp-settings-desc">Đang tải...</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Xóa nhạc chuông (chỉ hiện khi có file tuỳ chỉnh) -->
+            @if (currentRingtoneUrl()) {
+              <div class="sp-settings-row-divider"></div>
+              <div class="sp-settings-row">
+                <div class="sp-settings-row-left">
+                  <div class="sp-settings-label">Xóa nhạc chuông</div>
+                  <div class="sp-settings-desc">
+                    Quay về nhạc chuông mặc định.
+                  </div>
+                </div>
+                <div class="sp-settings-row-right">
+                  <button
+                    class="sp-btn-ghost sp-btn--sm"
+                    style="
+                      border-color: rgba(255, 77, 61, 0.4);
+                      color: var(--c-accent);
+                    "
+                    (click)="deleteRingtone()"
+                    [disabled]="ringtoneDeleting()"
+                  >
+                    @if (ringtoneDeleting()) {
+                      <span
+                        class="spinner-border spinner-border-sm"
+                        aria-hidden="true"
+                      ></span>
+                    } @else {
+                      <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                    }
+                    Xóa
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
     </main>
   </div>
 </div>
