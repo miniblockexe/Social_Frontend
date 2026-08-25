@@ -174,7 +174,6 @@ export class WebRtcService implements OnDestroy {
     await new Promise<void>((resolve, reject) => {
       if (!this.ws) return reject();
       this.ws.onopen = () => {
-        // Keepalive ping mỗi 25s để Worker không đóng connection
         this.pingInterval = setInterval(() => {
           if (this.ws?.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({ type: 'ping' }));
@@ -195,14 +194,12 @@ export class WebRtcService implements OnDestroy {
   private async handleSignal(msg: Record<string, unknown>): Promise<void> {
     switch (msg['type']) {
       case 'peer-joined':
-        // Peer kia đã vào phòng — nếu mình đang calling thì tạo offer
         if (this.callState() === 'calling' && !this.pc) {
           await this.createOffer();
         }
         break;
 
       case 'offer': {
-        // Nhận cuộc gọi đến
         const sess = this.session();
         if (!sess) break;
 
@@ -214,8 +211,14 @@ export class WebRtcService implements OnDestroy {
           }),
         );
 
-        if (this.callState() === 'idle' || this.callState() === 'receiving') {
-          // Trigger incoming call UI
+        if (this.callState() === 'connected') {
+          const answer = await this.pc!.createAnswer();
+          await this.pc!.setLocalDescription(answer);
+          this.sendSignal({ type: 'answer', sdp: answer.sdp });
+        } else if (
+          this.callState() === 'idle' ||
+          this.callState() === 'receiving'
+        ) {
           this.callState.set('receiving');
           this.startRingtone('incoming');
           this.onIncomingCall?.(sess);
@@ -295,6 +298,17 @@ export class WebRtcService implements OnDestroy {
       }
       if (this.pc?.connectionState === 'connected') {
         this.callState.set('connected');
+      }
+    };
+
+    this.pc.onnegotiationneeded = async () => {
+      if (this.callState() !== 'connected') return;
+      try {
+        const offer = await this.pc!.createOffer();
+        await this.pc!.setLocalDescription(offer);
+        this.sendSignal({ type: 'offer', sdp: offer.sdp });
+      } catch (err) {
+        console.error('onnegotiationneeded reoffer failed', err);
       }
     };
 
