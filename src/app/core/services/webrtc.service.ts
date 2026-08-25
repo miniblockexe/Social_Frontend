@@ -270,8 +270,20 @@ export class WebRtcService implements OnDestroy {
     };
 
     this.pc.ontrack = (event) => {
-      const [stream] = event.streams;
-      if (stream) this.remoteStream.set(stream);
+      this.ngZone.run(() => {
+        let remote = this.remoteStream();
+        if (!remote) {
+          remote = new MediaStream();
+          this.remoteStream.set(remote);
+        }
+        const alreadyAdded = remote
+          .getTracks()
+          .find((t) => t.id === event.track.id);
+        if (!alreadyAdded) {
+          remote.addTrack(event.track);
+        }
+        this.remoteStream.set(remote);
+      });
     };
 
     this.pc.onconnectionstatechange = () => {
@@ -296,7 +308,11 @@ export class WebRtcService implements OnDestroy {
   private async initLocalStream(mode: 'audio' | 'video'): Promise<void> {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
         video: mode === 'video' ? { width: 1280, height: 720 } : false,
       });
       this.localStream.set(stream);

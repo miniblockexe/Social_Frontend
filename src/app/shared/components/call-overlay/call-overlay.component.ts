@@ -103,8 +103,11 @@ export class CallOverlayComponent implements OnInit, OnDestroy {
 
     effect(() => {
       const stream = this.webRtcService.remoteStream();
-      if (stream && this.remoteVideoRef?.nativeElement) {
-        this.remoteVideoRef.nativeElement.srcObject = stream;
+      const videoEl = this.remoteVideoRef?.nativeElement;
+      if (stream && videoEl) {
+        videoEl.srcObject = stream;
+        videoEl.play().catch(() => {
+        });
       }
     });
 
@@ -232,6 +235,7 @@ export class CallOverlayComponent implements OnInit, OnDestroy {
     const pip = this.pipRef?.nativeElement;
     if (!pip) return;
 
+    // Entrance animation
     gsap.from(pip, {
       opacity: 0,
       scale: 0.7,

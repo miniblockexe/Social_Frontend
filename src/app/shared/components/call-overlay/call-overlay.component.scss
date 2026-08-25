@@ -144,6 +144,7 @@
     object-fit: cover; // fill khung đúng tỉ lệ đã set
     display: block;
     background: var(--co-surface);
+    transform: scaleX(-1); // mirror local cam như selfie
   }
 
   &__off {
