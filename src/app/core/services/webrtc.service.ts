@@ -125,6 +125,11 @@ export class WebRtcService implements OnDestroy {
 
     await this.connectSignaling(conversationId);
     await this.initLocalStream(mode);
+
+    this.localStream()
+      ?.getAudioTracks()
+      .forEach((t) => (t.enabled = false));
+
     await this.createOffer();
   }
 
@@ -293,6 +298,9 @@ export class WebRtcService implements OnDestroy {
               sdp: msg['sdp'] as string,
             }),
           );
+          this.localStream()
+            ?.getAudioTracks()
+            .forEach((t) => (t.enabled = true));
           this.callState.set('connected');
         }
         break;
