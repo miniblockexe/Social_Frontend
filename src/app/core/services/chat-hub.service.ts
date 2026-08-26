@@ -59,6 +59,9 @@ export class ChatHubService {
     mode: 'audio' | 'video';
   } | null>(null);
 
+  /** Caller đã huỷ/timeout — callee cần cleanup UI */
+  callCancelled = signal<{ conversationId: string } | null>(null);
+
   latestMessageByConv = signal<Map<string, IncomingMessage>>(new Map());
 
   async startConnection(): Promise<void> {
@@ -251,8 +254,9 @@ export class ChatHubService {
       this.incomingCall.set(data);
     });
 
-    this.connection.on('CallDeclined', () => {
-      // Caller nhận được — sẽ xử lý ở WebRtcService
+    this.connection.on('CallDeclined', (data: { conversationId: string }) => {
+      // Caller huỷ hoặc timeout — báo cho WebRtcService cleanup
+      this.callCancelled.set(data);
     });
   }
 

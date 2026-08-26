@@ -1,4 +1,11 @@
-import { Injectable, inject, signal, OnDestroy, NgZone } from '@angular/core';
+import {
+  Injectable,
+  inject,
+  signal,
+  OnDestroy,
+  NgZone,
+  effect,
+} from '@angular/core';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
 import { ChatHubService } from './chat-hub.service';
@@ -44,6 +51,16 @@ export class WebRtcService implements OnDestroy {
   remoteStream = signal<MediaStream | null>(null);
   isMuted = signal(false);
   isCameraOff = signal(false);
+
+  constructor() {
+    effect(() => {
+      const cancelled = this.chatHubService.callCancelled();
+      if (!cancelled) return;
+      if (this.callState() === 'receiving') {
+        this.cleanup();
+      }
+    });
+  }
 
   private ws: WebSocket | null = null;
   private pc: RTCPeerConnection | null = null;
@@ -433,6 +450,7 @@ export class WebRtcService implements OnDestroy {
   private startRingtone(type: 'outgoing' | 'incoming'): void {
     this.stopRingtone();
 
+    // Nhạc chuông tuỳ chỉnh chỉ dùng khi có người gọi đến
     if (type === 'incoming' && this.customRingtoneUrl) {
       const audio = new Audio(this.customRingtoneUrl);
       audio.loop = true;
