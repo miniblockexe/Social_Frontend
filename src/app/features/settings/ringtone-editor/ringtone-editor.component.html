@@ -1,0 +1,137 @@
+<div class="rte-backdrop" @editorFade (click)="cancel()">
+  <div class="rte-panel" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="rte-header">
+      <div class="rte-header-left">
+        <i class="fa-solid fa-scissors rte-header-icon" aria-hidden="true"></i>
+        <div>
+          <h3 class="rte-title">Cắt nhạc chuông</h3>
+          <p class="rte-subtitle">{{ file.name }}</p>
+        </div>
+      </div>
+      <button class="rte-close" (click)="cancel()" aria-label="Đóng">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Decoding state -->
+    @if (isDecoding()) {
+      <div class="rte-loading">
+        <span class="rte-spinner"></span>
+        <span>Đang phân tích audio...</span>
+      </div>
+    }
+
+    <!-- Error state -->
+    @if (decodeError()) {
+      <div class="rte-error">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{ decodeError() }}
+      </div>
+    }
+
+    <!-- Editor body -->
+    @if (!isDecoding() && !decodeError()) {
+      <!-- Waveform canvas -->
+      <div class="rte-waveform-wrap">
+        <canvas
+          #waveCanvas
+          class="rte-waveform"
+          (click)="onCanvasClick($event)"
+          role="img"
+          aria-label="Waveform — kéo 2 điểm đỏ để chọn đoạn"
+        ></canvas>
+
+        <!-- Start handle -->
+        <div
+          class="rte-handle rte-handle--start"
+          [style.left.%]="startPct() * 100"
+          (mousedown)="onHandleMouseDown($event, 'start')"
+          (touchstart)="onHandleTouchStart($event, 'start')"
+          aria-label="Điểm bắt đầu"
+          role="slider"
+          [attr.aria-valuenow]="startTime()"
+          [attr.aria-valuemin]="0"
+          [attr.aria-valuemax]="duration()"
+        >
+          <div class="rte-handle-bar"></div>
+          <div class="rte-handle-label">{{ formatTime(startTime()) }}</div>
+        </div>
+
+        <!-- End handle -->
+        <div
+          class="rte-handle rte-handle--end"
+          [style.left.%]="endPct() * 100"
+          (mousedown)="onHandleMouseDown($event, 'end')"
+          (touchstart)="onHandleTouchStart($event, 'end')"
+          aria-label="Điểm kết thúc"
+          role="slider"
+          [attr.aria-valuenow]="endTime()"
+          [attr.aria-valuemin]="0"
+          [attr.aria-valuemax]="duration()"
+        >
+          <div class="rte-handle-bar"></div>
+          <div class="rte-handle-label rte-handle-label--end">
+            {{ formatTime(endTime()) }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Clip info -->
+      <div class="rte-meta">
+        <span class="rte-meta-item">
+          <i class="fa-regular fa-clock" aria-hidden="true"></i>
+          {{ formatTime(startTime()) }} – {{ formatTime(endTime()) }}
+        </span>
+        <span class="rte-meta-badge">{{ clipLen() }}s</span>
+        <span class="rte-meta-item rte-meta-total"
+          >/ {{ formatTime(duration()) }}</span
+        >
+      </div>
+
+      <!-- Actions -->
+      <div class="rte-actions">
+        <button
+          class="rte-btn rte-btn--ghost"
+          (click)="togglePlay()"
+          [disabled]="isExporting()"
+          [attr.aria-label]="isPlaying() ? 'Dừng' : 'Nghe thử'"
+        >
+          @if (isPlaying()) {
+            <i class="fa-solid fa-stop" aria-hidden="true"></i>
+            Dừng
+          } @else {
+            <i class="fa-solid fa-play" aria-hidden="true"></i>
+            Nghe thử
+          }
+        </button>
+
+        <div class="rte-actions-right">
+          <button
+            class="rte-btn rte-btn--ghost"
+            (click)="cancel()"
+            [disabled]="isExporting()"
+          >
+            Huỷ
+          </button>
+          <button
+            class="rte-btn rte-btn--accent"
+            (click)="applyTrim()"
+            [disabled]="isExporting()"
+          >
+            @if (isExporting()) {
+              <span
+                class="rte-spinner rte-spinner--sm"
+                aria-hidden="true"
+              ></span>
+              Đang xử lý...
+            } @else {
+              <i class="fa-solid fa-check" aria-hidden="true"></i>
+              Áp dụng
+            }
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

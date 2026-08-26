@@ -23,6 +23,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
 import { WebRtcService } from '../../core/services/webrtc.service';
+import { RingtoneEditorComponent } from './ringtone-editor/ringtone-editor.component';
 
 export type SettingsSection =
   | 'profile'
@@ -69,7 +70,12 @@ const AVATAR_GRADIENTS = [
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    RingtoneEditorComponent,
+  ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
   animations: [
@@ -127,6 +133,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
   ringtoneSaving = signal(false);
   ringtoneDeleting = signal(false);
   isPlaying = signal(false);
+
+  // ── Ringtone editor ──────────────────────────────────────────────
+  /** File đang chờ edit; khi có giá trị thì hiện RingtoneEditorComponent */
+  editorFile = signal<File | null>(null);
 
   private gsap: any;
   private gsapCtx: any;
@@ -429,6 +439,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     if (s === 3) return 'Mạnh';
     return 'Rất mạnh';
   }
+
   private _loadRingtone(): void {
     this.userService.getMyProfile().subscribe({
       next: (res) => {
@@ -446,17 +457,33 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.ringtoneInput.nativeElement.click();
   }
 
+  /**
+   * Không upload ngay — mở editor để user cắt trước
+   */
   onRingtoneChange(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
       this.toast.show('File không được vượt quá 5MB', 'error');
+      this.ringtoneInput.nativeElement.value = '';
       return;
     }
 
+    // Mở ringtone editor thay vì upload thẳng
+    this.editorFile.set(file);
+    // Reset input để có thể chọn lại cùng file sau này
+    this.ringtoneInput.nativeElement.value = '';
+  }
+
+  /**
+   * Nhận file đã cắt từ editor → upload lên R2 qua BE
+   */
+  onEditorApplied(croppedFile: File): void {
+    this.editorFile.set(null);
     this.ringtoneSaving.set(true);
-    this.userService.updateRingtone(file).subscribe({
+
+    this.userService.updateRingtone(croppedFile).subscribe({
       next: (res) => {
         this.ringtoneSaving.set(false);
         if (res.success) {
@@ -464,15 +491,19 @@ export class SettingsComponent implements OnInit, OnDestroy {
           this.webRtcService.customRingtoneUrl = res.data;
           this.toast.show('Đã cập nhật nhạc chuông', 'success');
         }
-        // Reset input để có thể chọn lại cùng file
-        this.ringtoneInput.nativeElement.value = '';
       },
       error: () => {
         this.ringtoneSaving.set(false);
         this.toast.show('Tải lên thất bại', 'error');
-        this.ringtoneInput.nativeElement.value = '';
       },
     });
+  }
+
+  /**
+   * User bấm Huỷ trong editor
+   */
+  onEditorCancelled(): void {
+    this.editorFile.set(null);
   }
 
   deleteRingtone(): void {
@@ -560,7 +591,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
           this.passwordSaving.set(false);
           this.passwordForm.reset();
           this.passwordStrength.set(0);
-          this.passwordSaved.set(true); // ← thêm
+          this.passwordSaved.set(true);
           this.toast.show('Đã đổi mật khẩu thành công', 'success');
         },
         error: (err) => {
