@@ -846,3 +846,11 @@
     </main>
   </div>
 </div>
+
+@if (editorFile()) {
+  <app-ringtone-editor
+    [file]="editorFile()!"
+    (applied)="onEditorApplied($event)"
+    (cancelled)="onEditorCancelled()"
+  ></app-ringtone-editor>
+}

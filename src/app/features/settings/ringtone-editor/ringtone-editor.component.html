@@ -77,17 +77,34 @@
         </div>
       </div>
 
+      <!-- Drag hint -->
+      <p class="rte-hint">
+        <i class="fa-solid fa-left-right" aria-hidden="true"></i>
+        Kéo 2 vạch đỏ để chọn đoạn cần giữ lại
+      </p>
+
       <!-- Clip info -->
       <div class="rte-meta">
         <span class="rte-meta-item">
           <i class="fa-regular fa-clock" aria-hidden="true"></i>
           {{ formatTime(startTime()) }} – {{ formatTime(endTime()) }}
         </span>
-        <span class="rte-meta-badge">{{ clipLen() }}s</span>
+        <span
+          class="rte-meta-badge"
+          [class.rte-meta-badge--warn]="clipLen() < 1"
+          >{{ clipLen() }}s</span
+        >
         <span class="rte-meta-item rte-meta-total"
           >/ {{ formatTime(duration()) }}</span
         >
       </div>
+
+      @if (clipLen() < 1) {
+        <p class="rte-warn">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          Đoạn cắt tối thiểu 1 giây
+        </p>
+      }
 
       <!-- Actions -->
       <div class="rte-actions">
@@ -117,7 +134,7 @@
           <button
             class="rte-btn rte-btn--accent"
             (click)="applyTrim()"
-            [disabled]="isExporting()"
+            [disabled]="isExporting() || clipLen() < 1"
           >
             @if (isExporting()) {
               <span

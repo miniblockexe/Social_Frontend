@@ -261,6 +261,38 @@
   }
 }
 
+// ─── Drag hint ───────────────────────────────────────────────────────────────
+.rte-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--c-text-muted, rgba(255, 255, 255, 0.35));
+  margin: -0.25rem 2px 0;
+  padding: 0;
+}
+
+// ─── Badge warn variant ───────────────────────────────────────────────────────
+.rte-meta-badge--warn {
+  background: rgba(255, 165, 0, 0.15);
+  color: #ffa500;
+  border-color: rgba(255, 165, 0, 0.3);
+}
+
+// ─── Clip too short warning ───────────────────────────────────────────────────
+.rte-warn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: #ffa500;
+  background: rgba(255, 165, 0, 0.08);
+  border: 1px solid rgba(255, 165, 0, 0.2);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  margin: 0;
+}
+
 // ─── Spinner ─────────────────────────────────────────────────────────────────
 .rte-spinner {
   display: inline-block;

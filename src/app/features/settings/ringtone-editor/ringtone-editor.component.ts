@@ -122,7 +122,7 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
       const dur = this.decodedBuffer.duration;
       this.duration.set(dur);
       this.startTime.set(0);
-      this.endTime.set(Math.min(dur, 30)); // default max 30s
+      this.endTime.set(Math.min(dur, 30)); // default clip: đầu đến 30s (hoặc hết file)
       this.isDecoding.set(false);
 
       // Setup preview <audio>
@@ -359,6 +359,10 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
   // ── Export (Web Audio API trim → File) ───────────────────────
   async applyTrim(): Promise<void> {
     if (!this.decodedBuffer) return;
+
+    const clipDuration = this.endTime() - this.startTime();
+    if (clipDuration < 1) return; // bảo vệ: đoạn cắt tối thiểu 1 giây
+
     this.isExporting.set(true);
     this._stopPlayback();
 
