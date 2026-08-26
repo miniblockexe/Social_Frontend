@@ -53,6 +53,7 @@ export class WebRtcService implements OnDestroy {
   isCameraOff = signal(false);
 
   constructor() {
+    // Khi caller huỷ/timeout → callee cleanup giao diện gọi đến
     effect(
       () => {
         const cancelled = this.chatHubService.callCancelled();
@@ -195,8 +196,12 @@ export class WebRtcService implements OnDestroy {
 
     await new Promise<void>((resolve, reject) => {
       if (!this.ws) return reject();
-      this.ws.onopen = () => {
-        // Keepalive ping mỗi 25s để Worker không đóng connection
+      const ws = this.ws;
+      ws.onopen = () => {
+        if (this.ws !== ws) {
+          resolve();
+          return;
+        }
         this.pingInterval = setInterval(() => {
           if (this.ws?.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({ type: 'ping' }));
@@ -204,7 +209,14 @@ export class WebRtcService implements OnDestroy {
         }, 25000);
         resolve();
       };
-      this.ws.onerror = () => reject(new Error('Signaling connect failed'));
+      ws.onerror = () => {
+        // Nếu ws đã bị thay (do cleanup/reconnect) thì không throw
+        if (this.ws !== ws) {
+          resolve();
+          return;
+        }
+        reject(new Error('Signaling connect failed'));
+      };
     });
   }
 
@@ -423,10 +435,12 @@ export class WebRtcService implements OnDestroy {
       ?.getTracks()
       .forEach((t) => t.stop());
     this.pc?.close();
-    this.ws?.close();
+
+    const ws = this.ws;
+    this.ws = null;
+    ws?.close();
 
     this.pc = null;
-    this.ws = null;
     this.pendingCandidates = [];
 
     this.localStream.set(null);
