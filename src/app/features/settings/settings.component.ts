@@ -529,9 +529,18 @@ export class SettingsComponent implements OnInit, OnDestroy {
     } else {
       const audio = this.audioPreview?.nativeElement;
       if (!audio) return;
-      audio.play();
-      this.isPlaying.set(true);
-      audio.onended = () => this.isPlaying.set(false);
+      audio.load();
+      audio
+        .play()
+        .then(() => {
+          this.isPlaying.set(true);
+          audio.onended = () => this.isPlaying.set(false);
+        })
+        .catch((err) => {
+          console.warn('Không thể phát nhạc chuông:', err);
+          this.isPlaying.set(false);
+          this.toast.show('Không thể phát nhạc chuông', 'error');
+        });
     }
   }
 
