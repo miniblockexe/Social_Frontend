@@ -58,7 +58,16 @@ export class WebRtcService implements OnDestroy {
       () => {
         const cancelled = this.chatHubService.callCancelled();
         if (!cancelled) return;
-        if (this.callState() === 'receiving') {
+
+        // Reset ngay để tránh trigger lại ở lần gọi sau
+        this.chatHubService.callCancelled.set(null);
+
+        // Chỉ cleanup nếu đang nhận đúng cuộc gọi này
+        const sess = this.session();
+        if (
+          this.callState() === 'receiving' &&
+          sess?.conversationId === cancelled.conversationId
+        ) {
           this.cleanup();
         }
       },
