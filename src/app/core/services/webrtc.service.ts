@@ -90,11 +90,13 @@ export class WebRtcService implements OnDestroy {
   }
 
   async answerCall(): Promise<void> {
-    this.stopRingtone();
+    await this.stopRingtone();
     const sess = this.session();
     if (!sess || this.callState() !== 'receiving') return;
 
     this.callState.set('connected');
+    // Chờ AudioContext release device trước khi getUserMedia
+    await new Promise((r) => setTimeout(r, 300));
     await this.initLocalStream(sess.mode);
 
     for (const c of this.pendingCandidates) {
@@ -306,8 +308,14 @@ export class WebRtcService implements OnDestroy {
   }
 
   private async initLocalStream(mode: 'audio' | 'video'): Promise<void> {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+    // Stop track cũ nếu còn (tránh double-acquire)
+    this.localStream()
+      ?.getTracks()
+      .forEach((t) => t.stop());
+    this.localStream.set(null);
+
+    const doGetUserMedia = () =>
+      navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
@@ -315,6 +323,24 @@ export class WebRtcService implements OnDestroy {
         },
         video: mode === 'video' ? { width: 1280, height: 720 } : false,
       });
+
+    try {
+      let stream: MediaStream;
+      try {
+        stream = await doGetUserMedia();
+      } catch (firstErr: unknown) {
+        const firstName = firstErr instanceof DOMException ? firstErr.name : '';
+        if (
+          firstName === 'NotReadableError' ||
+          firstName === 'TrackStartError'
+        ) {
+          // Device chưa kịp release — retry sau 500ms
+          await new Promise((r) => setTimeout(r, 500));
+          stream = await doGetUserMedia();
+        } else {
+          throw firstErr;
+        }
+      }
       this.localStream.set(stream);
 
       // Nếu PeerConnection đã có, thêm tracks vào
@@ -407,7 +433,7 @@ export class WebRtcService implements OnDestroy {
   private startRingtone(type: 'outgoing' | 'incoming'): void {
     this.stopRingtone();
 
-    if (this.customRingtoneUrl) {
+    if (type === 'incoming' && this.customRingtoneUrl) {
       const audio = new Audio(this.customRingtoneUrl);
       audio.loop = true;
       audio.volume = 0.7;
@@ -449,7 +475,7 @@ export class WebRtcService implements OnDestroy {
     this.ringtoneCtx = ctx;
   }
 
-  private stopRingtone(): void {
+  private async stopRingtone(): Promise<void> {
     if (this.ringtoneAudio) {
       this.ringtoneAudio.pause();
       this.ringtoneAudio.src = '';
@@ -460,7 +486,7 @@ export class WebRtcService implements OnDestroy {
       this.ringtoneInterval = null;
     }
     if (this.ringtoneCtx) {
-      this.ringtoneCtx.close();
+      await this.ringtoneCtx.close();
       this.ringtoneCtx = null;
     }
   }
