@@ -256,7 +256,8 @@ export class ChatHubService {
 
     this.connection.on('CallDeclined', (data: { conversationId: string }) => {
       // Caller huỷ hoặc timeout — báo cho WebRtcService cleanup
-      this.callCancelled.set(data);
+      console.log('[ChatHub] CallDeclined received', data);
+      this.callCancelled.set({ ...data });
     });
   }
 
