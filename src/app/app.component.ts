@@ -66,6 +66,11 @@ export class AppComponent {
         if (!me?.id) return;
         if (incoming.callerId === me.id) return;
 
+        this.chatHubService.incomingCall.set(null);
+
+        const state = this.webRtcService.callState();
+        if (state !== 'idle' && state !== 'ended') return;
+
         this.webRtcService.session.set({
           conversationId: incoming.conversationId,
           peerId: incoming.callerId,

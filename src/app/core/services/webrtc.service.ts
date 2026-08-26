@@ -70,6 +70,7 @@ export class WebRtcService implements OnDestroy {
           sessConvId: sess?.conversationId,
         });
 
+        // Chỉ cleanup nếu đang nhận đúng cuộc gọi này
         if (
           state === 'receiving' &&
           sess?.conversationId === cancelled.conversationId
@@ -85,6 +86,7 @@ export class WebRtcService implements OnDestroy {
   private pc: RTCPeerConnection | null = null;
   private pendingCandidates: RTCIceCandidateInit[] = [];
   private pingInterval: ReturnType<typeof setInterval> | null = null;
+  private cleanupTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Callback để component hiển thị incoming call UI
   onIncomingCall?: (session: CallSession) => void;
@@ -99,7 +101,8 @@ export class WebRtcService implements OnDestroy {
     peerAvatar: string | null,
     mode: 'audio' | 'video',
   ): Promise<void> {
-    if (this.callState() !== 'idle') return;
+    if (this.callState() !== 'idle' && this.callState() !== 'ended') return;
+    if (this.pc || this.ws) return;
 
     const sess: CallSession = {
       conversationId,
@@ -273,11 +276,10 @@ export class WebRtcService implements OnDestroy {
         );
 
         if (this.callState() === 'idle' || this.callState() === 'receiving') {
-          if (this.callState() !== 'receiving') {
-            this.callState.set('receiving');
-            this.startRingtone('incoming');
-            this.onIncomingCall?.(sess);
-          }
+          this.stopRingtone();
+          this.callState.set('receiving');
+          this.startRingtone('incoming');
+          this.onIncomingCall?.(sess);
         }
         break;
       }
@@ -461,6 +463,7 @@ export class WebRtcService implements OnDestroy {
       .forEach((t) => t.stop());
     this.pc?.close();
 
+    // Null trước khi close để onclose/onerror không trigger cleanup lại
     const ws = this.ws;
     this.ws = null;
     ws?.close();
@@ -478,7 +481,9 @@ export class WebRtcService implements OnDestroy {
       this.pingInterval = null;
     }
     // Reset về idle sau 1.5s để hiển thị "Cuộc gọi đã kết thúc"
-    setTimeout(() => {
+    if (this.cleanupTimeout) clearTimeout(this.cleanupTimeout);
+    this.cleanupTimeout = setTimeout(() => {
+      this.cleanupTimeout = null;
       this.callState.set('idle');
       this.session.set(null);
     }, 1500);
