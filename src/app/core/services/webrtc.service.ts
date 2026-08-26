@@ -53,13 +53,16 @@ export class WebRtcService implements OnDestroy {
   isCameraOff = signal(false);
 
   constructor() {
-    effect(() => {
-      const cancelled = this.chatHubService.callCancelled();
-      if (!cancelled) return;
-      if (this.callState() === 'receiving') {
-        this.cleanup();
-      }
-    });
+    effect(
+      () => {
+        const cancelled = this.chatHubService.callCancelled();
+        if (!cancelled) return;
+        if (this.callState() === 'receiving') {
+          this.cleanup();
+        }
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   private ws: WebSocket | null = null;
