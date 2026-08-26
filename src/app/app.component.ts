@@ -7,6 +7,7 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { ChatHubService } from './core/services/chat-hub.service';
 import { WebRtcService } from './core/services/webrtc.service';
 import { AuthService } from './core/services/auth.service';
+import { UserService } from './core/services/user.service';
 import { CallOverlayComponent } from './shared/components/call-overlay/call-overlay.component';
 import { SwUpdateService } from './core/services/sw-update.service';
 import { UpdateBannerComponent } from './shared/components/update-banner/update-banner.component';
@@ -38,6 +39,7 @@ export class AppComponent {
   private readonly chatHubService = inject(ChatHubService);
   private readonly webRtcService = inject(WebRtcService);
   private readonly authService = inject(AuthService);
+  private readonly userService = inject(UserService);
   private readonly swUpdateService = inject(SwUpdateService);
 
   private readonly currentUrl = toSignal(
@@ -81,6 +83,16 @@ export class AppComponent {
         const user = this.authService.currentUser();
         if (user) {
           this.chatHubService.startConnection();
+
+          this.userService.getMyProfile().subscribe({
+            next: (res) => {
+              if (res.success) {
+                this.webRtcService.customRingtoneUrl =
+                  res.data.ringtoneUrl ?? null;
+              }
+            },
+            error: () => {},
+          });
         }
       },
       { allowSignalWrites: true },

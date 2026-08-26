@@ -407,7 +407,7 @@ export class WebRtcService implements OnDestroy {
   private startRingtone(type: 'outgoing' | 'incoming'): void {
     this.stopRingtone();
 
-    if (type === 'incoming' && this.customRingtoneUrl) {
+    if (this.customRingtoneUrl) {
       const audio = new Audio(this.customRingtoneUrl);
       audio.loop = true;
       audio.volume = 0.7;
