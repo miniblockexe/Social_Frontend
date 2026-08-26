@@ -65,7 +65,12 @@ export class ChatHubService {
   latestMessageByConv = signal<Map<string, IncomingMessage>>(new Map());
 
   async startConnection(): Promise<void> {
-    if (this.connection?.state === HubConnectionState.Connected) return;
+    if (
+      this.connection?.state === HubConnectionState.Connected ||
+      this.connection?.state === HubConnectionState.Connecting ||
+      this.connection?.state === HubConnectionState.Reconnecting
+    )
+      return;
 
     this.connectionState.set('connecting');
 

@@ -193,6 +193,15 @@ export class WebRtcService implements OnDestroy {
     const userId = this.authService.currentUser()?.id ?? '';
     if (!userId)
       throw new Error('User not authenticated — cannot connect signaling');
+
+    if (
+      this.ws &&
+      (this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === WebSocket.CONNECTING)
+    ) {
+      return;
+    }
+
     const url = `${SIGNALING_URL}/ws/${conversationId}?userId=${userId}`;
 
     this.ws = new WebSocket(url);
@@ -264,10 +273,11 @@ export class WebRtcService implements OnDestroy {
         );
 
         if (this.callState() === 'idle' || this.callState() === 'receiving') {
-          // Trigger incoming call UI
-          this.callState.set('receiving');
-          this.startRingtone('incoming');
-          this.onIncomingCall?.(sess);
+          if (this.callState() !== 'receiving') {
+            this.callState.set('receiving');
+            this.startRingtone('incoming');
+            this.onIncomingCall?.(sess);
+          }
         }
         break;
       }
