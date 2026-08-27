@@ -604,6 +604,25 @@ export class WebRtcService implements OnDestroy {
 
   customRingtoneUrl: string | null = null;
 
+  private audioUnlocked = false;
+
+  async unlockAudio(): Promise<void> {
+    if (this.audioUnlocked) return;
+    try {
+      const ctx = new AudioContext();
+      await ctx.resume();
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
+      await ctx.close();
+      this.audioUnlocked = true;
+    } catch {
+      // Bỏ qua — fallback oscillator vẫn hoạt động
+    }
+  }
+
   private async startRingtone(type: 'outgoing' | 'incoming'): Promise<void> {
     await this.stopRingtone();
 
@@ -612,7 +631,21 @@ export class WebRtcService implements OnDestroy {
       const audio = new Audio(this.customRingtoneUrl);
       audio.loop = true;
       audio.volume = 0.7;
-      audio.play().catch(() => this._startOscillatorRingtone(type));
+
+      const fallback = () => this._startOscillatorRingtone(type);
+
+      audio
+        .play()
+        .then(() => {
+          this.audioUnlocked = true;
+        })
+        .catch(() => {
+          setTimeout(() => {
+            if (this.ringtoneAudio !== audio) return; // đã bị stop/replace
+            audio.play().catch(fallback);
+          }, 300);
+        });
+
       this.ringtoneAudio = audio;
       return;
     }

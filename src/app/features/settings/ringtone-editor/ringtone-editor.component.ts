@@ -383,10 +383,45 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
   async applyTrim(): Promise<void> {
     if (!this.decodedBuffer) return;
 
-    const clipDuration = this.endTime() - this.startTime();
+    const startSec = this.startTime();
+    const endSec = this.endTime();
+    const clipDuration = endSec - startSec;
     if (clipDuration < 1) return;
 
-    this.applied.emit(this.file);
+    this.isExporting.set(true);
+    this.exportError.set(null);
+
+    try {
+      const sr = this.TARGET_SR;
+      const offlineCtx = new OfflineAudioContext(
+        1,
+        Math.ceil(clipDuration * sr),
+        sr,
+      );
+      const src = offlineCtx.createBufferSource();
+      src.buffer = this.decodedBuffer;
+      src.connect(offlineCtx.destination);
+      src.start(0, startSec, clipDuration);
+
+      const renderedBuffer = await offlineCtx.startRendering();
+      const wavBlob = this._encodeWav(renderedBuffer);
+
+      if (wavBlob.size > 5 * 1024 * 1024) {
+        this.exportError.set(
+          `File quá lớn (${(wavBlob.size / 1024 / 1024).toFixed(1)} MB). Cắt ngắn hơn.`,
+        );
+        return;
+      }
+
+      const outFile = new File([wavBlob], 'ringtone.wav', {
+        type: 'audio/wav',
+      });
+      this.applied.emit(outFile);
+    } catch {
+      this.exportError.set('Xuất file thất bại, thử lại.');
+    } finally {
+      this.isExporting.set(false);
+    }
   }
 
   cancel(): void {
