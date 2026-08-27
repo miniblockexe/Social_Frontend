@@ -232,9 +232,16 @@ export class WebRtcService implements OnDestroy {
   private async fetchIceServers(): Promise<RTCIceServer[]> {
     try {
       const res = await firstValueFrom(
-        this.http.get<{ iceServers: RTCIceServer[] }>('/api/turn/credentials'),
+        this.http.get<{ iceServers: RTCIceServer | RTCIceServer[] }>(
+          '/api/turn/credentials',
+        ),
       );
-      return res.iceServers;
+      const raw = res.iceServers;
+      const servers: RTCIceServer[] = Array.isArray(raw) ? raw : [raw];
+      if (servers.length > 0 && servers[0].urls) {
+        return [...ICE_SERVERS_FALLBACK, ...servers];
+      }
+      return ICE_SERVERS_FALLBACK;
     } catch {
       return ICE_SERVERS_FALLBACK;
     }
