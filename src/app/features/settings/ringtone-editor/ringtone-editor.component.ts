@@ -66,9 +66,10 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
 
   // ── Export ─────────────────────────────────────────────────────
   isExporting = signal(false);
+  /** Lỗi sau khi encode WAV (ví dụ: vượt 5 MB) */
   exportError = signal<string | null>(null);
- 
   maxClipSec = signal(114);
+  /** Sample rate đầu ra WAV — mono 22050 Hz cho ringtone. */
   private readonly TARGET_SR = 22050;
 
   // ── Derived ────────────────────────────────────────────────────
@@ -379,58 +380,13 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Export (Web Audio API trim → File) ───────────────────────
   async applyTrim(): Promise<void> {
     if (!this.decodedBuffer) return;
 
     const clipDuration = this.endTime() - this.startTime();
-    if (clipDuration < 1) return; // bảo vệ: đoạn cắt tối thiểu 1 giây
+    if (clipDuration < 1) return;
 
-    this.isExporting.set(true);
-    this._stopPlayback();
-
-    try {
-      const start = this.startTime();
-      const end = this.endTime();
-      const clipDur = end - start;
-
-      const offlineCtx = new OfflineAudioContext(
-        1, // mono
-        Math.ceil(clipDur * this.TARGET_SR), // số samples ở TARGET_SR
-        this.TARGET_SR, // 22050 Hz
-      );
-      const src = offlineCtx.createBufferSource();
-      src.buffer = this.decodedBuffer;
-      src.connect(offlineCtx.destination);
-      src.start(0, start, clipDur);
-
-      const rendered = await offlineCtx.startRendering();
-
-      // Encode to WAV blob
-      const wavBlob = this._encodeWav(rendered);
-      const ext = this.file.name.replace(/\.[^.]+$/, '');
-      const outFile = new File([wavBlob], `${ext}_trim.wav`, {
-        type: 'audio/wav',
-      });
-
-      const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
-      if (outFile.size > MAX_UPLOAD_BYTES) {
-        const sizeMb = (outFile.size / 1024 / 1024).toFixed(1);
-        this.exportError.set(
-          `File WAV sau khi encode ${sizeMb} MB — vượt giới hạn 5 MB. ` +
-            `Vui lòng cắt ngắn hơn (tối đa ~${this.maxClipSec()}s với định dạng này).`,
-        );
-        this.isExporting.set(false);
-        return;
-      }
-
-      this.exportError.set(null);
-      this.isExporting.set(false);
-      this.applied.emit(outFile);
-    } catch {
-      this.isExporting.set(false);
-      this.exportError.set('Xuất file thất bại. Vui lòng thử lại.');
-    }
+    this.applied.emit(this.file);
   }
 
   cancel(): void {
