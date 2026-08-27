@@ -3,18 +3,71 @@
   [attr.aria-label]="'Bài viết của ' + post().author.fullName"
 >
   <div class="sp-post-header">
-    <a
-      [routerLink]="['/profile', post().author.id]"
-      class="sp-post-author-link"
-      [attr.aria-label]="'Xem trang cá nhân của ' + post().author.fullName"
-    >
-      <app-avatar
-        [src]="post().author.avatarUrl"
-        [name]="post().author.fullName"
-        [size]="40"
-      />
+    <div class="sp-post-header-left">
+      <!-- Bài trong nhóm: avatar nhóm là chính, avatar người đăng thu nhỏ làm badge -->
+      @if (post().groupId && post().groupName) {
+        <div class="sp-post-avatar-wrap">
+          <a
+            [routerLink]="['/groups', post().groupId]"
+            class="sp-post-avatar-link"
+            [attr.aria-label]="'Xem nhóm ' + post().groupName"
+          >
+            <app-avatar
+              [src]="post().groupAvatarUrl"
+              [name]="post().groupName ?? ''"
+              [size]="40"
+            />
+          </a>
+          <a
+            [routerLink]="['/profile', post().author.id]"
+            class="sp-post-avatar-badge-link"
+            [attr.aria-label]="'Xem trang cá nhân của ' + post().author.fullName"
+          >
+            <app-avatar
+              [src]="post().author.avatarUrl"
+              [name]="post().author.fullName"
+              [size]="18"
+            />
+          </a>
+        </div>
+      } @else {
+        <a
+          [routerLink]="['/profile', post().author.id]"
+          class="sp-post-avatar-link"
+          [attr.aria-label]="'Xem trang cá nhân của ' + post().author.fullName"
+        >
+          <app-avatar
+            [src]="post().author.avatarUrl"
+            [name]="post().author.fullName"
+            [size]="40"
+          />
+        </a>
+      }
       <div class="sp-post-author-info">
-        <span class="sp-post-author-name">{{ post().author.fullName }}</span>
+        <div class="sp-post-author-line">
+          <a
+            [routerLink]="['/profile', post().author.id]"
+            class="sp-post-author-name"
+          >
+            {{ post().author.fullName }}
+          </a>
+
+          <!-- Group đăng bài — chỉ hiện khi backend đã trả groupId/groupName (nghĩa là user được phép xem) -->
+          @if (post().groupId && post().groupName) {
+            <i
+              class="fa-solid fa-chevron-right sp-post-group-sep"
+              aria-hidden="true"
+            ></i>
+            <a
+              [routerLink]="['/groups', post().groupId]"
+              class="sp-post-group-name"
+              [attr.aria-label]="'Xem nhóm ' + post().groupName"
+            >
+              {{ post().groupName }}
+            </a>
+          }
+        </div>
+
         <div class="sp-post-meta">
           <span class="sp-post-time">{{ post().createdAt | timeAgo }}</span>
           <span class="sp-post-dot" aria-hidden="true">·</span>
@@ -43,7 +96,7 @@
           }
         </div>
       </div>
-    </a>
+    </div>
 
     <!-- Options menu (chỉ owner) -->
     @if (post().isOwner) {

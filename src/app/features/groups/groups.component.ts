@@ -2,7 +2,7 @@ import {
   Component, OnInit, inject, signal, ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { GroupService } from '../../core/services/group.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -24,6 +24,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GroupsComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
   private readonly groupService = inject(GroupService);
   private readonly authService = inject(AuthService);
   private readonly toastService = inject(ToastService);
@@ -57,6 +58,27 @@ export class GroupsComponent implements OnInit {
   me = this.authService.currentUser;
 
   ngOnInit() {
+    // Đọc query params đến từ sidebar điều hướng nhóm ở trang group-detail
+    // (?q=từ khóa, ?tab=discover|mine, ?create=1)
+    this.route.queryParamMap.subscribe((params) => {
+      const q = params.get('q');
+      const tab = params.get('tab');
+      const create = params.get('create');
+
+      if (q) {
+        this.keyword.set(q);
+        this.discoverGroups.set([]);
+        this.discoverPage.set(1);
+        this.hasMoreDiscover.set(true);
+      }
+      if (tab === 'mine' || tab === 'discover') {
+        this.activeTab.set(tab);
+      }
+      if (create) {
+        this.openCreateModal();
+      }
+    });
+
     this.loadDiscover();
     this.loadMyGroups();
   }

@@ -88,59 +88,82 @@
   <div class="gd-body">
     <div class="gd-body-inner">
 
-      <!-- Sidebar -->
-      <aside class="gd-sidebar">
-        <div class="gd-side-card">
-          <h3 class="side-title">Giới thiệu</h3>
-          @if (group()!.description) {
-            <p class="side-desc">{{ group()!.description }}</p>
-          } @else {
-            <p class="side-desc muted">Chưa có mô tả.</p>
-          }
-          <div class="side-stats">
-            <div class="stat"><i class="fa-solid fa-users"></i> <strong>{{ group()!.memberCount | number }}</strong> thành viên</div>
-            <div class="stat">
-              <i class="fa-solid fa-{{ group()!.privacy===GroupPrivacy.Public ? 'earth-asia' : 'lock' }}"></i>
-              {{ group()!.privacy===GroupPrivacy.Public ? 'Nhóm công khai' : 'Nhóm riêng tư' }}
-            </div>
-            @if (group()!.requireApproval) {
-              <div class="stat"><i class="fa-solid fa-door-closed"></i> Yêu cầu duyệt đơn</div>
-            }
-            @if (group()!.requirePostApproval) {
-              <div class="stat"><i class="fa-solid fa-shield-halved"></i> Yêu cầu duyệt bài</div>
-            }
+      <!-- Sidebar trái: Điều hướng nhóm -->
+      <aside class="gd-sidebar gd-sidebar--left">
+        <div class="gd-side-card gnav-card">
+          <div class="gnav-header">
+            <span class="gnav-logo"><i class="fa-solid fa-users"></i></span>
+            <h3 class="gnav-title">Nhóm</h3>
+            <a class="icon-btn" routerLink="/groups" aria-label="Quản lý nhóm">
+              <i class="fa-solid fa-gear"></i>
+            </a>
           </div>
 
-          @if (isAdmin()) {
-            <div class="side-admin-actions">
-              <button class="btn-secondary btn-sm w-full" (click)="openSettings()">
-                <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa thông tin
-              </button>
-              @if (isOwner()) {
-                <button class="btn-danger btn-sm w-full" (click)="openDeleteConfirm()">
-                  <i class="fa-solid fa-trash"></i> Xóa nhóm
-                </button>
-              }
-            </div>
-          }
+          <div class="gnav-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="search"
+              placeholder="Tìm kiếm nhóm..."
+              [value]="sideKeyword()"
+              (input)="sideKeyword.set($any($event.target).value)"
+              (keyup.enter)="goToGroupsSearch(sideKeyword())"
+            />
+          </div>
+
+          <nav class="gnav-list">
+            <a class="gnav-item" routerLink="/home">
+              <span class="gnav-icon red"><i class="fa-solid fa-layer-group"></i></span>
+              Bảng tin của bạn
+            </a>
+            <button class="gnav-item" (click)="goToGroupsTab('discover')">
+              <span class="gnav-icon blue"><i class="fa-solid fa-compass"></i></span>
+              Khám phá
+            </button>
+            <button class="gnav-item" (click)="goToGroupsTab('mine')">
+              <span class="gnav-icon green"><i class="fa-solid fa-users"></i></span>
+              Nhóm của tôi
+            </button>
+          </nav>
+
+          <button class="gnav-create" (click)="openCreateGroup()">
+            <i class="fa-solid fa-plus"></i> Tạo nhóm mới
+          </button>
         </div>
 
-        @if (group()!.admins.length) {
-          <div class="gd-side-card">
-            <h3 class="side-title">Quản trị viên</h3>
-            <div class="admin-list">
-              @for (a of group()!.admins; track a.user.id) {
-                <a [routerLink]="['/profile', a.user.id]" class="admin-item">
-                  <app-avatar [src]="a.user.avatarUrl" [name]="a.user.fullName" [size]="36" />
-                  <div>
-                    <span class="admin-name">{{ a.user.fullName }}</span>
-                    <span class="admin-role {{ roleCls(a.role) }}">{{ roleLabel(a.role) }}</span>
-                  </div>
-                </a>
-              }
-            </div>
+        <div class="gd-side-card">
+          <div class="gnav-joined-hdr">
+            <h3 class="side-title" style="margin-bottom:0">Nhóm đã tham gia</h3>
+            <a routerLink="/groups" [queryParams]="{ tab: 'mine' }" class="gnav-seeall">Xem tất cả</a>
           </div>
-        }
+
+          <div class="gnav-joined-list">
+            @for (g of sideGroups(); track g.id) {
+              <a class="gnav-joined-item" [routerLink]="['/groups', g.id]">
+                <img [src]="g.avatarUrl || 'assets/icons/icon-72x72.png'" [alt]="g.name" class="gnav-joined-avatar" />
+                <div class="gnav-joined-info">
+                  <span class="gnav-joined-name">{{ g.name }}</span>
+                  <span class="gnav-joined-sub">{{ g.memberCount | number }} thành viên</span>
+                </div>
+              </a>
+            }
+            @if (!sideGroups().length && !loadingSideGroups()) {
+              <p class="side-desc muted">Bạn chưa tham gia nhóm nào.</p>
+            }
+            @if (loadingSideGroups()) {
+              <div class="gnav-joined-skeleton">
+                @for (s of [0,1,2]; track s) {
+                  <div class="gnav-sk-item">
+                    <div class="gnav-sk-avatar"></div>
+                    <div class="gnav-sk-lines">
+                      <div class="gnav-sk-line"></div>
+                      <div class="gnav-sk-line short"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
       </aside>
 
       <!-- Main panel -->
@@ -290,6 +313,64 @@
         }
 
       </section>
+
+      <!-- Sidebar phải: Thành viên nổi bật -->
+      <aside class="gd-sidebar gd-sidebar--right">
+        @if (group()!.admins.length) {
+          <div class="gd-side-card">
+            <h3 class="side-title"><i class="fa-solid fa-shield-halved"></i> Quản trị viên</h3>
+            <div class="admin-list">
+              @for (a of group()!.admins; track a.user.id) {
+                <a [routerLink]="['/profile', a.user.id]" class="admin-item">
+                  <app-avatar [src]="a.user.avatarUrl" [name]="a.user.fullName" [size]="38" />
+                  <div>
+                    <span class="admin-name">{{ a.user.fullName }}</span>
+                    <span class="admin-role {{ roleCls(a.role) }}">{{ roleLabel(a.role) }}</span>
+                  </div>
+                </a>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="gd-side-card">
+          <h3 class="side-title"><i class="fa-solid fa-circle-info"></i> Giới thiệu</h3>
+          @if (group()!.description) {
+            <p class="side-desc">{{ group()!.description }}</p>
+          } @else {
+            <p class="side-desc muted">Chưa có mô tả.</p>
+          }
+          <div class="side-stats">
+            <div class="stat">
+              <i class="fa-solid fa-users"></i>
+              <strong>{{ group()!.memberCount | number }}</strong> thành viên
+            </div>
+            <div class="stat">
+              <i class="fa-solid fa-{{ group()!.privacy===GroupPrivacy.Public ? 'earth-asia' : 'lock' }}"></i>
+              {{ group()!.privacy===GroupPrivacy.Public ? 'Nhóm công khai' : 'Nhóm riêng tư' }}
+            </div>
+            @if (group()!.requireApproval) {
+              <div class="stat"><i class="fa-solid fa-door-closed"></i> Yêu cầu duyệt đơn</div>
+            }
+            @if (group()!.requirePostApproval) {
+              <div class="stat"><i class="fa-solid fa-shield-halved"></i> Yêu cầu duyệt bài</div>
+            }
+          </div>
+          @if (isAdmin()) {
+            <div class="side-admin-actions">
+              <button class="btn-secondary btn-sm w-full" (click)="openSettings()">
+                <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa nhóm
+              </button>
+              @if (isOwner()) {
+                <button class="btn-danger btn-sm w-full" (click)="openDeleteConfirm()">
+                  <i class="fa-solid fa-trash"></i> Xóa nhóm
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </aside>
+
     </div>
   </div>
 </main>
