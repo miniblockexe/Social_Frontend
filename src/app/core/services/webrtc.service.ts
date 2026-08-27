@@ -6,6 +6,8 @@ import {
   NgZone,
   effect,
 } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
 import { ChatHubService } from './chat-hub.service';
@@ -27,20 +29,17 @@ export interface CallSession {
 
 const SIGNALING_URL = environment.signalingUrl;
 
-// Cloudflare TURN — lấy credential tại dash.cloudflare.com > Calls
-const ICE_SERVERS: RTCIceServer[] = [
+// ICE fallback tĩnh (chỉ dùng khi fetch dynamic credential thất bại)
+const ICE_SERVERS_FALLBACK: RTCIceServer[] = [
   { urls: 'stun:stun.cloudflare.com:3478' },
-  // {
-  //   urls: 'turn:turn.cloudflare.com:3478',
-  //   username: 'YOUR_TURN_USERNAME',
-  //   credential: 'YOUR_TURN_CREDENTIAL',
-  // },
+  { urls: 'stun:stun.l.google.com:19302' },
 ];
 
 @Injectable({ providedIn: 'root' })
 export class WebRtcService implements OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly chatHubService = inject(ChatHubService);
+  private readonly http = inject(HttpClient);
   private callTimeout: ReturnType<typeof setTimeout> | null = null;
   private readonly ngZone = inject(NgZone);
 
@@ -197,6 +196,17 @@ export class WebRtcService implements OnDestroy {
 
   // ─── Signaling ────────────────────────────────────────────────
 
+  private async fetchIceServers(): Promise<RTCIceServer[]> {
+    try {
+      const res = await firstValueFrom(
+        this.http.get<{ iceServers: RTCIceServer[] }>('/api/turn/credentials'),
+      );
+      return res.iceServers;
+    } catch {
+      return ICE_SERVERS_FALLBACK;
+    }
+  }
+
   public async connectSignaling(conversationId: string): Promise<void> {
     const userId = this.authService.currentUser()?.id ?? '';
     if (!userId)
@@ -272,7 +282,7 @@ export class WebRtcService implements OnDestroy {
         const sess = this.session();
         if (!sess) break;
 
-        this.createPeerConnection();
+        await this.createPeerConnection();
         await this.pc!.setRemoteDescription(
           new RTCSessionDescription({
             type: 'offer',
@@ -324,10 +334,11 @@ export class WebRtcService implements OnDestroy {
 
   // ─── WebRTC ───────────────────────────────────────────────────
 
-  private createPeerConnection(): void {
+  private async createPeerConnection(): Promise<void> {
     if (this.pc) return;
 
-    this.pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const iceServers = await this.fetchIceServers();
+    this.pc = new RTCPeerConnection({ iceServers });
 
     this.pc.onicecandidate = ({ candidate }) => {
       if (candidate) {
@@ -448,7 +459,7 @@ export class WebRtcService implements OnDestroy {
   }
 
   private async createOffer(): Promise<void> {
-    this.createPeerConnection();
+    await this.createPeerConnection();
 
     const offer = await this.pc!.createOffer({
       offerToReceiveAudio: true,
