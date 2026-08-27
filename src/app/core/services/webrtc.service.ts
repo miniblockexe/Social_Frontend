@@ -219,6 +219,7 @@ export class WebRtcService implements OnDestroy {
   }
 
   async connectSignalingForIncoming(conversationId: string): Promise<void> {
+    await this.startRingtone('incoming');
     await this.connectSignaling(conversationId);
   }
 
@@ -370,10 +371,13 @@ export class WebRtcService implements OnDestroy {
           break;
         }
 
-        if (this.callState() === 'idle' || this.callState() === 'receiving') {
+        if (this.callState() === 'idle') {
+          // Offer đến trước SignalR (hiếm) — set state và play nhạc
           await this.stopRingtone();
           this.callState.set('receiving');
           await this.startRingtone('incoming');
+          this.onIncomingCall?.(sess);
+        } else if (this.callState() === 'receiving') {
           this.onIncomingCall?.(sess);
         }
         break;
