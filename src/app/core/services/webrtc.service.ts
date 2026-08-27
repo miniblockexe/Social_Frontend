@@ -140,10 +140,13 @@ export class WebRtcService implements OnDestroy {
 
     this.callState.set('connected');
 
+    // Chờ AudioContext release device trước khi getUserMedia
     await new Promise((r) => setTimeout(r, 300));
 
+    // Init local stream TRƯỚC — để tracks có sẵn khi negotiate
     await this.initLocalStream(sess.mode);
 
+    // Nếu pc chưa có (offer chưa đến qua WS), chờ tối đa 5s
     if (!this.pc || !this.pc.remoteDescription) {
       await new Promise<void>((resolve) => {
         const deadline = Date.now() + 5000;
@@ -156,6 +159,8 @@ export class WebRtcService implements OnDestroy {
       });
     }
 
+    // Nếu vẫn không có remoteDescription → gửi answer sau khi WS offer đến
+    // (handleSignal sẽ gọi _doAnswer() tự động)
     if (!this.pc || !this.pc.remoteDescription) {
       this._pendingAnswer = true;
       return;
@@ -252,7 +257,8 @@ export class WebRtcService implements OnDestroy {
 
     this.ws = new WebSocket(url);
 
-    this.ws.onmessage = (event) => this.handleSignal(JSON.parse(event.data));
+    this.ws.onmessage = (event) =>
+      this.ngZone.run(() => this.handleSignal(JSON.parse(event.data)));
     this.ws.onclose = () => {
       this.ngZone.run(() => {
         if (
@@ -318,6 +324,7 @@ export class WebRtcService implements OnDestroy {
           }),
         );
 
+        // Nếu user đã bấm bắt máy trước khi offer WS đến (race condition)
         if (this._pendingAnswer) {
           await this._doAnswer();
           break;
@@ -334,6 +341,7 @@ export class WebRtcService implements OnDestroy {
 
       case 'answer':
         this.stopRingtone();
+        // Clear call timeout ngay khi callee bắt máy
         if (this.callTimeout) {
           clearTimeout(this.callTimeout);
           this.callTimeout = null;
@@ -404,15 +412,17 @@ export class WebRtcService implements OnDestroy {
     };
 
     this.pc.onconnectionstatechange = () => {
-      if (
-        this.pc?.connectionState === 'disconnected' ||
-        this.pc?.connectionState === 'failed'
-      ) {
-        this.cleanup();
-      }
-      if (this.pc?.connectionState === 'connected') {
-        this.callState.set('connected');
-      }
+      this.ngZone.run(() => {
+        if (
+          this.pc?.connectionState === 'disconnected' ||
+          this.pc?.connectionState === 'failed'
+        ) {
+          this.cleanup();
+        }
+        if (this.pc?.connectionState === 'connected') {
+          this.callState.set('connected');
+        }
+      });
     };
 
     // Gắn local tracks vào peer connection
