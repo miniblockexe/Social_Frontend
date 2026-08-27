@@ -74,7 +74,7 @@ export class WebRtcService implements OnDestroy {
           state === 'receiving' &&
           sess?.conversationId === cancelled.conversationId
         ) {
-          this.cleanup();
+          void this.cleanup();
         }
       },
       { allowSignalWrites: true },
@@ -112,7 +112,7 @@ export class WebRtcService implements OnDestroy {
     };
     this.session.set(sess);
     this.callState.set('calling');
-    this.startRingtone('outgoing');
+    await this.startRingtone('outgoing');
 
     this.callTimeout = setTimeout(() => {
       if (this.callState() === 'calling') {
@@ -188,7 +188,7 @@ export class WebRtcService implements OnDestroy {
   }
 
   async abortCallerAndReceive(sess: CallSession): Promise<void> {
-    this.stopRingtone();
+    await this.stopRingtone();
     if (this.callTimeout) {
       clearTimeout(this.callTimeout);
       this.callTimeout = null;
@@ -214,7 +214,7 @@ export class WebRtcService implements OnDestroy {
     // Chuyển sang receiving
     this.session.set(sess);
     this.callState.set('receiving');
-    this.startRingtone('incoming');
+    await this.startRingtone('incoming');
     await this.connectSignaling(sess.conversationId);
   }
 
@@ -233,7 +233,7 @@ export class WebRtcService implements OnDestroy {
       this.chatHubService.callDeclined(sess.conversationId);
     }
     this.sendSignal({ type: 'end-call' });
-    this.cleanup();
+    void this.cleanup();
   }
 
   /** Toggle mute mic */
@@ -255,7 +255,7 @@ export class WebRtcService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.cleanup();
+    void this.cleanup();
   }
 
   // ─── Signaling ────────────────────────────────────────────────
@@ -305,7 +305,7 @@ export class WebRtcService implements OnDestroy {
           this.callState() === 'connected' ||
           this.callState() === 'calling'
         ) {
-          this.cleanup();
+          void this.cleanup();
         }
       });
     };
@@ -371,16 +371,16 @@ export class WebRtcService implements OnDestroy {
         }
 
         if (this.callState() === 'idle' || this.callState() === 'receiving') {
-          this.stopRingtone();
+          await this.stopRingtone();
           this.callState.set('receiving');
-          this.startRingtone('incoming');
+          await this.startRingtone('incoming');
           this.onIncomingCall?.(sess);
         }
         break;
       }
 
       case 'answer':
-        this.stopRingtone();
+        await this.stopRingtone();
         // Clear call timeout ngay khi callee bắt máy
         if (this.callTimeout) {
           clearTimeout(this.callTimeout);
@@ -412,7 +412,7 @@ export class WebRtcService implements OnDestroy {
 
       case 'peer-left':
       case 'end-call':
-        this.cleanup();
+        void this.cleanup();
         break;
     }
   }
@@ -457,7 +457,7 @@ export class WebRtcService implements OnDestroy {
           this.pc?.connectionState === 'disconnected' ||
           this.pc?.connectionState === 'failed'
         ) {
-          this.cleanup();
+          void this.cleanup();
         }
         if (this.pc?.connectionState === 'connected') {
           this.callState.set('connected');
@@ -558,8 +558,8 @@ export class WebRtcService implements OnDestroy {
 
   // ─── Cleanup ──────────────────────────────────────────────────
 
-  private cleanup(): void {
-    this.stopRingtone();
+  private async cleanup(): Promise<void> {
+    await this.stopRingtone();
     if (this.callTimeout) {
       clearTimeout(this.callTimeout);
       this.callTimeout = null;
@@ -600,8 +600,8 @@ export class WebRtcService implements OnDestroy {
 
   customRingtoneUrl: string | null = null;
 
-  private startRingtone(type: 'outgoing' | 'incoming'): void {
-    this.stopRingtone();
+  private async startRingtone(type: 'outgoing' | 'incoming'): Promise<void> {
+    await this.stopRingtone();
 
     // Nhạc chuông tuỳ chỉnh chỉ dùng khi có người gọi đến
     if (type === 'incoming' && this.customRingtoneUrl) {
