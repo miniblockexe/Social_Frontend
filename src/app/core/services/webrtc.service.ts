@@ -139,20 +139,47 @@ export class WebRtcService implements OnDestroy {
     if (!sess || this.callState() !== 'receiving') return;
 
     this.callState.set('connected');
-    // Chờ AudioContext release device trước khi getUserMedia
+
     await new Promise((r) => setTimeout(r, 300));
+
     await this.initLocalStream(sess.mode);
 
+    if (!this.pc || !this.pc.remoteDescription) {
+      await new Promise<void>((resolve) => {
+        const deadline = Date.now() + 5000;
+        const poll = setInterval(() => {
+          if ((this.pc && this.pc.remoteDescription) || Date.now() > deadline) {
+            clearInterval(poll);
+            resolve();
+          }
+        }, 100);
+      });
+    }
+
+    if (!this.pc || !this.pc.remoteDescription) {
+      this._pendingAnswer = true;
+      return;
+    }
+
+    await this._doAnswer();
+  }
+
+  /** @internal — gọi từ handleSignal khi _pendingAnswer=true */
+  _pendingAnswer = false;
+
+  private async _doAnswer(): Promise<void> {
+    this._pendingAnswer = false;
+    if (!this.pc || !this.pc.remoteDescription) return;
+
+    // Flush pending ICE candidates
     for (const c of this.pendingCandidates) {
-      await this.pc?.addIceCandidate(new RTCIceCandidate(c));
+      await this.pc.addIceCandidate(new RTCIceCandidate(c));
     }
     this.pendingCandidates = [];
 
-    if (this.pc && this.pc.remoteDescription) {
-      const answer = await this.pc.createAnswer();
-      await this.pc.setLocalDescription(answer);
-      this.sendSignal({ type: 'answer', sdp: answer.sdp });
-    }
+    const answer = await this.pc.createAnswer();
+    await this.pc.setLocalDescription(answer);
+    this.sendSignal({ type: 'answer', sdp: answer.sdp });
   }
 
   async connectSignalingForIncoming(conversationId: string): Promise<void> {
@@ -291,6 +318,11 @@ export class WebRtcService implements OnDestroy {
           }),
         );
 
+        if (this._pendingAnswer) {
+          await this._doAnswer();
+          break;
+        }
+
         if (this.callState() === 'idle' || this.callState() === 'receiving') {
           this.stopRingtone();
           this.callState.set('receiving');
@@ -302,6 +334,10 @@ export class WebRtcService implements OnDestroy {
 
       case 'answer':
         this.stopRingtone();
+        if (this.callTimeout) {
+          clearTimeout(this.callTimeout);
+          this.callTimeout = null;
+        }
         if (this.pc) {
           await this.pc.setRemoteDescription(
             new RTCSessionDescription({
