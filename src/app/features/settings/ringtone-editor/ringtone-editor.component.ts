@@ -67,8 +67,9 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
   // ── Export ─────────────────────────────────────────────────────
   isExporting = signal(false);
   exportError = signal<string | null>(null);
-
-  maxClipSec = signal(30);
+ 
+  maxClipSec = signal(114);
+  private readonly TARGET_SR = 22050;
 
   // ── Derived ────────────────────────────────────────────────────
   startPct = computed(() =>
@@ -133,10 +134,10 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
       const dur = this.decodedBuffer.duration;
       this.duration.set(dur);
 
-      const sr = this.decodedBuffer.sampleRate;
-      const ch = this.decodedBuffer.numberOfChannels;
-      const maxSec = Math.floor((4.8 * 1024 * 1024 - 44) / (sr * ch * 2));
-      this.maxClipSec.set(Math.max(maxSec, 5)); // tối thiểu 5s để editor vẫn dùng được
+      const maxSec = Math.floor(
+        (4.8 * 1024 * 1024 - 44) / (this.TARGET_SR * 1 * 2),
+      );
+      this.maxClipSec.set(Math.max(maxSec, 5));
 
       this.startTime.set(0);
       this.endTime.set(Math.min(dur, this.maxClipSec()));
@@ -392,14 +393,11 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
       const start = this.startTime();
       const end = this.endTime();
       const clipDur = end - start;
-      const sr = this.decodedBuffer.sampleRate;
-      const channels = this.decodedBuffer.numberOfChannels;
 
-      // Offline render
       const offlineCtx = new OfflineAudioContext(
-        channels,
-        Math.ceil(clipDur * sr),
-        sr,
+        1, // mono
+        Math.ceil(clipDur * this.TARGET_SR), // số samples ở TARGET_SR
+        this.TARGET_SR, // 22050 Hz
       );
       const src = offlineCtx.createBufferSource();
       src.buffer = this.decodedBuffer;
