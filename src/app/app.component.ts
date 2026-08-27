@@ -68,6 +68,26 @@ export class AppComponent {
         this.chatHubService.incomingCall.set(null);
 
         const state = this.webRtcService.callState();
+        const sess = this.webRtcService.session();
+
+        if (
+          state === 'calling' &&
+          sess?.conversationId === incoming.conversationId
+        ) {
+          const myId = me.id ?? '';
+          const shouldYield = myId > incoming.callerId;
+          if (!shouldYield) return;
+
+          this.webRtcService.abortCallerAndReceive({
+            conversationId: incoming.conversationId,
+            peerId: incoming.callerId,
+            peerName: incoming.callerName,
+            peerAvatar: incoming.callerAvatar,
+            mode: incoming.mode,
+          });
+          return;
+        }
+
         if (state !== 'idle') return;
 
         this.webRtcService.session.set({

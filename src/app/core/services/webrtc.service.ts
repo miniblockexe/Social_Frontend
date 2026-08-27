@@ -187,6 +187,37 @@ export class WebRtcService implements OnDestroy {
     this.sendSignal({ type: 'answer', sdp: answer.sdp });
   }
 
+  async abortCallerAndReceive(sess: CallSession): Promise<void> {
+    this.stopRingtone();
+    if (this.callTimeout) {
+      clearTimeout(this.callTimeout);
+      this.callTimeout = null;
+    }
+    this.localStream()
+      ?.getTracks()
+      .forEach((t) => t.stop());
+    this.pc?.close();
+    const ws = this.ws;
+    this.ws = null;
+    ws?.close();
+    this.pc = null;
+    this.pendingCandidates = [];
+    this.localStream.set(null);
+    this.remoteStream.set(null);
+    this.isMuted.set(false);
+    this.isCameraOff.set(false);
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
+
+    // Chuyển sang receiving
+    this.session.set(sess);
+    this.callState.set('receiving');
+    this.startRingtone('incoming');
+    await this.connectSignaling(sess.conversationId);
+  }
+
   async connectSignalingForIncoming(conversationId: string): Promise<void> {
     await this.connectSignaling(conversationId);
   }
@@ -237,7 +268,9 @@ export class WebRtcService implements OnDestroy {
         ),
       );
       const raw = res.iceServers;
+      // Cloudflare TURN trả object đơn hoặc array — normalize về array
       const servers: RTCIceServer[] = Array.isArray(raw) ? raw : [raw];
+      // Đảm bảo hợp lệ trước khi dùng
       if (servers.length > 0 && servers[0].urls) {
         return [...ICE_SERVERS_FALLBACK, ...servers];
       }
