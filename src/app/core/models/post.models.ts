@@ -20,6 +20,7 @@ export interface Post {
   // Bài đăng trong nhóm — null nếu là bài cá nhân
   groupId?: string;
   groupName?: string;
+  groupAvatarUrl?: string; 
 }
 
 export interface SharedPost {

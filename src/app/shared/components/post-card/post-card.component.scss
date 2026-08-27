@@ -41,6 +41,54 @@
   padding: var(--sp-4) var(--sp-4) var(--sp-3);
 }
 
+// ─── Header trái: avatar + tên + group + meta ─────────────────────────────────
+
+.sp-post-header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
+  flex: 1;
+}
+
+.sp-post-avatar-link {
+  display: block;
+  flex-shrink: 0;
+  border-radius: 50%;
+
+  &:focus-visible {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 3px;
+    border-radius: 50%;
+  }
+}
+
+// Wrap chứa avatar nhóm (chính) + avatar người đăng (badge góc dưới phải)
+.sp-post-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.sp-post-avatar-badge-link {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  display: block;
+  line-height: 0;
+  border-radius: 50%;
+  border: 2px solid var(--sp-bg-1);
+  background: var(--sp-bg-1);
+
+  &:focus-visible {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 1px;
+    border-radius: 50%;
+  }
+}
+
+// Giữ lại cho phần "bài gốc nhúng" (embedded post) vẫn dùng link bọc cả avatar+tên
 .sp-post-author-link {
   display: flex;
   align-items: center;
@@ -65,14 +113,60 @@
   min-width: 0;
 }
 
+.sp-post-author-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
 .sp-post-author-name {
   font-family: var(--font-display, "Outfit", sans-serif);
   font-weight: 700;
   font-size: 15px;
   color: var(--sp-text-1);
+  text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
+
+  &:hover {
+    text-decoration: underline;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.sp-post-group-sep {
+  font-size: 10px;
+  color: var(--sp-text-3);
+  flex-shrink: 0;
+}
+
+.sp-post-group-name {
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--sp-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 .sp-post-meta {

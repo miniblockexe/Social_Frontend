@@ -21,6 +21,7 @@ import {
   GroupDetail,
   GroupMember,
   GroupJoinRequest,
+  GroupSummary,
   GroupPrivacy,
   GroupRole,
   GroupMembershipStatus,
@@ -79,6 +80,11 @@ export class GroupDetailComponent implements OnInit {
   loadingMembers = signal(false);
   membersPage = signal(1);
   hasMoreMembers = signal(true);
+
+  // ── Sidebar trái: điều hướng nhóm ──────────────────────────────────────
+  sideKeyword = signal('');
+  sideGroups = signal<GroupSummary[]>([]);
+  loadingSideGroups = signal(false);
 
   // Pending posts
   pendingPosts = signal<Post[]>([]);
@@ -139,6 +145,7 @@ export class GroupDetailComponent implements OnInit {
       this.groupId.set(p.get('id') ?? '');
       this.loadGroup();
     });
+    this.loadSideGroups();
   }
 
   loadGroup() {
@@ -236,6 +243,32 @@ export class GroupDetailComponent implements OnInit {
       this.loadPendingPosts();
     if (tab === 'pending-members' && !this.pendingReqs().length)
       this.loadPendingReqs();
+  }
+
+  // ── Sidebar trái: điều hướng nhóm ─────────────────────────────────────
+
+  private loadSideGroups() {
+    this.loadingSideGroups.set(true);
+    this.groupSvc.getMyGroups(1, 5).subscribe({
+      next: (res) => {
+        this.sideGroups.set(res.data?.items ?? []);
+        this.loadingSideGroups.set(false);
+      },
+      error: () => this.loadingSideGroups.set(false),
+    });
+  }
+
+  goToGroupsSearch(keyword: string) {
+    const q = keyword.trim();
+    this.router.navigate(['/groups'], { queryParams: q ? { q } : {} });
+  }
+
+  goToGroupsTab(tab: 'discover' | 'mine') {
+    this.router.navigate(['/groups'], { queryParams: { tab } });
+  }
+
+  openCreateGroup() {
+    this.router.navigate(['/groups'], { queryParams: { create: 1 } });
   }
 
   // ── Create Post ───────────────────────────────────────────────────────

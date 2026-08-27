@@ -16,7 +16,7 @@
 }
 .gd-cover-placeholder{height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;color:rgba(255,255,255,.3);}
 
-.gd-hero-content { max-width:1100px;margin:0 auto;padding:0 1.5rem;@media(max-width:768px){padding:0 1rem;} }
+.gd-hero-content { max-width:1280px;margin:0 auto;padding:0 1rem;@media(max-width:768px){padding:0 .5rem;} }
 
 .gd-hero-inner {
   display:flex;align-items:flex-end;gap:1rem;padding-bottom:.75rem;flex-wrap:wrap;
@@ -60,16 +60,49 @@
 }
 
 // ── Body ───────────────────────────────────────────────────────────────
-.gd-body { max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;@media(max-width:768px){padding:0 .75rem 5rem;} }
+// Đồng bộ max-width, padding với feed-layout (1280px, padding 1rem)
+.gd-body { max-width:1280px;margin:0 auto;padding:0 1rem 4rem;@media(max-width:768px){padding:0 .5rem 5rem;} }
+
+// 3 cột: sidebar trái (260px) + feed giữa + sidebar phải (280px)
+// Khớp với feed-layout: 260px minmax(0,1fr) 300px
 .gd-body-inner {
-  display:grid;grid-template-columns:270px minmax(0,1fr);gap:1.25rem;align-items:start;
-  @media(max-width:900px){grid-template-columns:1fr;.gd-sidebar{display:none;}}
+  display: grid;
+  grid-template-columns: 260px minmax(0,1fr) 280px;
+  gap: 1.25rem;
+  align-items: start;
+
+  // ẩn sidebar phải ở màn hình vừa
+  @media(max-width:1100px) {
+    grid-template-columns: 260px minmax(0,1fr);
+    .gd-sidebar--right { display: none; }
+  }
+  // ẩn cả 2 sidebar trên mobile
+  @media(max-width:768px) {
+    grid-template-columns: 1fr;
+    .gd-sidebar--left, .gd-sidebar--right { display: none; }
+  }
 }
 
-// ── Sidebar ────────────────────────────────────────────────────────────
-.gd-sidebar { position:sticky;top:calc(var(--nav-h,64px) + 1rem);display:flex;flex-direction:column;gap:1rem; }
+// ── Sidebar (chung) ────────────────────────────────────────────────────
+.gd-sidebar {
+  position: sticky;
+  top: calc(var(--nav-h,56px) + 1rem);
+  height: fit-content;
+  max-height: calc(100dvh - var(--nav-h,56px) - 2rem);
+  overflow-y: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 .gd-side-card { background:var(--sp-bg-card);border:1px solid var(--sp-border);border-radius:var(--sp-r-md,12px);padding:1rem; }
-.side-title { font-size:1rem;font-weight:700;margin-bottom:10px; }
+.side-title {
+  font-size:.875rem;font-weight:700;margin-bottom:10px;
+  display:flex;align-items:center;gap:7px;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--sp-text-3);
+  i { font-size:.75rem;color:var(--sp-primary); }
+}
 .side-desc  { font-size:.9375rem;color:var(--sp-text-2);line-height:1.5;&.muted{color:var(--sp-text-3);font-style:italic;} }
 .side-stats { margin-top:12px;display:flex;flex-direction:column;gap:8px; }
 .stat { display:flex;align-items:center;gap:8px;font-size:.875rem;color:var(--sp-text-2);i{color:var(--sp-text-3);width:16px;text-align:center;} }
@@ -297,3 +330,69 @@
 
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+// ── Sidebar trái: điều hướng nhóm (Facebook-style) ───────────────────────
+.gnav-card { display:flex;flex-direction:column;gap:10px; }
+.gnav-header { display:flex;align-items:center;gap:8px; }
+.gnav-logo {
+  width:28px;height:28px;border-radius:50%;background:var(--sp-primary,#1877f2);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;
+}
+.gnav-title { flex:1;font-size:1rem;font-weight:800; }
+
+.gnav-search {
+  display:flex;align-items:center;gap:8px;background:var(--sp-bg-input);
+  border-radius:var(--sp-r-pill,999px);padding:8px 12px;
+  i{color:var(--sp-text-3);font-size:.8125rem;}
+  input{
+    flex:1;background:none;border:none;outline:none;color:var(--sp-text-1);
+    font-size:.875rem;font-family:inherit;
+    &::placeholder{color:var(--sp-text-3);}
+  }
+}
+
+.gnav-list{ display:flex;flex-direction:column;gap:2px; }
+.gnav-item{
+  display:flex;align-items:center;gap:10px;width:100%;padding:9px 8px;
+  border:none;background:none;border-radius:10px;font-size:.9375rem;font-weight:500;
+  color:var(--sp-text-2);cursor:pointer;text-align:left;text-decoration:none;
+  transition:background .15s,color .15s;
+  &:hover{background:var(--sp-bg-hover);color:var(--sp-text-1);}
+}
+.gnav-icon{
+  width:32px;height:32px;border-radius:var(--sp-r-sm,8px);display:flex;
+  align-items:center;justify-content:center;font-size:.875rem;flex-shrink:0;
+  &.red{background:rgba(250,56,62,.15);color:var(--sp-danger);}
+  &.blue{background:var(--sp-primary-light);color:var(--sp-primary);}
+  &.green{background:rgba(66,183,42,.15);color:#42b72a;}
+}
+
+.gnav-create{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px;border:none;border-radius:var(--sp-r-sm,8px);
+  background:var(--sp-bg-input);color:var(--sp-text-1);font-weight:700;font-size:.875rem;
+  cursor:pointer;transition:background .15s;
+  &:hover{background:var(--sp-border);}
+}
+
+.gnav-joined-hdr{ display:flex;align-items:center;justify-content:space-between;margin-bottom:10px; }
+.gnav-seeall{ font-size:.8125rem;font-weight:600;color:var(--sp-primary);text-decoration:none;&:hover{text-decoration:underline;} }
+
+.gnav-joined-list{ display:flex;flex-direction:column;gap:4px; }
+.gnav-joined-item{
+  display:flex;align-items:center;gap:10px;padding:6px;border-radius:var(--sp-r-sm,8px);
+  text-decoration:none;color:inherit;transition:background .15s;
+  &:hover{background:var(--sp-bg-hover);}
+}
+.gnav-joined-avatar{ width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0; }
+.gnav-joined-info{ display:flex;flex-direction:column;min-width:0; }
+.gnav-joined-name{
+  font-size:.875rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.gnav-joined-sub{ font-size:.75rem;color:var(--sp-text-3); }
+
+.gnav-joined-skeleton{ display:flex;flex-direction:column;gap:10px; }
+.gnav-sk-item{ display:flex;align-items:center;gap:10px; }
+.gnav-sk-avatar{ width:36px;height:36px;border-radius:8px;background:var(--sp-bg-input);flex-shrink:0; }
+.gnav-sk-lines{ flex:1;display:flex;flex-direction:column;gap:6px; }
+.gnav-sk-line{ height:9px;border-radius:5px;background:var(--sp-bg-input);width:80%;&.short{width:50%;} }
