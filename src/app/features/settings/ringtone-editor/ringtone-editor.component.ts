@@ -98,7 +98,6 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
 
   // ──────────────────────────────────────────────────────────────
   ngOnInit(): void {
-    this.audioCtx = new AudioContext();
     this._decode();
   }
 
@@ -106,7 +105,9 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
     this._stopPlayback();
     cancelAnimationFrame(this.rafId);
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
-    this.audioCtx?.close();
+    if (this.audioCtx) {
+      void this.audioCtx.close();
+    }
     this.resizeObs?.disconnect();
     window.removeEventListener('mousemove', this._onMouseMove);
     window.removeEventListener('mouseup', this._onMouseUp);
@@ -117,6 +118,13 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
   // ── Decode ────────────────────────────────────────────────────
   private async _decode(): Promise<void> {
     try {
+      if (!this.audioCtx) {
+        this.audioCtx = new AudioContext();
+      }
+      if (this.audioCtx.state === 'suspended') {
+        await this.audioCtx.resume();
+      }
+
       const ab = await this.file.arrayBuffer();
       this.decodedBuffer = await this.audioCtx.decodeAudioData(ab);
       const dur = this.decodedBuffer.duration;
