@@ -476,11 +476,19 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.ringtoneInput.nativeElement.value = '';
   }
 
-  /**
-   * Nhận file đã cắt từ editor → upload lên R2 qua BE
-   */
   onEditorApplied(croppedFile: File): void {
     this.editorFile.set(null);
+
+    const MAX_BYTES = 5 * 1024 * 1024;
+    if (croppedFile.size > MAX_BYTES) {
+      const sizeMb = (croppedFile.size / 1024 / 1024).toFixed(1);
+      this.toast.show(
+        `File quá lớn (${sizeMb} MB). Vui lòng cắt ngắn hơn.`,
+        'error',
+      );
+      return;
+    }
+
     this.ringtoneSaving.set(true);
 
     this.userService.updateRingtone(croppedFile).subscribe({

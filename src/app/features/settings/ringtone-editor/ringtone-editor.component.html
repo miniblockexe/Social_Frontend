@@ -106,6 +106,20 @@
         </p>
       }
 
+      <!-- Cảnh báo giới hạn WAV size -->
+      <p class="rte-hint rte-hint--limit">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        Tối đa {{ maxClipSec() }}s (giới hạn 5 MB WAV với định dạng này)
+      </p>
+
+      <!-- Lỗi export WAV quá lớn -->
+      @if (exportError()) {
+        <p class="rte-warn">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          {{ exportError() }}
+        </p>
+      }
+
       <!-- Actions -->
       <div class="rte-actions">
         <button

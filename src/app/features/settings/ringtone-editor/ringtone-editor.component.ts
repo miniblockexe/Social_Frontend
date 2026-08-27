@@ -66,6 +66,9 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
 
   // ── Export ─────────────────────────────────────────────────────
   isExporting = signal(false);
+  exportError = signal<string | null>(null);
+
+  maxClipSec = signal(30);
 
   // ── Derived ────────────────────────────────────────────────────
   startPct = computed(() =>
@@ -129,8 +132,14 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
       this.decodedBuffer = await this.audioCtx.decodeAudioData(ab);
       const dur = this.decodedBuffer.duration;
       this.duration.set(dur);
+
+      const sr = this.decodedBuffer.sampleRate;
+      const ch = this.decodedBuffer.numberOfChannels;
+      const maxSec = Math.floor((4.8 * 1024 * 1024 - 44) / (sr * ch * 2));
+      this.maxClipSec.set(Math.max(maxSec, 5)); // tối thiểu 5s để editor vẫn dùng được
+
       this.startTime.set(0);
-      this.endTime.set(Math.min(dur, 30)); // default clip: đầu đến 30s (hoặc hết file)
+      this.endTime.set(Math.min(dur, this.maxClipSec()));
       this.isDecoding.set(false);
 
       // Setup preview <audio>
@@ -279,9 +288,14 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
     const MIN_GAP = 1; // min 1 second clip
 
     if (this.dragging === 'start') {
+      // Khi kéo start, đảm bảo clip không ngắn hơn MIN_GAP
       this.startTime.set(Math.min(t, this.endTime() - MIN_GAP));
     } else {
-      this.endTime.set(Math.max(t, this.startTime() + MIN_GAP));
+      // Khi kéo end, clamp để WAV output không vượt 4.8 MB
+      const maxEnd = this.startTime() + this.maxClipSec();
+      this.endTime.set(
+        Math.max(Math.min(t, maxEnd), this.startTime() + MIN_GAP),
+      );
     }
     this._drawWaveform();
   }
@@ -401,10 +415,23 @@ export class RingtoneEditorComponent implements OnInit, OnDestroy {
         type: 'audio/wav',
       });
 
+      const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+      if (outFile.size > MAX_UPLOAD_BYTES) {
+        const sizeMb = (outFile.size / 1024 / 1024).toFixed(1);
+        this.exportError.set(
+          `File WAV sau khi encode ${sizeMb} MB — vượt giới hạn 5 MB. ` +
+            `Vui lòng cắt ngắn hơn (tối đa ~${this.maxClipSec()}s với định dạng này).`,
+        );
+        this.isExporting.set(false);
+        return;
+      }
+
+      this.exportError.set(null);
       this.isExporting.set(false);
       this.applied.emit(outFile);
     } catch {
       this.isExporting.set(false);
+      this.exportError.set('Xuất file thất bại. Vui lòng thử lại.');
     }
   }
 
