@@ -100,7 +100,7 @@ export class WebRtcService implements OnDestroy {
     peerAvatar: string | null,
     mode: 'audio' | 'video',
   ): Promise<void> {
-    if (this.callState() !== 'idle' && this.callState() !== 'ended') return;
+    if (this.callState() !== 'idle') return;
     if (this.pc || this.ws) return;
 
     const sess: CallSession = {
@@ -125,6 +125,7 @@ export class WebRtcService implements OnDestroy {
     await this.connectSignaling(conversationId);
     await this.initLocalStream(mode);
 
+    // Tắt audio track trong khi chờ — tránh mic thu tiếng ring dội lại
     this.localStream()
       ?.getAudioTracks()
       .forEach((t) => (t.enabled = false));
