@@ -57,6 +57,13 @@ export class PostCardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   post = input.required<Post>();
 
+  /**
+   * Có hiển thị thông tin nhóm (avatar nhóm + tên nhóm) hay không.
+   * true (mặc định) — dùng ở feed chính: hiển thị "Tên người đăng > Tên nhóm" + avatar nhóm làm avatar chính.
+   * false — dùng khi đang ở trang chi tiết nhóm: chỉ hiển thị avatar/tên người đăng, không lặp lại tên nhóm.
+   */
+  showGroupContext = input<boolean>(true);
+
   postDeleted = output<string>();
   postUpdated = output<Post>();
 

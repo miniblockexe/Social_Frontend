@@ -215,7 +215,12 @@
           }
           <div class="feed-list">
             @for (p of posts(); track p.id) {
-              <app-post-card [post]="p" (postDeleted)="onPostDeleted($event)" (postUpdated)="onPostUpdated($event)" />
+              <app-post-card
+                [post]="p"
+                [showGroupContext]="false"
+                (postDeleted)="onPostDeleted($event)"
+                (postUpdated)="onPostUpdated($event)"
+              />
             }
             @if (!posts().length && !loadingFeed()) {
               <div class="empty-state"><i class="fa-solid fa-newspaper"></i><p>Chưa có bài đăng nào.</p></div>
@@ -272,7 +277,7 @@
           <div class="feed-list">
             @for (p of pendingPosts(); track p.id) {
               <div class="pending-post-wrap">
-                <app-post-card [post]="p" />
+                <app-post-card [post]="p" [showGroupContext]="false" />
                 <div class="pending-actions">
                   <button class="btn-primary btn-sm" (click)="reviewPost(p.id, true)"><i class="fa-solid fa-check"></i> Phê duyệt</button>
                   <button class="btn-danger btn-sm" (click)="reviewPost(p.id, false)"><i class="fa-solid fa-xmark"></i> Từ chối</button>

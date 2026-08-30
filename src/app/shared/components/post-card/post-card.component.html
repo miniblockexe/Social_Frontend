@@ -4,8 +4,8 @@
 >
   <div class="sp-post-header">
     <div class="sp-post-header-left">
-      <!-- Bài trong nhóm: avatar nhóm là chính, avatar người đăng thu nhỏ làm badge -->
-      @if (post().groupId && post().groupName) {
+      <!-- Bài trong nhóm + đang ở feed: avatar nhóm là chính, avatar người đăng thu nhỏ làm badge -->
+      @if (showGroupContext() && post().groupId && post().groupName) {
         <div class="sp-post-avatar-wrap">
           <a
             [routerLink]="['/groups', post().groupId]"
@@ -52,8 +52,8 @@
             {{ post().author.fullName }}
           </a>
 
-          <!-- Group đăng bài — chỉ hiện khi backend đã trả groupId/groupName (nghĩa là user được phép xem) -->
-          @if (post().groupId && post().groupName) {
+          <!-- Group đăng bài — chỉ hiện ở feed khi backend đã trả groupId/groupName (nghĩa là user được phép xem) -->
+          @if (showGroupContext() && post().groupId && post().groupName) {
             <i
               class="fa-solid fa-chevron-right sp-post-group-sep"
               aria-hidden="true"
