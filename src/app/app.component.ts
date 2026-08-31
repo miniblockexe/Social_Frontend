@@ -12,7 +12,13 @@ import { CallOverlayComponent } from './shared/components/call-overlay/call-over
 import { SwUpdateService } from './core/services/sw-update.service';
 import { UpdateBannerComponent } from './shared/components/update-banner/update-banner.component';
 
-const NO_NAVBAR_ROUTES = ['/', '/auth/login', '/auth/register'];
+const NO_NAVBAR_ROUTES = [
+  '/',
+  '/auth/login',
+  '/auth/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+];
 
 @Component({
   selector: 'app-root',
@@ -57,6 +63,7 @@ export class AppComponent {
 
   constructor() {
     this.swUpdateService.init();
+
     effect(
       () => {
         const incoming = this.chatHubService.incomingCall();
@@ -102,6 +109,7 @@ export class AppComponent {
       },
       { allowSignalWrites: true },
     );
+
     effect(
       () => {
         const user = this.authService.currentUser();
