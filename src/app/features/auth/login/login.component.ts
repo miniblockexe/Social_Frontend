@@ -15,6 +15,8 @@ import { UserRole } from '../../../core/models/auth.models';
 
 gsap.registerPlugin(ScrollTrigger);
 
+declare const google: any;
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -29,6 +31,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
 
   /* ── Reactive state ──────────────────────── */
   isLoading = signal(false);
+  isGoogleLoading = signal(false);
   errorMessage = signal<string | null>(null);
   showPassword = signal(false);
 
@@ -107,6 +110,64 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /* ── Google Login ───────────────────────── */
+  onGoogleLogin(): void {
+    if (typeof google !== 'undefined' && google?.accounts?.id) {
+      google.accounts.id.prompt();
+    } else {
+      this.errorMessage.set('Google Sign-In chưa tải xong. Vui lòng thử lại.');
+      this.animateErrorBanner();
+    }
+  }
+
+  private initGoogleButton(): void {
+    const maxWait = 3000;
+    const start = Date.now();
+
+    const tryInit = () => {
+      if (typeof google !== 'undefined' && google?.accounts?.id) {
+        google.accounts.id.initialize({
+          client_id:
+            '181990983325-06376ui32t35lb5e3q1e1imgku9sokat.apps.googleusercontent.com',
+          callback: (response: { credential: string }) => {
+            this.handleGoogleCredential(response.credential);
+          },
+        });
+      } else if (Date.now() - start < maxWait) {
+        setTimeout(tryInit, 200);
+      }
+    };
+
+    tryInit();
+  }
+
+  private handleGoogleCredential(idToken: string): void {
+    this.isGoogleLoading.set(true);
+    this.errorMessage.set(null);
+
+    this.auth.googleLogin(idToken).subscribe({
+      next: (res) => {
+        this.isGoogleLoading.set(false);
+        if (res.success) {
+          const dest =
+            res.data.user.role === UserRole.Admin ? '/admin' : '/home';
+          this.router.navigate([dest]);
+        } else {
+          this.errorMessage.set(res.message || 'Đăng nhập Google thất bại.');
+          this.animateErrorBanner();
+        }
+      },
+      error: (err) => {
+        this.isGoogleLoading.set(false);
+        const msg =
+          err?.error?.message ?? 'Đăng nhập Google thất bại. Vui lòng thử lại.';
+        this.errorMessage.set(msg);
+        this.animateErrorBanner();
+      },
+    });
+  }
+
+  /* ── Error banner animation ─────────────── */
   private animateErrorBanner(): void {
     if (this.reducedMotion) return;
     requestAnimationFrame(() => {
@@ -130,9 +191,10 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
       return;
     }
     ScrollTrigger.refresh();
-
-    // rAF đảm bảo DOM đã painted sau Angular router navigation
-    requestAnimationFrame(() => this.runEntranceAnimation());
+    requestAnimationFrame(() => {
+      this.runEntranceAnimation();
+      this.initGoogleButton();
+    });
   }
 
   private runEntranceAnimation(): void {
@@ -161,7 +223,6 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
         },
       })
 
-      /* ── Background orbs ── */
       .to(
         '#orbRed',
         { opacity: 0.3, scale: 1, duration: 1.1, ease: 'power2.out' },
@@ -173,7 +234,6 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
         0.1,
       )
 
-      /* ── Logo ── */
       .fromTo(
         '#gsapLogo',
         { opacity: 0, y: 20 },
@@ -181,7 +241,6 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
         0.2,
       )
 
-      /* ── Headline ── */
       .fromTo(
         '#gsapHl1',
         { opacity: 0, y: 32, skewY: 1.5 },
@@ -195,7 +254,6 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
         '<0.28',
       )
 
-      /* ── Stats ── */
       .fromTo(
         ['#gsapStat1', '#gsapStat2', '#gsapStat3'],
         { opacity: 0, y: 18, filter: 'blur(4px)' },
@@ -215,7 +273,6 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
         '>-0.05',
       )
 
-      /* ── Notif cards ── */
       .fromTo(
         '#notifW1',
         { x: -64, opacity: 0 },
@@ -247,7 +304,6 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
         0.76,
       )
 
-      /* ── Form panel ── */
       .fromTo(
         formEls,
         { opacity: 0, y: 20 },
@@ -308,5 +364,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
       const card = document.querySelector<HTMLElement>(`.${cls}`);
       if (card) card.style.animationPlayState = 'running';
     });
+
+    this.initGoogleButton();
   }
 }

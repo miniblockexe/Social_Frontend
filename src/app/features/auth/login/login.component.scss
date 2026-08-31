@@ -99,7 +99,7 @@
   justify-content: center;
   align-items: center;
   padding: 3rem 4rem;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 /* Orbs — CSS initial: opacity:0 */
@@ -753,4 +753,39 @@
   .notif-wrapper {
     transition: none !important;
   }
+}
+.btn-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #1a1a1e;
+  border: 1px solid #2a2a30;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #e0e0e8;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+  margin-top: 12px; /* tuỳ vị trí đặt button */
+
+  &:hover:not(:disabled) {
+    background: #22222a;
+    border-color: #3a3a48;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.google-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }

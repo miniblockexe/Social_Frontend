@@ -92,7 +92,9 @@ export const routes: Routes = [
   {
     path: 'groups',
     loadComponent: () =>
-      import('./features/groups/groups.component').then((m) => m.GroupsComponent),
+      import('./features/groups/groups.component').then(
+        (m) => m.GroupsComponent,
+      ),
     canActivate: [authGuard],
   },
   {
@@ -110,6 +112,22 @@ export const routes: Routes = [
         (m) => m.FriendsComponent,
       ),
     canActivate: [authGuard],
+  },
+  {
+    path: 'auth/forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent,
+      ),
+    canActivate: [loginGuard],
+  },
+  {
+    path: 'auth/reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent,
+      ),
+    canActivate: [loginGuard],
   },
   { path: '**', redirectTo: 'home' },
 ];

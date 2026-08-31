@@ -116,4 +116,32 @@ export class AuthService {
       return true;
     }
   }
+  googleLogin(idToken: string): Observable<ApiResponse<AuthResponse>> {
+    return this.http
+      .post<
+        ApiResponse<AuthResponse>
+      >(`${API_BASE}/auth/google-login`, { idToken })
+      .pipe(
+        tap((res) => {
+          if (res.success) {
+            localStorage.setItem(TOKEN_KEY, res.data.accessToken);
+            localStorage.setItem(REFRESH_KEY, res.data.refreshToken);
+            this.currentUser.set(res.data.user);
+          }
+        }),
+      );
+  }
+
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${API_BASE}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(dto: {
+    email: string;
+    token: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }): Observable<void> {
+    return this.http.post<void>(`${API_BASE}/auth/reset-password`, dto);
+  }
 }
