@@ -20,19 +20,30 @@ import { AuthResponse } from '../models/auth.models';
 const isRefreshing$ = new BehaviorSubject<boolean>(false);
 const refreshToken$ = new BehaviorSubject<string | null>(null);
 
-const SKIP_URLS = ['/auth/login', '/auth/register', '/auth/refresh'];
+const SKIP_URLS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/revoke', // logout 
+  '/auth/forgot-password', // public
+  '/auth/reset-password', // public
+  '/auth/google-login', // public
+];
 
-function addToken(req: HttpRequest<unknown>, token: string): HttpRequest<unknown> {
+function addToken(
+  req: HttpRequest<unknown>,
+  token: string,
+): HttpRequest<unknown> {
   return req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
 }
 
 export const jwtInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
-  next: HttpHandlerFn
+  next: HttpHandlerFn,
 ) => {
   const authService = inject(AuthService);
 
-  if (SKIP_URLS.some(url => req.url.includes(url))) {
+  if (SKIP_URLS.some((url) => req.url.includes(url))) {
     return next(req);
   }
 
@@ -47,7 +58,7 @@ export const jwtInterceptor: HttpInterceptorFn = (
         return refreshToken$.pipe(
           filter((t): t is string => t !== null),
           take(1),
-          switchMap(newToken => next(addToken(req, newToken)))
+          switchMap((newToken) => next(addToken(req, newToken))),
         );
       }
 
@@ -60,12 +71,13 @@ export const jwtInterceptor: HttpInterceptorFn = (
           refreshToken$.next(res.data.accessToken);
           return next(addToken(req, res.data.accessToken));
         }),
-        catchError(refreshErr => {
+        catchError((refreshErr) => {
           isRefreshing$.next(false);
+          refreshToken$.next(null);
           authService.logout();
           return throwError(() => refreshErr);
-        })
+        }),
       );
-    })
+    }),
   );
 };

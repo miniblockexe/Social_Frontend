@@ -30,6 +30,20 @@ export const routes: Routes = [
     canActivate: [loginGuard],
   },
   {
+    path: 'auth/forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent,
+      ),
+  },
+  {
+    path: 'auth/reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent,
+      ),
+  },
+  {
     path: 'home',
     loadComponent: () =>
       import('./features/feed/feed.component').then((m) => m.FeedComponent),
@@ -112,22 +126,6 @@ export const routes: Routes = [
         (m) => m.FriendsComponent,
       ),
     canActivate: [authGuard],
-  },
-  {
-    path: 'auth/forgot-password',
-    loadComponent: () =>
-      import('./features/auth/forgot-password/forgot-password.component').then(
-        (m) => m.ForgotPasswordComponent,
-      ),
-    canActivate: [loginGuard],
-  },
-  {
-    path: 'auth/reset-password',
-    loadComponent: () =>
-      import('./features/auth/reset-password/reset-password.component').then(
-        (m) => m.ResetPasswordComponent,
-      ),
-    canActivate: [loginGuard],
   },
   { path: '**', redirectTo: 'home' },
 ];

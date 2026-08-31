@@ -33,10 +33,9 @@ export class AuthService {
     password: string,
   ): Observable<ApiResponse<AuthResponse>> {
     return this.http
-      .post<ApiResponse<AuthResponse>>(`${API_BASE}/auth/login`, {
-        email,
-        password,
-      })
+      .post<
+        ApiResponse<AuthResponse>
+      >(`${API_BASE}/auth/login`, { email, password })
       .pipe(
         tap((res) => {
           if (res.success) {
@@ -48,25 +47,43 @@ export class AuthService {
       );
   }
 
-  // gửi refreshToken trong body thay vì body rỗng {}
-  // BE RevokeTokenRequestDto yêu cầu { RefreshToken: string }
+  googleLogin(idToken: string): Observable<ApiResponse<AuthResponse>> {
+    return this.http
+      .post<
+        ApiResponse<AuthResponse>
+      >(`${API_BASE}/auth/google-login`, { idToken })
+      .pipe(
+        tap((res) => {
+          if (res.success) {
+            localStorage.setItem(TOKEN_KEY, res.data.accessToken);
+            localStorage.setItem(REFRESH_KEY, res.data.refreshToken);
+            this.currentUser.set(res.data.user);
+          }
+        }),
+      );
+  }
+
   logout(): void {
     const refreshToken = localStorage.getItem(REFRESH_KEY);
-    this.http
-      .post<ApiResponse<void>>(`${API_BASE}/auth/revoke`, { refreshToken })
-      .subscribe({ error: () => {} });
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_KEY);
     this.currentUser.set(null);
+
+    if (refreshToken) {
+      this.http
+        .post<ApiResponse<void>>(`${API_BASE}/auth/revoke`, { refreshToken })
+        .subscribe({ error: () => {} });
+    }
+
     this.router.navigate(['/auth/login']);
   }
 
   refreshToken(): Observable<ApiResponse<AuthResponse>> {
     const refreshToken = localStorage.getItem(REFRESH_KEY);
     return this.http
-      .post<ApiResponse<AuthResponse>>(`${API_BASE}/auth/refresh`, {
-        refreshToken,
-      })
+      .post<
+        ApiResponse<AuthResponse>
+      >(`${API_BASE}/auth/refresh`, { refreshToken })
       .pipe(
         tap((res) => {
           if (res.success) {
@@ -77,8 +94,19 @@ export class AuthService {
       );
   }
 
-  // đổi currentPassword → oldPassword để khớp BE ChangePasswordDto
-  // BE nhận: { OldPassword, NewPassword, ConfirmNewPassword }
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${API_BASE}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(dto: {
+    email: string;
+    token: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }): Observable<void> {
+    return this.http.post<void>(`${API_BASE}/auth/reset-password`, dto);
+  }
+
   changePassword(dto: {
     oldPassword: string;
     newPassword: string;
@@ -115,33 +143,5 @@ export class AuthService {
     } catch {
       return true;
     }
-  }
-  googleLogin(idToken: string): Observable<ApiResponse<AuthResponse>> {
-    return this.http
-      .post<
-        ApiResponse<AuthResponse>
-      >(`${API_BASE}/auth/google-login`, { idToken })
-      .pipe(
-        tap((res) => {
-          if (res.success) {
-            localStorage.setItem(TOKEN_KEY, res.data.accessToken);
-            localStorage.setItem(REFRESH_KEY, res.data.refreshToken);
-            this.currentUser.set(res.data.user);
-          }
-        }),
-      );
-  }
-
-  forgotPassword(email: string): Observable<void> {
-    return this.http.post<void>(`${API_BASE}/auth/forgot-password`, { email });
-  }
-
-  resetPassword(dto: {
-    email: string;
-    token: string;
-    newPassword: string;
-    confirmNewPassword: string;
-  }): Observable<void> {
-    return this.http.post<void>(`${API_BASE}/auth/reset-password`, dto);
   }
 }
