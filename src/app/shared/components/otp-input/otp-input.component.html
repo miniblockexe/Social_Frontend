@@ -1,0 +1,19 @@
+<div class="otp-wrap" role="group" aria-label="Mã OTP 6 chữ số">
+  @for (digit of digits(); track $index) {
+    <input
+      #otpBox
+      type="text"
+      inputmode="numeric"
+      maxlength="2"
+      class="otp-box"
+      [class.otp-box--filled]="!!digit"
+      [value]="digit"
+      autocomplete="one-time-code"
+      [attr.aria-label]="'Chữ số ' + ($index + 1)"
+      (input)="onInput($event, $index)"
+      (keydown)="onKeydown($event, $index)"
+      (paste)="onPaste($event, $index)"
+      (focus)="onFocus($index)"
+    />
+  }
+</div>

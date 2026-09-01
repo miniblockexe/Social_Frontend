@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -7,11 +7,12 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { OtpInputComponent } from '../../../shared/components/otp-input/otp-input.component';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, OtpInputComponent],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss',
 })
@@ -20,25 +21,20 @@ export class ResetPasswordComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
+  @ViewChild(OtpInputComponent) otpInput!: OtpInputComponent;
+
   private email = '';
   private verifyToken = '';
+  private otpValue = '';
 
   step = signal<1 | 2>(1);
   done = signal(false);
   isLoading = signal(false);
   error = signal<string | null>(null);
+  otpError = signal(false); // shake animation
   showPw = signal(false);
   showCPw = signal(false);
 
-  // Bước 1: chỉ OTP
-  readonly otpForm = this.fb.group({
-    token: [
-      '',
-      [Validators.required, Validators.minLength(6), Validators.maxLength(6)],
-    ],
-  });
-
-  // Bước 2: mật khẩu mới
   readonly pwForm = this.fb.group(
     {
       newPassword: [
@@ -68,13 +64,9 @@ export class ResetPasswordComponent implements OnInit {
     }
   }
 
-  otpFieldError(): string | null {
-    const c = this.otpForm.get('token');
-    if (!c || !c.touched || c.valid) return null;
-    if (c.hasError('required')) return 'Vui lòng nhập mã OTP.';
-    if (c.hasError('minlength') || c.hasError('maxlength'))
-      return 'OTP phải đủ 6 chữ số.';
-    return null;
+  onOtpChange(value: string): void {
+    this.otpValue = value;
+    if (this.otpError()) this.otpError.set(false);
   }
 
   pwFieldError(name: string): string | null {
@@ -93,15 +85,17 @@ export class ResetPasswordComponent implements OnInit {
     this.showCPw.update((v) => !v);
   }
 
-  // Bước 1: gọi API verify-otp — đúng mới sang bước 2
   onStep1(): void {
-    this.otpForm.markAllAsTouched();
-    if (this.otpForm.invalid || this.isLoading()) return;
+    if (this.otpValue.length < 6 || this.isLoading()) {
+      this.otpError.set(true);
+      this.error.set('Vui lòng nhập đủ 6 chữ số.');
+      return;
+    }
 
     this.error.set(null);
     this.isLoading.set(true);
 
-    this.auth.verifyOtp(this.email, this.otpForm.value.token!).subscribe({
+    this.auth.verifyOtp(this.email, this.otpValue).subscribe({
       next: (res) => {
         this.isLoading.set(false);
         this.verifyToken = res.data.verifyToken;
@@ -109,16 +103,15 @@ export class ResetPasswordComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.otpForm.reset();
+        this.otpError.set(true);
+        this.otpInput.reset();
         this.error.set(
           err?.error?.message ?? 'OTP không hợp lệ hoặc đã hết hạn.',
         );
-        // Ở lại bước 1 — không cho sang bước 2
       },
     });
   }
 
-  // Bước 2: đặt mật khẩu mới bằng verifyToken
   onStep2(): void {
     this.pwForm.markAllAsTouched();
     if (this.pwForm.invalid || this.isLoading()) return;
@@ -145,17 +138,11 @@ export class ResetPasswordComponent implements OnInit {
           this.isLoading.set(false);
           this.step.set(1);
           this.verifyToken = '';
-          this.otpForm.reset();
+          this.otpInput?.reset();
           this.error.set(
-            err?.error?.message ??
-              'Phiên đặt lại đã hết hạn. Vui lòng nhập OTP mới.',
+            err?.error?.message ?? 'Phiên đã hết hạn. Vui lòng nhập OTP mới.',
           );
         },
       });
-  }
-
-  goBack(): void {
-    this.error.set(null);
-    this.step.set(1);
   }
 }

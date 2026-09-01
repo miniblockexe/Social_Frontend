@@ -1,0 +1,70 @@
+.otp-wrap {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 8px 0;
+}
+
+.otp-box {
+  width: 48px;
+  height: 56px;
+  background: #0f0f10;
+  border: 1.5px solid #2a2a30;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  color: #e0e0e8;
+  caret-color: #e74c3c;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+  font-variant-numeric: tabular-nums;
+
+  // Ẩn spinner trên number input
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+
+  &:focus {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15);
+  }
+
+  &--filled {
+    border-color: #3a3a44;
+    color: #fff;
+  }
+
+  &.is-invalid {
+    border-color: #e74c3c;
+    animation: shake 0.3s ease;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@media (max-width: 400px) {
+  .otp-box {
+    width: 40px;
+    height: 48px;
+    font-size: 20px;
+    border-radius: 8px;
+  }
+  .otp-wrap {
+    gap: 7px;
+  }
+}
