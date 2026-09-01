@@ -1,6 +1,6 @@
 import { Component, signal, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -13,11 +13,11 @@ import { AuthService } from '../../../core/services/auth.service';
 export class ForgotPasswordComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   isLoading = signal(false);
-  sent = signal(false); // bước 2: nhập OTP
+  sent = signal(false);
   error = signal<string | null>(null);
-  successMsg = signal<string | null>(null);
 
   readonly form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -46,18 +46,18 @@ export class ForgotPasswordComponent {
       next: () => {
         this.isLoading.set(false);
         this.sent.set(true);
-        this.successMsg.set(
-          `Nếu email tồn tại, mã OTP đã được gửi đến ${this.emailCtrl.value}. Kiểm tra hộp thư đến (hoặc Spam).`,
-        );
       },
       error: () => {
         this.isLoading.set(false);
         // Luôn hiện thành công để tránh user enumeration
         this.sent.set(true);
-        this.successMsg.set(
-          `Nếu email tồn tại, mã OTP đã được gửi đến ${this.emailCtrl.value}. Kiểm tra hộp thư đến (hoặc Spam).`,
-        );
       },
+    });
+  }
+
+  goToReset(): void {
+    this.router.navigate(['/auth/reset-password'], {
+      state: { email: this.emailCtrl.value },
     });
   }
 }

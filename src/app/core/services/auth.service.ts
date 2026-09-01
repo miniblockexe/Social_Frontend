@@ -98,9 +98,19 @@ export class AuthService {
     return this.http.post<void>(`${API_BASE}/auth/forgot-password`, { email });
   }
 
+  verifyOtp(
+    email: string,
+    token: string,
+  ): Observable<ApiResponse<{ verifyToken: string }>> {
+    return this.http.post<ApiResponse<{ verifyToken: string }>>(
+      `${API_BASE}/auth/verify-otp`,
+      { email, token },
+    );
+  }
+
   resetPassword(dto: {
     email: string;
-    token: string;
+    verifyToken: string;
     newPassword: string;
     confirmNewPassword: string;
   }): Observable<void> {
