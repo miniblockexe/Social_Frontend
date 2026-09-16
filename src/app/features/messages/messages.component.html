@@ -479,6 +479,77 @@
         }
       </div>
 
+      <!-- AI typing indicator -->
+      @if (isAiTyping()) {
+        <div class="msg-ai-typing-wrap">
+          <div class="msg-ai-typing-bubble">
+            <i class="fa-solid fa-wand-magic-sparkles msg-ai-typing-icon" aria-hidden="true"></i>
+            <span class="msg-ai-typing-dots">
+              <span></span><span></span><span></span>
+            </span>
+          </div>
+        </div>
+      }
+
+      <!-- AI mode active banner -->
+      @if (isAiMode()) {
+        <div class="msg-ai-banner" role="status">
+          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+          <span>Chế độ AI đang bật — mọi tin nhắn sẽ được gửi tới AI</span>
+          <button class="msg-ai-banner-close" (click)="toggleAiMode()" aria-label="Tắt chế độ AI">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+      }
+
+      <!-- GIF Picker panel (position: fixed, không bị clip bởi overflow: hidden) -->
+      @if (showGifPicker()) {
+        <div class="msg-gif-picker" role="dialog" aria-label="Chọn GIF">
+          <div class="msg-gif-search-wrap">
+            <i class="fa-solid fa-magnifying-glass msg-gif-search-icon" aria-hidden="true"></i>
+            <input
+              class="msg-gif-search-input"
+              type="text"
+              placeholder="Tìm GIF…"
+              [(ngModel)]="gifQuery"
+              (ngModelChange)="onGifQueryInput()"
+              aria-label="Tìm GIF"
+              autofocus
+            />
+          </div>
+
+          @if (isLoadingGifs()) {
+            <div class="msg-gif-loading">
+              <span class="msg-spinner" aria-hidden="true"></span>
+            </div>
+          } @else if (gifResults().length === 0) {
+            <div class="msg-gif-empty">
+              <i class="fa-regular fa-face-sad-tear" aria-hidden="true"></i>
+              <span>Không tìm thấy GIF</span>
+            </div>
+          } @else {
+            <div class="msg-gif-grid" role="list">
+              @for (gif of gifResults(); track gif.id) {
+                <button
+                  class="msg-gif-item"
+                  (click)="sendGif(gif)"
+                  role="listitem"
+                  [attr.aria-label]="gif.title || 'Gửi GIF'"
+                  [title]="gif.title"
+                >
+                  <img
+                    [src]="gif.previewUrl ?? gif.tinyGifUrl ?? ''"
+                    [alt]="gif.title"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+
       <!-- Input bar -->
       <div class="msg-input-bar">
         <!-- Attach image -->
@@ -490,13 +561,27 @@
           <i class="fa-solid fa-image" aria-hidden="true"></i>
         </button>
 
-        <!-- Emoji -->
+        <!-- GIF -->
         <button
           class="msg-tool-btn"
-          (click)="toggleEmoji()"
-          aria-label="Thêm emoji"
+          [class.msg-tool-btn--active]="showGifPicker()"
+          (click)="toggleGifPicker()"
+          aria-label="Gửi GIF"
+          [attr.aria-expanded]="showGifPicker()"
         >
-          <i class="fa-regular fa-face-smile" aria-hidden="true"></i>
+          <i class="fa-solid fa-film" aria-hidden="true"></i>
+        </button>
+
+        <!-- AI mode toggle -->
+        <button
+          class="msg-tool-btn"
+          [class.msg-tool-btn--ai]="isAiMode()"
+          (click)="toggleAiMode()"
+          aria-label="Bật/tắt chế độ AI"
+          [attr.aria-pressed]="isAiMode()"
+          title="Gõ /ai để bật nhanh"
+        >
+          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
         </button>
 
         <!-- Text input -->
@@ -504,8 +589,9 @@
           <input
             type="text"
             class="msg-text-input"
-            placeholder="Aa"
-            aria-label="Nhập tin nhắn"
+            [class.msg-text-input--ai]="isAiMode()"
+            [placeholder]="isAiMode() ? 'Hỏi AI gì đó…' : 'Aa'"
+            [attr.aria-label]="isAiMode() ? 'Nhập câu hỏi cho AI' : 'Nhập tin nhắn'"
             [(ngModel)]="messageText"
             (keyup.enter)="sendMessage()"
             (input)="onTyping()"
@@ -515,12 +601,15 @@
         <!-- Send button -->
         <button
           class="msg-send-btn"
+          [class.msg-send-btn--ai]="isAiMode()"
           (click)="sendMessage()"
-          [disabled]="!messageText.trim() || isSending()"
+          [disabled]="!messageText.trim() || isSending() || isAiTyping()"
           aria-label="Gửi tin nhắn"
         >
-          @if (isSending()) {
+          @if (isSending() || isAiTyping()) {
             <span class="msg-spinner" aria-hidden="true"></span>
+          } @else if (isAiMode()) {
+            <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
           } @else {
             <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
           }

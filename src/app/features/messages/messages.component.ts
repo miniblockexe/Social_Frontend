@@ -21,6 +21,7 @@ import { ChatHubService } from '../../core/services/chat-hub.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { GifService } from '../../core/services/gif.service';
+import { AiService } from '../../core/services/ai.service';
 import { ToastService } from '../../core/services/toast.service';
 import {
   Conversation,
@@ -29,6 +30,7 @@ import {
 } from '../../core/models/message.models';
 import { UserSearchResult } from '../../core/models/user.models';
 import { GifItem } from '../../core/models/gif.models';
+import { GeminiMessage } from '../../core/models/ai.models';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
@@ -109,6 +111,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly gifService = inject(GifService);
+  private readonly aiService = inject(AiService);
   private readonly toastService = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -143,6 +146,17 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   messageText = '';
 
   typingTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // GIF picker
+  showGifPicker = signal(false);
+  gifResults = signal<GifItem[]>([]);
+  isLoadingGifs = signal(false);
+  gifQuery = '';
+  private gifSearchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // AI mode
+  isAiMode = signal(false);
+  isAiTyping = signal(false);
 
   currentUser = computed(() => this.authService.currentUser());
   currentUserId = computed(() => this.currentUser()?.id ?? '');
@@ -203,6 +217,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.typingTimeout) clearTimeout(this.typingTimeout);
     if (this.newConvSearchTimeout) clearTimeout(this.newConvSearchTimeout);
+    if (this.gifSearchTimeout) clearTimeout(this.gifSearchTimeout);
     this.chatHubService.setActiveConversation(null);
   }
 
@@ -408,6 +423,28 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
     const text = this.messageText.trim();
     if (!text || !this.activeConversation()) return;
 
+    // /ai — toggle AI mode
+    if (text === '/ai') {
+      this.messageText = '';
+      this.toggleAiMode();
+      return;
+    }
+
+    // /ai <message> — gửi thẳng tới AI, không cần bật mode
+    const aiDirectMatch = text.match(/^\/ai\s+([\s\S]+)/);
+    if (aiDirectMatch) {
+      this.messageText = '';
+      this.sendAiMessage(aiDirectMatch[1].trim());
+      return;
+    }
+
+    // AI mode đang bật → mọi tin nhắn đều vào AI
+    if (this.isAiMode()) {
+      this.messageText = '';
+      this.sendAiMessage(text);
+      return;
+    }
+
     const convId = this.activeConversation()!.id;
     const me = this.currentUser();
 
@@ -488,6 +525,184 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleEmoji(): void {
     this.toastService.info('Tính năng emoji đang phát triển');
+  }
+
+  toggleGifPicker(): void {
+    const next = !this.showGifPicker();
+    this.showGifPicker.set(next);
+    if (next && this.gifResults().length === 0) {
+      this.loadTrendingGifs();
+    }
+  }
+
+  onGifQueryInput(): void {
+    if (this.gifSearchTimeout) clearTimeout(this.gifSearchTimeout);
+    const q = this.gifQuery.trim();
+    if (!q) {
+      this.loadTrendingGifs();
+      return;
+    }
+    this.gifSearchTimeout = setTimeout(() => {
+      this.isLoadingGifs.set(true);
+      this.gifService.searchGifs(q, 20).subscribe({
+        next: (res) => {
+          if (res.success) this.gifResults.set(res.data.results);
+        },
+        error: () => this.isLoadingGifs.set(false),
+        complete: () => this.isLoadingGifs.set(false),
+      });
+    }, 400);
+  }
+
+  sendGif(gif: GifItem): void {
+    const convId = this.activeConversation()?.id;
+    if (!convId || this.isSendingFile()) return;
+    const url = gif.mediumGifUrl ?? gif.gifUrl ?? gif.tinyGifUrl;
+    if (!url) return;
+
+    this.showGifPicker.set(false);
+    this.isSendingFile.set(true);
+    this.messageService.sendMessage(convId, '', undefined, url).subscribe({
+      next: (res) => {
+        if (res.success) {
+          // Không tự upsert — SignalR ReceiveMessage tự dedup
+          this.chatHubService.notifyMessageSent(res.data!);
+          setTimeout(() => this.scrollToBottom(), 60);
+        }
+      },
+      error: () => this.toastService.error('Không thể gửi GIF'),
+      complete: () => this.isSendingFile.set(false),
+    });
+  }
+
+  private loadTrendingGifs(): void {
+    this.isLoadingGifs.set(true);
+    this.gifService.getTrendingGifs(20).subscribe({
+      next: (res) => {
+        if (res.success) this.gifResults.set(res.data.results);
+      },
+      error: () => this.isLoadingGifs.set(false),
+      complete: () => this.isLoadingGifs.set(false),
+    });
+  }
+
+  toggleAiMode(): void {
+    const next = !this.isAiMode();
+    this.isAiMode.set(next);
+    if (next) {
+      this.showGifPicker.set(false);
+    }
+  }
+
+  sendAiMessage(text: string): void {
+    const conv = this.activeConversation();
+    if (!conv || !text.trim()) return;
+    const me = this.currentUser();
+
+    // Optimistic: thêm user message ngay
+    const tempId = `ai-user-${Date.now()}`;
+    if (me) {
+      const tempMsg: Message = {
+        id: tempId,
+        conversationId: conv.id,
+        content: text,
+        isAI: false,
+        attachmentUrl: null,
+        attachmentType: null,
+        createdAt: new Date().toISOString(),
+        isDeleted: false,
+        sender: {
+          id: me.id,
+          username: me.username,
+          fullName: me.fullName,
+          avatarUrl: me.avatarUrl,
+          role: me.role,
+        },
+        seenByUserIds: [me.id.toLowerCase()],
+      };
+      this.rawMessages.update((list) => [...list, tempMsg]);
+    }
+    this.isAiTyping.set(true);
+    setTimeout(() => this.scrollToBottom(), 60);
+
+    // Xây history từ rawMessages (bỏ temp, lấy tối đa 20 message cuối)
+    const history: GeminiMessage[] = this.rawMessages()
+      .filter(
+        (m) =>
+          !m.isDeleted &&
+          !m.id.startsWith('temp-') &&
+          !m.id.startsWith('ai-user-') &&
+          m.content,
+      )
+      .slice(-20)
+      .map((m) => ({
+        role: (m.isAI ? 'model' : 'user') as 'user' | 'model',
+        content: m.content!,
+      }));
+
+    this.aiService
+      .chat({ conversationId: conv.id, history, newMessage: text })
+      .subscribe({
+        next: (res) => {
+          if (!res.success) return;
+          const aiMsg: Message = {
+            id: res.data.aiMessageId,
+            conversationId: conv.id,
+            content: res.data.content,
+            isAI: true,
+            attachmentUrl: null,
+            attachmentType: null,
+            createdAt: new Date().toISOString(),
+            isDeleted: false,
+            sender: {
+              id: '00000000-0000-0000-0000-000000000001',
+              username: 'AI',
+              fullName: 'AI',
+              avatarUrl: null,
+              role: me?.role ?? 0,
+            },
+            seenByUserIds: [],
+          };
+          this.rawMessages.update((list) => {
+            const withoutTemp = list.filter((m) => m.id !== tempId);
+            const existingIds = new Set(withoutTemp.map((m) => m.id));
+
+            const confirmedUser: Message = {
+              id: res.data.userMessageId,
+              conversationId: conv.id,
+              content: text,
+              isAI: false,
+              attachmentUrl: null,
+              attachmentType: null,
+              createdAt: new Date().toISOString(),
+              isDeleted: false,
+              sender: me
+                ? {
+                    id: me.id,
+                    username: me.username,
+                    fullName: me.fullName,
+                    avatarUrl: me.avatarUrl,
+                    role: me.role,
+                  }
+                : withoutTemp[withoutTemp.length - 1]?.sender,
+              seenByUserIds: me ? [me.id.toLowerCase()] : [],
+            };
+
+            const toAdd: Message[] = [];
+            if (!existingIds.has(confirmedUser.id)) toAdd.push(confirmedUser);
+            if (!existingIds.has(aiMsg.id)) toAdd.push(aiMsg);
+
+            return [...withoutTemp, ...toAdd];
+          });
+          this.chatHubService.upsertMessages(conv.id, this.rawMessages());
+          setTimeout(() => this.scrollToBottom(), 60);
+        },
+        error: () => {
+          this.rawMessages.update((list) => list.filter((m) => m.id !== tempId));
+          this.toastService.error('AI không thể trả lời lúc này');
+        },
+        complete: () => this.isAiTyping.set(false),
+      });
   }
 
   getConversationName(conv: Conversation): string {

@@ -46,11 +46,15 @@ export class MessageService {
     conversationId: string,
     content: string,
     attachment?: File,
+    gifUrl?: string,
   ): Observable<ApiResponse<Message>> {
     const form = new FormData();
     form.append('content', content);
     if (attachment) {
       form.append('attachment', attachment);
+    }
+    if (gifUrl) {
+      form.append('gifUrl', gifUrl);
     }
     return this.http.post<ApiResponse<Message>>(
       `${API_BASE}/conversations/${conversationId}/messages`,
