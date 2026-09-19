@@ -117,6 +117,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly elRef = inject(ElementRef<HTMLElement>);
+  private convSearchQuery = signal('');
   readonly webRtcService = inject(WebRtcService) as WebRtcService;
 
   @ViewChild('messagesArea') messagesAreaRef?: ElementRef<HTMLElement>;
@@ -162,7 +163,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
   currentUserId = computed(() => this.currentUser()?.id ?? '');
 
   filteredConversations = computed(() => {
-    const q = this.searchQuery.toLowerCase();
+    const q = this.convSearchQuery().toLowerCase();
     if (!q) return this.conversations();
     return this.conversations().filter((c) =>
       this.getConversationName(c).toLowerCase().includes(q),
@@ -300,6 +301,10 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (res) => this.conversations.set(res.data.items),
       complete: () => this.isLoadingConversations.set(false),
     });
+  }
+
+  onConvSearchChange(val: string): void {
+    this.convSearchQuery.set(val);
   }
 
   openConversation(conversationId: string): void {
@@ -698,7 +703,9 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
           setTimeout(() => this.scrollToBottom(), 60);
         },
         error: () => {
-          this.rawMessages.update((list) => list.filter((m) => m.id !== tempId));
+          this.rawMessages.update((list) =>
+            list.filter((m) => m.id !== tempId),
+          );
           this.toastService.error('AI không thể trả lời lúc này');
         },
         complete: () => this.isAiTyping.set(false),

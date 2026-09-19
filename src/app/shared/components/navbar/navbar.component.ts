@@ -9,19 +9,22 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject, forkJoin, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationHubService } from '../../../core/services/notification-hub.service';
 import { ChatHubService } from '../../../core/services/chat-hub.service';
 import { MessageService } from '../../../core/services/message.service';
 import { UserService } from '../../../core/services/user.service';
+import { PostService } from '../../../core/services/post.service';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
 import { TruncatePipe } from '../../pipes/truncate.pipe';
 import { Conversation } from '../../../core/models/message.models';
+import { UserSearchResult } from '../../../core/models/user.models';
+import { Post, MediaType } from '../../../core/models/post.models';
 
 @Component({
   selector: 'app-navbar',
@@ -44,7 +47,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
   readonly chatHubService = inject(ChatHubService);
   private readonly messageService = inject(MessageService);
   private readonly userService = inject(UserService);
+  private readonly postService = inject(PostService);
   private readonly router = inject(Router);
+
+  readonly MediaType = MediaType;
 
   currentUser = computed(() => this.authService.currentUser());
   isAdmin = computed(() => this.authService.isAdmin());
@@ -115,10 +121,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   showMenu = signal(false);
   showMessenger = signal(false);
-  isDark = signal(false);
   searchQuery = '';
 
+  // ── Search dropdown ──────────────────────────────────────────
+  showSearchDropdown = signal(false);
+  searchResultUsers = signal<UserSearchResult[]>([]);
+  searchResultPosts = signal<Post[]>([]);
+  isSearching = signal(false);
+  private searchSubject = new Subject<string>();
+
   private convSub?: Subscription;
+  private searchSub?: Subscription;
 
   constructor() {
     effect(() => {
@@ -134,17 +147,45 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.isDark.set(localStorage.getItem('theme') === 'dark');
+    // Giữ dark mode mặc định luôn bật
+    document.body.setAttribute('data-bs-theme', 'dark');
 
     this.notificationHubService.startConnection();
     this.notificationHubService.loadInitialCount();
     this.chatHubService.startConnection();
 
     this.loadConversations();
+
+    // Search debounce pipeline
+    this.searchSub = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((q) => {
+        if (q.length < 2) {
+          this.searchResultUsers.set([]);
+          this.searchResultPosts.set([]);
+          this.showSearchDropdown.set(false);
+          this.isSearching.set(false);
+          return of(null);
+        }
+        this.isSearching.set(true);
+        return forkJoin({
+          users: this.userService.searchUsers(q, 1, 4).pipe(catchError(() => of(null))),
+          posts: this.postService.searchPosts(q, 'all', 1, 3).pipe(catchError(() => of(null))),
+        });
+      }),
+    ).subscribe((res) => {
+      if (!res) return;
+      this.searchResultUsers.set(res.users?.data?.items ?? []);
+      this.searchResultPosts.set(res.posts?.data?.items ?? []);
+      this.showSearchDropdown.set(true);
+      this.isSearching.set(false);
+    });
   }
 
   ngOnDestroy(): void {
     this.convSub?.unsubscribe();
+    this.searchSub?.unsubscribe();
   }
 
   loadConversations(): void {
@@ -232,19 +273,42 @@ export class NavbarComponent implements OnInit, OnDestroy {
   onDocumentClick(): void {
     this.showMenu.set(false);
     this.showMessenger.set(false);
+    this.showSearchDropdown.set(false);
   }
 
-  toggleDarkMode(): void {
-    this.isDark.update((v) => !v);
-    const theme = this.isDark() ? 'dark' : 'light';
-    localStorage.setItem('theme', theme);
-    document.body.setAttribute('data-bs-theme', theme);
+  // ── Search handlers ──────────────────────────────────────────
+  onSearchInput(): void {
+    this.searchSubject.next(this.searchQuery);
+  }
+
+  onSearchFocus(): void {
+    if (this.searchQuery.length >= 2) {
+      this.showSearchDropdown.set(true);
+    }
+  }
+
+  closeSearchDropdown(): void {
+    this.showSearchDropdown.set(false);
+  }
+
+  goToSearchPage(tab?: string): void {
+    const q = this.searchQuery.trim();
+    if (!q) return;
+    this.closeSearchDropdown();
+    this.router.navigate(['/search'], {
+      queryParams: { q, tab: tab ?? 'all' },
+    });
   }
 
   onSearch(): void {
-    const q = this.searchQuery.trim();
-    if (!q) return;
-    this.router.navigate(['/home'], { queryParams: { q } });
+    this.goToSearchPage();
+  }
+
+  getPostPreviewIcon(post: Post): string {
+    const types = post.mediaFiles.map((m) => m.mediaType);
+    if (types.includes(MediaType.Video)) return 'fa-solid fa-video';
+    if (types.includes(MediaType.Image)) return 'fa-solid fa-image';
+    return 'fa-solid fa-file-lines';
   }
 
   onLogout(): void {

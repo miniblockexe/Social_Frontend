@@ -39,7 +39,6 @@
           <i class="fa-solid fa-image" aria-hidden="true"></i>
           <span>Ảnh / Video</span>
         </button>
-        <div class="cp-quick-divider" aria-hidden="true"></div>
         <button
           class="cp-quick-btn cp-quick-btn--mood"
           (click)="openWithMood()"
@@ -47,15 +46,6 @@
         >
           <i class="fa-regular fa-face-smile" aria-hidden="true"></i>
           <span>Cảm xúc</span>
-        </button>
-        <div class="cp-quick-divider" aria-hidden="true"></div>
-        <button
-          class="cp-quick-btn cp-quick-btn--live"
-          (click)="openWithLive()"
-          aria-label="Livestream"
-        >
-          <i class="fa-solid fa-circle-dot" aria-hidden="true"></i>
-          <span>Trực tiếp</span>
         </button>
       </div>
     </div>
@@ -201,8 +191,8 @@
               ? currentUser()!.fullName + ' ơi, bạn đang nghĩ gì vậy?'
               : 'Bạn đang nghĩ gì vậy?'
           "
-          [(ngModel)]="content"
-          (input)="onContentInput()"
+          [ngModel]="content()"
+          (input)="onContentInput($event)"
           rows="4"
           aria-label="Nội dung bài viết"
           maxlength="5000"
@@ -210,13 +200,13 @@
         ></textarea>
 
         <!-- Char count -->
-        @if (content.length > 4000) {
+        @if (content().length > 4000) {
           <div
             class="cp-char-count"
-            [class.cp-char-count--warn]="content.length > 4700"
-            [class.cp-char-count--crit]="content.length > 4900"
+            [class.cp-char-count--warn]="content().length > 4700"
+            [class.cp-char-count--crit]="content().length > 4900"
             role="status"
-            [attr.aria-label]="5000 - content.length + ' ký tự còn lại'"
+            [attr.aria-label]="5000 - content().length + ' ký tự còn lại'"
           >
             <svg class="cp-char-ring" viewBox="0 0 36 36" aria-hidden="true">
               <circle class="cp-char-ring-bg" cx="18" cy="18" r="15.9" />
@@ -226,16 +216,26 @@
                 cy="18"
                 r="15.9"
                 [style.stroke-dasharray]="charDashArray()"
-                [class.cp-char-ring-fill--warn]="content.length > 4700"
-                [class.cp-char-ring-fill--crit]="content.length > 4900"
+                [class.cp-char-ring-fill--warn]="content().length > 4700"
+                [class.cp-char-ring-fill--crit]="content().length > 4900"
               />
             </svg>
-            @if (content.length > 4700) {
-              <span class="cp-char-number">{{ 5000 - content.length }}</span>
+            @if (content().length > 4700) {
+              <span class="cp-char-number">{{ 5000 - content().length }}</span>
             }
           </div>
         }
       </div>
+
+      <!-- Feeling badge -->
+      @if (selectedFeeling()) {
+        <div class="cp-feeling-badge">
+          <span>{{ selectedFeeling()!.emoji }} đang cảm thấy <strong>{{ selectedFeeling()!.label }}</strong></span>
+          <button class="cp-feeling-badge-remove" (click)="clearFeeling()" aria-label="Bỏ cảm xúc">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      }
 
       <!-- Media preview -->
       @if (previewFiles().length > 0) {
@@ -302,6 +302,7 @@
       <div class="cp-add-to-post">
         <span class="cp-add-to-post-label">Thêm vào bài viết</span>
         <div class="cp-toolbar" role="toolbar" aria-label="Công cụ đính kèm">
+          <!-- Ảnh / Video -->
           <button
             class="cp-tool-btn cp-tool-btn--media"
             (click)="triggerFileInput()"
@@ -310,22 +311,8 @@
           >
             <i class="fa-solid fa-image" aria-hidden="true"></i>
           </button>
-          <button
-            class="cp-tool-btn cp-tool-btn--emoji"
-            (click)="toggleEmoji()"
-            aria-label="Thêm biểu tượng cảm xúc"
-            title="Emoji"
-          >
-            <i class="fa-regular fa-face-smile" aria-hidden="true"></i>
-          </button>
-          <button
-            class="cp-tool-btn cp-tool-btn--location"
-            (click)="toggleLocation()"
-            aria-label="Thêm vị trí"
-            title="Vị trí"
-          >
-            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-          </button>
+
+          <!-- Gắn thẻ bạn bè -->
           <button
             class="cp-tool-btn cp-tool-btn--tag"
             (click)="toggleTagFriends()"
@@ -334,13 +321,46 @@
           >
             <i class="fa-solid fa-user-tag" aria-hidden="true"></i>
           </button>
-          <button
-            class="cp-tool-btn cp-tool-btn--more"
-            aria-label="Thêm tùy chọn khác"
-            title="Thêm"
-          >
-            <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
-          </button>
+
+          <!-- Cảm xúc -->
+          <div class="cp-feeling-wrap" style="position:relative">
+            <button
+              class="cp-tool-btn cp-tool-btn--feeling"
+              [class.cp-tool-btn--feeling-active]="selectedFeeling()"
+              (click)="toggleFeelingPicker()"
+              aria-label="Thêm cảm xúc"
+              title="Cảm xúc"
+            >
+              @if (selectedFeeling()) {
+                <span>{{ selectedFeeling()!.emoji }}</span>
+              } @else {
+                <i class="fa-regular fa-face-smile" aria-hidden="true"></i>
+              }
+            </button>
+
+            @if (showFeelingPicker()) {
+              <div class="cp-feeling-picker">
+                <p class="cp-feeling-title">Bạn đang cảm thấy thế nào?</p>
+                <div class="cp-feeling-grid">
+                  @for (f of feelings; track f.label) {
+                    <button
+                      class="cp-feeling-item"
+                      [class.cp-feeling-item--active]="selectedFeeling()?.label === f.label"
+                      (click)="selectFeeling(f)"
+                    >
+                      <span class="cp-feeling-emoji">{{ f.emoji }}</span>
+                      <span class="cp-feeling-label">{{ f.label }}</span>
+                    </button>
+                  }
+                </div>
+                @if (selectedFeeling()) {
+                  <button class="cp-feeling-clear" (click)="clearFeeling()">
+                    <i class="fa-solid fa-xmark"></i> Bỏ cảm xúc
+                  </button>
+                }
+              </div>
+            }
+          </div>
         </div>
       </div>
 

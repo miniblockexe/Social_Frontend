@@ -137,4 +137,16 @@ export class PostService {
       form,
     );
   }
+
+  searchPosts(
+    keyword: string,
+    type: 'all' | 'image' | 'video' = 'all',
+    page = 1,
+    size = 10,
+  ): Observable<ApiResponse<PagedResult<Post>>> {
+    return this.http.get<ApiResponse<PagedResult<Post>>>(
+      `${API_BASE}/posts/search`,
+      { params: { q: keyword, type, page, size } },
+    );
+  }
 }

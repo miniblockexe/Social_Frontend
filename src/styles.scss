@@ -878,3 +878,40 @@ a.app-link {
 .msg-text {
   white-space: pre-wrap;
 }
+
+// ─── Appearance Settings ───────────────────────────────────────────────────────
+
+// Tắt tất cả animation/transition khi sp-no-animations được bật
+body.sp-no-animations,
+body.sp-no-animations * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+}
+
+// Compact mode — giảm spacing giữa các bài đăng và section
+body.sp-compact {
+  // Feed posts gần nhau hơn
+  .sp-post-card + .sp-post-card,
+  app-post-card + app-post-card {
+    margin-top: 6px !important;
+  }
+
+  // Post card padding nhỏ hơn
+  .sp-post-card,
+  .sp-card {
+    padding: 12px 14px !important;
+  }
+
+  // Comment padding nhỏ hơn
+  .sp-comment-item {
+    padding: 6px 0 !important;
+  }
+
+  // Khoảng cách giữa các section trong feed
+  .sp-feed-section,
+  .feed-section {
+    gap: 6px !important;
+  }
+}

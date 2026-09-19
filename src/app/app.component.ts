@@ -11,6 +11,7 @@ import { UserService } from './core/services/user.service';
 import { CallOverlayComponent } from './shared/components/call-overlay/call-overlay.component';
 import { SwUpdateService } from './core/services/sw-update.service';
 import { UpdateBannerComponent } from './shared/components/update-banner/update-banner.component';
+import { AppearanceService } from './core/services/appearance.service';
 
 const NO_NAVBAR_ROUTES = [
   '/',
@@ -47,6 +48,7 @@ export class AppComponent {
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly swUpdateService = inject(SwUpdateService);
+  private readonly appearanceService = inject(AppearanceService);
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -62,6 +64,7 @@ export class AppComponent {
   });
 
   constructor() {
+    this.appearanceService.init();
     this.swUpdateService.init();
 
     effect(

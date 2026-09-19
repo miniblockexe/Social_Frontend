@@ -456,3 +456,130 @@
     background: var(--sp-bg-hover);
   }
 }
+
+// ─── Search Dropdown ─────────────────────────────────────────────────────────
+.sp-search-spinner {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sp-text-3);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.sp-search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 340px;
+  background: var(--sp-bg-card);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-lg);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.28),
+    0 2px 8px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  overflow: hidden;
+
+  @media (max-width: 575px) {
+    width: 300px;
+    left: -40px;
+  }
+}
+
+.sp-sd-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  color: var(--sp-text-3);
+  font-size: 14px;
+}
+
+.sp-sd-section-label {
+  padding: 10px 14px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sp-text-3);
+}
+
+.sp-sd-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  text-decoration: none;
+  color: var(--sp-text-1);
+  transition: background 0.12s;
+  cursor: pointer;
+
+  &:hover { background: var(--sp-bg-hover); }
+}
+
+.sp-sd-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.sp-sd-item__name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--sp-text-1);
+}
+
+.sp-sd-item__sub {
+  font-size: 12px;
+  color: var(--sp-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-sd-post-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--sp-r-md);
+  background: var(--sp-bg-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sp-text-3);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.sp-sd-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 14px;
+  color: var(--sp-text-3);
+  font-size: 13px;
+
+  i { font-size: 14px; opacity: 0.6; }
+  strong { color: var(--sp-text-1); }
+}
+
+.sp-sd-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--sp-border);
+  color: var(--sp-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover { background: var(--sp-bg-hover); }
+  i { font-size: 12px; }
+}

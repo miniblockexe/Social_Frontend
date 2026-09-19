@@ -25,6 +25,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { WebRtcService } from '../../core/services/webrtc.service';
 import { RingtoneEditorComponent } from './ringtone-editor/ringtone-editor.component';
 import { PrivacySettings, PrivacyVisibility } from '../../core/models/user.models';
+import { AppearanceService, AppearanceSettings } from '../../core/services/appearance.service';
 
 export type SettingsSection =
 | 'profile'
@@ -121,6 +122,7 @@ private readonly userService = inject(UserService);
 private readonly toast = inject(ToastService);
 private readonly router = inject(Router);
 private readonly webRtcService = inject(WebRtcService);
+private readonly appearanceService = inject(AppearanceService);
 
 currentUser = this.auth.currentUser;
 activeSection = signal<SettingsSection>('profile');
@@ -262,16 +264,15 @@ mentions: true,
 messages: true,
 };
 
-appearanceSettings = {
-language: 'vi',
-animations: true,
-compact: false,
-};
+// Load từ AppearanceService (đã đọc từ localStorage)
+appearanceSettings: AppearanceSettings = { ...this.appearanceService.settings() };
 
 profileForm!: FormGroup;
 passwordForm!: FormGroup;
 
 ngOnInit(): void {
+// Sync lại từ service mỗi lần vào trang (phòng trường hợp service đã cập nhật)
+this.appearanceSettings = { ...this.appearanceService.settings() };
 this.prefersReducedMotion = window.matchMedia(
 '(prefers-reduced-motion: reduce)',
 ).matches;
@@ -691,8 +692,10 @@ this.toast.show('Đã cập nhật cài đặt thông báo', 'success');
 saveAppearance(): void {
 this.appearanceSaving.set(true);
 setTimeout(() => {
-this.appearanceSaving.set(false);
-this.toast.show('Đã cập nhật giao diện', 'success');
+  // Lưu vào localStorage và áp dụng ngay lên DOM
+  this.appearanceService.save({ ...this.appearanceSettings });
+  this.appearanceSaving.set(false);
+  this.toast.show('Đã cập nhật giao diện', 'success');
 }, 700);
 }
 

@@ -55,11 +55,24 @@ export class CreatePostComponent implements AfterViewInit, OnDestroy {
   postCreated = output<Post>();
 
   isOpen = signal(false);
-  content = '';
+  content = signal('');
   privacy = signal<PostPrivacy>(PostPrivacy.Public);
   previewFiles = signal<PreviewFile[]>([]);
   isSubmitting = signal(false);
   showPrivacyMenu = signal(false);
+  showFeelingPicker = signal(false);
+  selectedFeeling = signal<{ emoji: string; label: string } | null>(null);
+
+  readonly feelings = [
+    { emoji: '😊', label: 'Vui vẻ' },
+    { emoji: '😢', label: 'Buồn' },
+    { emoji: '❤️', label: 'Yêu' },
+    { emoji: '😡', label: 'Tức giận' },
+    { emoji: '😲', label: 'Ngạc nhiên' },
+    { emoji: '😴', label: 'Mệt mỏi' },
+    { emoji: '🥳', label: 'Phấn khích' },
+    { emoji: '😌', label: 'Bình yên' },
+  ];
 
   currentUser = this.authService.currentUser;
 
@@ -70,7 +83,9 @@ export class CreatePostComponent implements AfterViewInit, OnDestroy {
 
   canSubmit = computed(
     () =>
-      (this.content.trim().length > 0 || this.previewFiles().length > 0) &&
+      (this.content().trim().length > 0 ||
+        this.previewFiles().length > 0 ||
+        this.selectedFeeling() !== null) &&
       !this.isSubmitting(),
   );
 
@@ -98,7 +113,7 @@ export class CreatePostComponent implements AfterViewInit, OnDestroy {
 
   /** SVG stroke-dasharray cho char ring */
   charDashArray = computed(() => {
-    const ratio = Math.min(this.content.length / 5000, 1);
+    const ratio = Math.min(this.content().length / 5000, 1);
     const filled = CIRCUMFERENCE * ratio;
     return `${filled} ${CIRCUMFERENCE}`;
   });
@@ -135,7 +150,7 @@ export class CreatePostComponent implements AfterViewInit, OnDestroy {
 
   openWithMood(): void {
     this.isOpen.set(true);
-    this.animateFormIn(() => setTimeout(() => this.toggleEmoji(), 50));
+    this.animateFormIn(() => setTimeout(() => this.toggleFeelingPicker(), 50));
   }
 
   openWithLive(): void {
@@ -208,13 +223,12 @@ export class CreatePostComponent implements AfterViewInit, OnDestroy {
     this.showPrivacyMenu.set(false);
   }
 
-  onContentInput(): void {
+  onContentInput(event: Event): void {
+    const el = event.target as HTMLTextAreaElement;
+    this.content.set(el.value);
     // Auto-resize textarea
-    const el = this.textareaRef?.nativeElement;
-    if (el) {
-      el.style.height = 'auto';
-      el.style.height = Math.min(el.scrollHeight, 260) + 'px';
-    }
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 260) + 'px';
   }
 
   triggerFileInput(): void {
@@ -285,16 +299,30 @@ export class CreatePostComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  toggleEmoji(): void {
-    this.toastService.info('Tính năng emoji đang phát triển');
+  toggleFeelingPicker(): void {
+    this.showFeelingPicker.update(v => !v);
+  }
+
+  selectFeeling(f: { emoji: string; label: string }): void {
+    this.selectedFeeling.set(f);
+    this.showFeelingPicker.set(false);
+  }
+
+  clearFeeling(): void {
+    this.selectedFeeling.set(null);
+    this.showFeelingPicker.set(false);
+  }
+
+  toggleTagFriends(): void {
+    this.toastService.info('Tính năng gắn thẻ bạn bè đang phát triển');
   }
 
   toggleLocation(): void {
     this.toastService.info('Tính năng vị trí đang phát triển');
   }
 
-  toggleTagFriends(): void {
-    this.toastService.info('Tính năng gắn thẻ bạn bè đang phát triển');
+  toggleEmoji(): void {
+    this.toggleFeelingPicker();
   }
 
   onSubmit(): void {
@@ -302,8 +330,12 @@ export class CreatePostComponent implements AfterViewInit, OnDestroy {
     this.isSubmitting.set(true);
 
     const files = this.previewFiles().map((p) => p.file);
+    const feeling = this.selectedFeeling();
+    const fullContent = feeling
+      ? `${feeling.emoji} đang cảm thấy ${feeling.label}${this.content().trim() ? '\n\n' + this.content() : ''}`
+      : this.content();
 
-    this.postService.createPost(this.content, this.privacy(), files).subscribe({
+    this.postService.createPost(fullContent, this.privacy(), files).subscribe({
       next: (res) => {
         this.isSubmitting.set(false);
         this.postCreated.emit(res.data);
@@ -318,8 +350,9 @@ export class CreatePostComponent implements AfterViewInit, OnDestroy {
   }
 
   resetForm(): void {
-    this.content = '';
+    this.content.set('');
     this.privacy.set(PostPrivacy.Public);
+    this.selectedFeeling.set(null);
     this.previewFiles().forEach((p) => URL.revokeObjectURL(p.url));
     this.previewFiles.set([]);
     this.showPrivacyMenu.set(false);

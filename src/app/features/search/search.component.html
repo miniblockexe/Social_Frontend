@@ -1,0 +1,297 @@
+<div class="sp-search-page">
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       LEFT RAIL (desktop only)
+  ════════════════════════════════════════════════════════════════════ -->
+  <aside class="sp-search-rail">
+    <div class="sp-rail-title">
+      Tìm kiếm
+      @if (keyword().length >= 2) {
+        <span class="sp-rail-keyword">cho "<strong>{{ keyword() }}</strong>"</span>
+      }
+    </div>
+
+    <div class="sp-rail-divider"></div>
+    <div class="sp-rail-section-label">Lọc kết quả</div>
+
+    @for (tab of TABS; track tab.id) {
+      <button
+        class="sp-rail-tab"
+        [class.active]="activeTab() === tab.id"
+        (click)="setTab(tab.id)"
+        [attr.aria-selected]="activeTab() === tab.id"
+      >
+        <span class="sp-rail-tab-icon">
+          <i [class]="tab.icon" aria-hidden="true"></i>
+        </span>
+        {{ tab.label }}
+      </button>
+    }
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════════════════════════════════ -->
+  <main class="sp-search-main">
+
+    <!-- Mobile tabs -->
+    <div class="sp-mobile-tabs" role="tablist">
+      @for (tab of TABS; track tab.id) {
+        <button
+          class="sp-mobile-tab"
+          [class.active]="activeTab() === tab.id"
+          (click)="setTab(tab.id)"
+          role="tab"
+        >
+          <i [class]="tab.icon" aria-hidden="true"></i>
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <!-- ── Chưa đủ ký tự ──────────────────────────────────────── -->
+    @if (keyword().length < 2) {
+      <div class="sp-search-prompt">
+        <div class="sp-search-prompt__icon">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <p class="sp-search-prompt__title">Tìm kiếm trên SocialApp</p>
+        <p class="sp-search-prompt__sub">Nhập ít nhất 2 ký tự vào ô tìm kiếm phía trên</p>
+      </div>
+    } @else if (isLoading()) {
+      <!-- ── Skeleton loading ──────────────────────────────────── -->
+      <div>
+        @if (activeTab() === 'all' || activeTab() === 'people') {
+          <div class="sp-result-section">
+            <div class="sp-sk sp-sk--title"></div>
+            <div class="sp-skeleton-wrap">
+              @for (i of [1,2,3,4]; track i) {
+                <div class="sp-skeleton-row">
+                  <div class="sp-sk sp-sk--avatar"></div>
+                  <div class="sp-sk-body">
+                    <div class="sp-sk sp-sk--line sp-sk--med"></div>
+                    <div class="sp-sk sp-sk--line sp-sk--short"></div>
+                  </div>
+                  <div class="sp-sk sp-sk--btn"></div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (activeTab() !== 'people') {
+          <div class="sp-result-section">
+            <div class="sp-sk sp-sk--title"></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              @for (i of [1,2,3]; track i) {
+                <div class="sp-sk sp-sk--post"></div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+
+      <!-- ── NGƯỜI DÙNG ────────────────────────────────────────── -->
+      @if ((activeTab() === 'all' || activeTab() === 'people') && users().length > 0) {
+        <section class="sp-result-section" aria-label="Người dùng">
+          <div class="sp-result-header">
+            <h2 class="sp-result-title">
+              <i class="fa-solid fa-users" aria-hidden="true"></i>
+              Người dùng
+              <span class="sp-result-count">{{ totalUsers() }} kết quả</span>
+            </h2>
+            @if (activeTab() === 'all' && totalUsers() > users().length) {
+              <button class="sp-see-all-btn" (click)="setTab('people')">
+                Xem tất cả
+              </button>
+            }
+          </div>
+
+          <div class="sp-user-list">
+            @for (user of users(); track user.id) {
+              <div class="sp-user-row">
+                <div class="sp-user-row__avatar">
+                  <a [routerLink]="['/profile', user.id]" (click)="$event.stopPropagation()">
+                    <app-avatar [src]="user.avatarUrl" [name]="user.fullName" [size]="44" />
+                  </a>
+                </div>
+
+                <div class="sp-user-row__info">
+                  <a [routerLink]="['/profile', user.id]" class="sp-user-row__name">
+                    {{ user.fullName }}
+                  </a>
+                  <div class="sp-user-row__meta">
+                    <span>&#64;{{ user.username }}</span>
+                    @if (user.mutualFriendsCount > 0) {
+                      <span class="sp-user-row__mutual">
+                        <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                        {{ user.mutualFriendsCount }} bạn chung
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <div class="sp-user-row__action">
+                  @if (user.friendshipStatus === FriendshipStatus.None) {
+                    <button
+                      class="sp-action-btn sp-action-btn--primary"
+                      [disabled]="isSendingFriend() === user.id"
+                      (click)="sendFriendRequest(user)"
+                    >
+                      @if (isSendingFriend() === user.id) {
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                      } @else {
+                        <i class="fa-solid fa-user-plus"></i>
+                      }
+                      Kết bạn
+                    </button>
+                  } @else if (user.friendshipStatus === FriendshipStatus.SentRequest) {
+                    <button
+                      class="sp-action-btn sp-action-btn--secondary sp-action-btn--sent"
+                      (click)="cancelFriendRequest(user)"
+                      title="Nhấn để huỷ lời mời"
+                    >
+                      <i class="fa-solid fa-user-clock"></i>
+                      Đã gửi
+                    </button>
+                  } @else if (user.friendshipStatus === FriendshipStatus.Pending) {
+                    <button class="sp-action-btn sp-action-btn--secondary" disabled>
+                      <i class="fa-solid fa-user-clock"></i>
+                      Chờ xác nhận
+                    </button>
+                  } @else if (user.friendshipStatus === FriendshipStatus.Friends) {
+                    <span class="sp-friends-badge">
+                      <i class="fa-solid fa-user-check"></i> Bạn bè
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (activeTab() === 'people' && hasMoreUsers()) {
+            <button class="sp-load-more" (click)="loadMoreUsers()" [disabled]="isLoadingMore()">
+              @if (isLoadingMore()) {
+                <i class="fa-solid fa-spinner fa-spin"></i> Đang tải...
+              } @else {
+                Xem thêm người dùng
+              }
+            </button>
+          }
+        </section>
+      }
+
+      <!-- ── BÀI ĐĂNG / ẢNH / VIDEO ────────────────────────────── -->
+      @if (activeTab() !== 'people') {
+        <section class="sp-result-section" aria-label="Nội dung">
+          @if (posts().length > 0) {
+            <div class="sp-result-header">
+              <h2 class="sp-result-title">
+                @if (activeTab() === 'images') {
+                  <i class="fa-solid fa-image" aria-hidden="true"></i> Ảnh
+                } @else if (activeTab() === 'video') {
+                  <i class="fa-solid fa-video" aria-hidden="true"></i> Video
+                } @else {
+                  <i class="fa-solid fa-newspaper" aria-hidden="true"></i> Bài đăng
+                }
+                <span class="sp-result-count">{{ totalPosts() }} kết quả</span>
+              </h2>
+            </div>
+
+            @if (activeTab() === 'images') {
+              <div class="sp-media-grid">
+                @for (post of posts(); track post.id) {
+                  @for (media of post.mediaFiles; track media.id) {
+                    @if (media.mediaType === MediaType.Image) {
+                      <a [routerLink]="['/posts', post.id]" class="sp-media-grid__item">
+                        <img [src]="media.mediaUrl" [alt]="post.content ?? 'Ảnh'" loading="lazy" />
+                        <div class="sp-media-grid__overlay">
+                          <i class="fa-solid fa-expand" aria-hidden="true"></i>
+                        </div>
+                        @if (post.mediaFiles.length > 1) {
+                          <span class="sp-media-grid__badge">
+                            <i class="fa-solid fa-images"></i> {{ post.mediaFiles.length }}
+                          </span>
+                        }
+                      </a>
+                    }
+                  }
+                }
+              </div>
+            } @else if (activeTab() === 'video') {
+              <div class="sp-video-grid">
+                @for (post of posts(); track post.id) {
+                  @for (media of post.mediaFiles; track media.id) {
+                    @if (media.mediaType === MediaType.Video) {
+                      <a [routerLink]="['/posts', post.id]" class="sp-video-grid__item">
+                        <video [src]="media.mediaUrl" muted preload="metadata"></video>
+                        <div class="sp-video-grid__play">
+                          <i class="fa-solid fa-play" aria-hidden="true"></i>
+                        </div>
+                        <div class="sp-video-grid__author">
+                          <app-avatar [src]="post.author.avatarUrl" [name]="post.author.fullName" [size]="22" />
+                          <span>{{ post.author.fullName }}</span>
+                        </div>
+                      </a>
+                    }
+                  }
+                }
+              </div>
+            } @else {
+              <div class="sp-posts-feed">
+                @for (post of posts(); track post.id) {
+                  <app-post-card [post]="post" />
+                }
+              </div>
+            }
+
+            @if (hasMorePosts()) {
+              <button class="sp-load-more" (click)="loadMorePosts()" [disabled]="isLoadingMore()">
+                @if (isLoadingMore()) {
+                  <i class="fa-solid fa-spinner fa-spin"></i> Đang tải...
+                } @else {
+                  Xem thêm
+                }
+              </button>
+            }
+          } @else if (users().length === 0) {
+            <!-- Không có kết quả gì cả -->
+            <div class="sp-empty-wrap">
+              <div class="sp-empty-wrap__icon">
+                @if (activeTab() === 'images') {
+                  <i class="fa-solid fa-image"></i>
+                } @else if (activeTab() === 'video') {
+                  <i class="fa-solid fa-video"></i>
+                } @else {
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                }
+              </div>
+              <p class="sp-empty-wrap__title">
+                Không tìm thấy kết quả nào cho "<strong>{{ keyword() }}</strong>"
+              </p>
+              <p class="sp-empty-wrap__sub">Thử lại với từ khóa khác hoặc kiểm tra chính tả</p>
+              <div class="sp-empty-wrap__hint">
+                <span><i class="fa-solid fa-circle-check"></i> Kiểm tra lỗi chính tả</span>
+                <span><i class="fa-solid fa-circle-check"></i> Thử từ khóa ngắn hơn</span>
+                <span><i class="fa-solid fa-circle-check"></i> Tìm bằng tên đầy đủ</span>
+              </div>
+            </div>
+          }
+        </section>
+      }
+
+      <!-- Không tìm thấy người dùng (tab people) -->
+      @if (activeTab() === 'people' && users().length === 0) {
+        <div class="sp-empty-wrap">
+          <div class="sp-empty-wrap__icon">
+            <i class="fa-solid fa-user-slash"></i>
+          </div>
+          <p class="sp-empty-wrap__title">
+            Không tìm thấy ai khớp với "<strong>{{ keyword() }}</strong>"
+          </p>
+          <p class="sp-empty-wrap__sub">Thử tìm bằng tên đầy đủ hoặc tên đăng nhập</p>
+        </div>
+      }
+    }
+  </main>
+</div>

@@ -771,3 +771,134 @@
     transform: none;
   }
 }
+
+// ── Feeling picker ──────────────────────────────────────────
+.cp-feeling-wrap {
+  position: relative;
+}
+
+.cp-tool-btn--feeling {
+  font-size: 1.2rem;
+  line-height: 1;
+
+  i { color: var(--c-amber, #f5a623); }
+}
+
+.cp-tool-btn--feeling-active {
+  background: rgba(255, 200, 0, 0.12);
+  border: 1px solid rgba(255, 200, 0, 0.3);
+}
+
+.cp-feeling-picker {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 260px;
+  background: var(--sp-surface, #1e1e2e);
+  border: 1px solid var(--sp-border, rgba(255,255,255,0.1));
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  z-index: 100;
+  animation: fadeInUp 0.15s ease both;
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
+
+.cp-feeling-title {
+  font-size: 0.78rem;
+  color: var(--sp-text-3, rgba(255,255,255,0.45));
+  margin: 0 0 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cp-feeling-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.cp-feeling-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s;
+
+  &:hover {
+    background: rgba(255,255,255,0.07);
+  }
+
+  &--active {
+    background: rgba(255,200,0,0.12);
+    border-color: rgba(255,200,0,0.35);
+  }
+}
+
+.cp-feeling-emoji {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.cp-feeling-label {
+  font-size: 0.65rem;
+  color: var(--sp-text-2, rgba(255,255,255,0.7));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.cp-feeling-clear {
+  margin-top: 10px;
+  width: 100%;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  border: none;
+  color: var(--sp-text-3, rgba(255,255,255,0.4));
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.14s;
+
+  &:hover { background: rgba(255,255,255,0.1); }
+}
+
+// ── Feeling badge (in form) ─────────────────────────────────
+.cp-feeling-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  margin: 0 16px 8px;
+  background: rgba(255,200,0,0.08);
+  border: 1px solid rgba(255,200,0,0.2);
+  border-radius: 20px;
+  font-size: 0.82rem;
+  color: var(--sp-text-2, rgba(255,255,255,0.7));
+  width: fit-content;
+
+  strong { color: var(--sp-text, #fff); }
+}
+
+.cp-feeling-badge-remove {
+  background: none;
+  border: none;
+  color: var(--sp-text-3, rgba(255,255,255,0.4));
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.75rem;
+  line-height: 1;
+
+  &:hover { color: var(--sp-text, #fff); }
+}

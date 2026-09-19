@@ -13,20 +13,86 @@
   </div>
 
   <!-- Center: Search -->
-  <div class="sp-navbar__search">
+  <div class="sp-navbar__search" (click)="$event.stopPropagation()">
     <div class="sp-search-wrap">
-      <i
-        class="fa-solid fa-magnifying-glass sp-search-icon"
-        aria-hidden="true"
-      ></i>
+      <i class="fa-solid fa-magnifying-glass sp-search-icon" aria-hidden="true"></i>
       <input
         class="sp-input sp-search-input"
         type="search"
         placeholder="Tìm kiếm trên SocialApp..."
         aria-label="Tìm kiếm"
+        autocomplete="off"
         [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchInput()"
+        (focus)="onSearchFocus()"
         (keyup.enter)="onSearch()"
       />
+      @if (isSearching()) {
+        <i class="fa-solid fa-spinner fa-spin sp-search-spinner" aria-hidden="true"></i>
+      }
+
+      <!-- Live search dropdown -->
+      @if (showSearchDropdown()) {
+        <div class="sp-search-dropdown sp-fade-in" role="listbox" aria-label="Kết quả tìm kiếm">
+
+          @if (isSearching()) {
+            <div class="sp-sd-loading">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              <span>Đang tìm...</span>
+            </div>
+          } @else {
+            <!-- Users -->
+            @if (searchResultUsers().length > 0) {
+              <div class="sp-sd-section-label">Người dùng</div>
+              @for (u of searchResultUsers(); track u.id) {
+                <a class="sp-sd-item" [routerLink]="['/profile', u.id]"
+                   (click)="closeSearchDropdown()" role="option">
+                  <app-avatar [src]="u.avatarUrl" [name]="u.fullName" [size]="36" />
+                  <div class="sp-sd-item__info">
+                    <span class="sp-sd-item__name">{{ u.fullName }}</span>
+                    <span class="sp-sd-item__sub">
+                      &#64;{{ u.username }}
+                      @if (u.mutualFriendsCount > 0) { · {{ u.mutualFriendsCount }} bạn chung }
+                    </span>
+                  </div>
+                </a>
+              }
+            }
+
+            <!-- Posts -->
+            @if (searchResultPosts().length > 0) {
+              <div class="sp-sd-section-label">Bài đăng</div>
+              @for (p of searchResultPosts(); track p.id) {
+                <a class="sp-sd-item" [routerLink]="['/posts', p.id]"
+                   (click)="closeSearchDropdown()" role="option">
+                  <div class="sp-sd-post-icon">
+                    <i [class]="getPostPreviewIcon(p)" aria-hidden="true"></i>
+                  </div>
+                  <div class="sp-sd-item__info">
+                    <span class="sp-sd-item__name">{{ (p.content ?? 'Bài đăng') | truncate: 48 }}</span>
+                    <span class="sp-sd-item__sub">{{ p.author.fullName }}</span>
+                  </div>
+                </a>
+              }
+            }
+
+            <!-- No results -->
+            @if (searchResultUsers().length === 0 && searchResultPosts().length === 0) {
+              <div class="sp-sd-empty">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <span>Không tìm thấy kết quả cho "<strong>{{ searchQuery }}</strong>"</span>
+              </div>
+            }
+
+            <!-- Footer -->
+            <div class="sp-sd-footer" (click)="goToSearchPage()" role="button" tabindex="0"
+                 (keyup.enter)="goToSearchPage()">
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              Xem tất cả kết quả cho "{{ searchQuery }}"
+            </div>
+          }
+        </div>
+      }
     </div>
   </div>
 
@@ -170,21 +236,6 @@
       }
       <span class="sp-nav-active-bar"></span>
     </a>
-
-    <!-- Dark mode toggle -->
-    <button
-      class="sp-nav-icon-btn"
-      (click)="toggleDarkMode()"
-      [attr.aria-label]="
-        isDark() ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'
-      "
-    >
-      @if (isDark()) {
-        <i class="fa-solid fa-sun" aria-hidden="true"></i>
-      } @else {
-        <i class="fa-solid fa-moon" aria-hidden="true"></i>
-      }
-    </button>
 
     <!-- Avatar + dropdown menu -->
     <div class="sp-avatar-menu" (click)="toggleMenu($event)">
