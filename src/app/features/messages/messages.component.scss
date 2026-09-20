@@ -401,6 +401,11 @@
   scrollbar-width: thin;
   scrollbar-color: var(--msg-surface2) transparent;
 
+  @media (max-width: 768px) {
+    // Thêm padding để item cuối không bị bottom nav (60px) che
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px) + 8px);
+  }
+
   &::-webkit-scrollbar {
     width: 3px;
   }

@@ -879,7 +879,11 @@ a.app-link {
   white-space: pre-wrap;
 }
 
-// ─── Appearance Settings ───────────────────────────────────────────────────────
+// ─── Nav height token — dùng chung toàn app ──────────────────────────────────
+:root {
+  --nav-h: 56px; // navbar.component.scss: height: 56px (cả PC lẫn mobile)
+}
+
 
 // Tắt tất cả animation/transition khi sp-no-animations được bật
 body.sp-no-animations,

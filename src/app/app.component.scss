@@ -34,8 +34,8 @@
   --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.45);
   --shadow-hover: 0 6px 32px rgba(0, 0, 0, 0.6);
 
-  // Nav height
-  --nav-h: 64px;
+  // Nav height — navbar.component.scss: height: 56px (không đổi theo breakpoint)
+  --nav-h: 56px;
 
   --sp-1: 4px;
   --sp-2: 8px;

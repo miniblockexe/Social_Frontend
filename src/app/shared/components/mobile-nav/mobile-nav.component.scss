@@ -11,6 +11,11 @@
   @media (max-width: 768px) {
     display: block;
   }
+
+  // Ẩn khi đang trong conversation
+  &--hidden {
+    display: none !important;
+  }
 }
 
 .sp-mnav-bar {
