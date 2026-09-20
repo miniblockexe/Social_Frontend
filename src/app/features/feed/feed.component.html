@@ -55,6 +55,21 @@
               </a>
             </li>
           }
+          @if (isAdmin()) {
+            <li>
+              <a
+                class="sidebar-nav-link sidebar-nav-link--admin"
+                routerLink="/admin"
+                routerLinkActive="sidebar-nav-link--active"
+                aria-label="Quản trị"
+              >
+                <span class="sidebar-icon-box sidebar-icon-box--admin" aria-hidden="true">
+                  <i class="fa-solid fa-shield-halved"></i>
+                </span>
+                <span class="sidebar-nav-label">Quản trị</span>
+              </a>
+            </li>
+          }
         </ul>
       </nav>
 

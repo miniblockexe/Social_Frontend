@@ -17,10 +17,11 @@ import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { AuthService } from './core/services/auth.service';
 
-function initAuth() {
-  const authService = inject(AuthService);
+function initAuth(authService: AuthService) {
   return () => {
-    if (authService.getToken() && !authService.isTokenExpired()) {
+    // Luôn load nếu có token — kể cả expired
+    // (authGuard sẽ refresh token nếu cần, nhưng ta cần role ngay lúc khởi động)
+    if (authService.getToken()) {
       return authService.loadCurrentUser();
     }
     return Promise.resolve();
@@ -35,6 +36,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: initAuth,
+      deps: [AuthService],
       multi: true,
     },
     provideServiceWorker('ngsw-worker.js', {

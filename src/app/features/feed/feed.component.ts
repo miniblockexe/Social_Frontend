@@ -66,6 +66,7 @@ export class FeedComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
 
   me = computed(() => this.authService.currentUser());
+  isAdmin = computed(() => this.authService.isAdmin());
 
   posts: Post[] = [];
   isLoading = false;

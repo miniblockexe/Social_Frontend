@@ -110,6 +110,19 @@
       <span class="sp-nav-active-bar"></span>
     </a>
 
+    <!-- Admin — chỉ hiện với admin -->
+    @if (isAdmin()) {
+      <a
+        class="sp-nav-icon-btn sp-nav-admin"
+        routerLink="/admin"
+        routerLinkActive="active"
+        aria-label="Quản trị"
+      >
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <span class="sp-nav-active-bar"></span>
+      </a>
+    }
+
     <!-- Tin nhắn — messenger dropdown -->
     <div
       class="sp-nav-icon-btn sp-messenger-trigger"
