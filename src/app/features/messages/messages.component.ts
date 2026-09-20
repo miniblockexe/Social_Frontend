@@ -606,6 +606,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Optimistic: thêm user message ngay
     const tempId = `ai-user-${Date.now()}`;
+    const userMsgTime = new Date().toISOString();
     if (me) {
       const tempMsg: Message = {
         id: tempId,
@@ -614,7 +615,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
         isAI: false,
         attachmentUrl: null,
         attachmentType: null,
-        createdAt: new Date().toISOString(),
+        createdAt: userMsgTime,
         isDeleted: false,
         sender: {
           id: me.id,
@@ -650,6 +651,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe({
         next: (res) => {
           if (!res.success) return;
+          const aiMsgTime = new Date(new Date(userMsgTime).getTime() + 1).toISOString();
           const aiMsg: Message = {
             id: res.data.aiMessageId,
             conversationId: conv.id,
@@ -657,7 +659,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
             isAI: true,
             attachmentUrl: null,
             attachmentType: null,
-            createdAt: new Date().toISOString(),
+            createdAt: aiMsgTime,
             isDeleted: false,
             sender: {
               id: '00000000-0000-0000-0000-000000000001',
@@ -679,7 +681,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
               isAI: false,
               attachmentUrl: null,
               attachmentType: null,
-              createdAt: new Date().toISOString(),
+              createdAt: userMsgTime,
               isDeleted: false,
               sender: me
                 ? {
