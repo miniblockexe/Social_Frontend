@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { filter, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
+import { MobileNavComponent } from './shared/components/mobile-nav/mobile-nav.component';
 import { ChatHubService } from './core/services/chat-hub.service';
 import { WebRtcService } from './core/services/webrtc.service';
 import { AuthService } from './core/services/auth.service';
@@ -28,12 +29,14 @@ const NO_NAVBAR_ROUTES = [
     RouterOutlet,
     CommonModule,
     NavbarComponent,
+    MobileNavComponent,
     CallOverlayComponent,
     UpdateBannerComponent,
   ],
   template: `
     @if (showNavbar()) {
       <app-navbar />
+      <app-mobile-nav />
     }
     <router-outlet />
     <app-call-overlay />

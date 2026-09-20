@@ -1,0 +1,175 @@
+<nav class="sp-mobile-nav" role="navigation" aria-label="Điều hướng mobile">
+
+  <!-- Main bottom bar -->
+  <div class="sp-mnav-bar">
+
+    <!-- Trang chủ -->
+    <a
+      class="sp-mnav-item"
+      routerLink="/home"
+      routerLinkActive="sp-mnav-item--active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      aria-label="Trang chủ"
+      (click)="closeAll()"
+    >
+      <span class="sp-mnav-icon">
+        <i class="fa-solid fa-house" aria-hidden="true"></i>
+      </span>
+      <span class="sp-mnav-label">Trang chủ</span>
+    </a>
+
+    <!-- Bạn bè -->
+    <a
+      class="sp-mnav-item"
+      routerLink="/friends"
+      routerLinkActive="sp-mnav-item--active"
+      aria-label="Bạn bè"
+      (click)="closeAll()"
+    >
+      <span class="sp-mnav-icon">
+        <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+      </span>
+      <span class="sp-mnav-label">Bạn bè</span>
+    </a>
+
+    <!-- Hội nhóm -->
+    <a
+      class="sp-mnav-item"
+      routerLink="/groups"
+      routerLinkActive="sp-mnav-item--active"
+      aria-label="Hội nhóm"
+      (click)="closeAll()"
+    >
+      <span class="sp-mnav-icon">
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
+      </span>
+      <span class="sp-mnav-label">Hội nhóm</span>
+    </a>
+
+    <!-- Thông báo -->
+    <a
+      class="sp-mnav-item"
+      routerLink="/notifications"
+      routerLinkActive="sp-mnav-item--active"
+      aria-label="Thông báo"
+      (click)="closeAll()"
+    >
+      <span class="sp-mnav-icon">
+        <i class="fa-solid fa-bell" aria-hidden="true"></i>
+        @if (unreadNotifications() > 0) {
+          <span class="sp-mnav-badge" [attr.aria-label]="unreadNotifications() + ' thông báo'">
+            {{ unreadNotifications() > 9 ? '9+' : unreadNotifications() }}
+          </span>
+        }
+      </span>
+      <span class="sp-mnav-label">Thông báo</span>
+    </a>
+
+    <!-- Menu (More) -->
+    <button
+      class="sp-mnav-item"
+      [class.sp-mnav-item--active]="showMore()"
+      aria-label="Thêm"
+      (click)="toggleMore()"
+    >
+      <span class="sp-mnav-icon">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </span>
+      <span class="sp-mnav-label">Thêm</span>
+    </button>
+  </div>
+
+  <!-- More Drawer - slide up từ dưới -->
+  @if (showMore()) {
+    <div class="sp-mnav-overlay" (click)="closeAll()" aria-hidden="true"></div>
+
+    <div class="sp-mnav-drawer sp-mnav-drawer--open" role="dialog" aria-label="Menu thêm">
+
+      <!-- User card -->
+      @if (currentUser()) {
+        <a
+          class="sp-mnav-user-card"
+          [routerLink]="['/profile', currentUser()!.id]"
+          (click)="closeAll()"
+        >
+          <div class="sp-mnav-user-avatar">
+            <app-avatar
+              [src]="currentUser()!.avatarUrl"
+              [name]="currentUser()!.fullName"
+              [size]="48"
+            />
+          </div>
+          <div class="sp-mnav-user-info">
+            <span class="sp-mnav-user-name">{{ currentUser()!.fullName }}</span>
+            <span class="sp-mnav-user-handle">&#64;{{ currentUser()!.username }}</span>
+          </div>
+          <i class="fa-solid fa-chevron-right sp-mnav-user-chevron" aria-hidden="true"></i>
+        </a>
+      }
+
+      <div class="sp-mnav-section-label">Điều hướng</div>
+
+      <!-- Quick nav grid -->
+      <div class="sp-mnav-grid">
+
+        <a class="sp-mnav-grid-item" routerLink="/messages" (click)="closeAll()">
+          <span class="sp-mnav-grid-icon sp-mnav-grid-icon--teal">
+            <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+            @if (unreadMessages() > 0) {
+              <span class="sp-mnav-badge sp-mnav-badge--sm">{{ unreadMessages() > 9 ? '9+' : unreadMessages() }}</span>
+            }
+          </span>
+          <span class="sp-mnav-grid-label">Tin nhắn</span>
+        </a>
+
+        <a class="sp-mnav-grid-item" routerLink="/friends" (click)="closeAll()">
+          <span class="sp-mnav-grid-icon sp-mnav-grid-icon--blue">
+            <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+          </span>
+          <span class="sp-mnav-grid-label">Bạn bè</span>
+        </a>
+
+        <a class="sp-mnav-grid-item" routerLink="/groups" (click)="closeAll()">
+          <span class="sp-mnav-grid-icon sp-mnav-grid-icon--green">
+            <i class="fa-solid fa-users" aria-hidden="true"></i>
+          </span>
+          <span class="sp-mnav-grid-label">Hội nhóm</span>
+        </a>
+
+        <a class="sp-mnav-grid-item" routerLink="/search" (click)="closeAll()">
+          <span class="sp-mnav-grid-icon sp-mnav-grid-icon--purple">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          </span>
+          <span class="sp-mnav-grid-label">Tìm kiếm</span>
+        </a>
+
+        <a class="sp-mnav-grid-item" routerLink="/settings" (click)="closeAll()">
+          <span class="sp-mnav-grid-icon sp-mnav-grid-icon--gray">
+            <i class="fa-solid fa-gear" aria-hidden="true"></i>
+          </span>
+          <span class="sp-mnav-grid-label">Cài đặt</span>
+        </a>
+
+        @if (isAdmin()) {
+          <a class="sp-mnav-grid-item" routerLink="/admin" (click)="closeAll()">
+            <span class="sp-mnav-grid-icon sp-mnav-grid-icon--amber">
+              <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+            </span>
+            <span class="sp-mnav-grid-label">Quản trị</span>
+          </a>
+        }
+      </div>
+
+      <!-- Divider -->
+      <div class="sp-mnav-divider"></div>
+
+      <!-- Logout -->
+      <button class="sp-mnav-logout" (click)="onLogout()">
+        <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+        Đăng xuất
+      </button>
+
+    </div>
+  }
+
+</nav>

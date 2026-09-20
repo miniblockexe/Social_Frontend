@@ -457,6 +457,27 @@
   }
 }
 
+// ─── Mobile: ẩn các icon đã có ở bottom nav ──────────────────────────────────
+//
+// Trên mobile (≤768px): giữ logo + search + avatar
+// Ẩn: home icon, messenger trigger, bell icon
+// (bottom nav đã có đủ các chức năng này)
+
+@media (max-width: 768px) {
+  // Hiện lại search (bị ẩn ở <575px mặc định)
+  .sp-navbar__search {
+    display: block;
+    max-width: 160px;
+  }
+
+  // Ẩn home, messenger, bell — giữ avatar
+  .sp-nav-home,
+  .sp-messenger-trigger,
+  .sp-nav-bell {
+    display: none !important;
+  }
+}
+
 // ─── Search Dropdown ─────────────────────────────────────────────────────────
 .sp-search-spinner {
   position: absolute;
