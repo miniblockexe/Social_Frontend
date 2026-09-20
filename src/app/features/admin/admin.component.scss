@@ -33,17 +33,13 @@
   display: block;
 }
 
+// cSpell:ignore GSAP gsap
 // ── GSAP: elements targeted by animations start at their natural state;
 // GSAP `from()` reads the end state from CSS and animates FROM the vars.
 // Class `.gsap-ready` is added in TS before any gsap.from() call so that
 // CSS fallback (opacity:1) remains during SSR / reduced-motion.
-:host(.gsap-ready) {
-  .adm-header-inner,
-  .adm-stat-card,
-  .adm-panel {
-    // natural end state — GSAP animates FROM y/opacity/scale offset
-  }
-}
+// The `.adm-header-inner`, `.adm-stat-card`, `.adm-panel` elements
+// rely on their natural CSS state as GSAP end-state; no overrides needed.
 
 // ════════════════════════════════════════════════════════════════
 // PAGE
@@ -450,7 +446,7 @@
   width: auto;
   min-width: 165px;
   cursor: pointer;
-  // Chevron arrow
+  // Chevron arrow — cSpell:ignore Csvg Cpath
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%23707075' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
@@ -463,6 +459,7 @@
 // TAB PANEL
 // ════════════════════════════════════════════════════════════════
 .adm-tab-panel {
+  // cSpell:ignore GSAP
   // GSAP animates this on tab switch (opacity, y)
   min-height: 200px;
 }
@@ -673,7 +670,7 @@
     color: var(--adm-amber);
   }
 
-  // Success (unban)
+  // Success (unban) — cSpell:ignore unban
   &--teal:hover {
     background: rgba(0, 212, 168, 0.12);
     border-color: rgba(0, 212, 168, 0.2);

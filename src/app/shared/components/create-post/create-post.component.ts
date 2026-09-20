@@ -1,3 +1,4 @@
+// cSpell:ignore gsap
 import {
   Component,
   ElementRef,
@@ -17,7 +18,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Post, PostPrivacy } from '../../../core/models/post.models';
 import { AvatarComponent } from '../avatar/avatar.component';
-import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200 MB
 const CIRCUMFERENCE = 2 * Math.PI * 15.9; // SVG ring circumference
@@ -35,7 +35,6 @@ export interface PreviewFile {
     CommonModule,
     FormsModule,
     AvatarComponent,
-    LoadingSpinnerComponent,
   ],
   templateUrl: './create-post.component.html',
   styleUrl: './create-post.component.scss',

@@ -75,6 +75,7 @@
   pointer-events: none;
   z-index: var(--z-grain);
   opacity: 0.025;
+  // cSpell:ignore Csvg Crect
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 200px;
 }
@@ -239,6 +240,7 @@
 /* ─────────────────────────────────────────────
    FLOATING NOTIFICATION CARDS
 ───────────────────────────────────────────── */
+// cSpell:ignore notif
 .notif-wrapper {
   position: absolute;
   z-index: var(--z-card);
@@ -427,7 +429,7 @@
   border-radius: 10px;
   margin-bottom: 1.25rem;
 
-  /* FIX: starts visible — GSAP fromTo handles entrance animation */
+  /* FIX: starts visible — GSAP fromTo handles entrance animation */ // cSpell:ignore GSAP
   opacity: 1;
 
   &__icon {
@@ -502,6 +504,7 @@
     box-shadow 0.18s ease;
   touch-action: manipulation;
   -webkit-appearance: none;
+  appearance: none;
 
   &::placeholder {
     color: var(--text3);

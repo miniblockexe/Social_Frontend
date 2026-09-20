@@ -394,6 +394,7 @@
     border-color 0.18s,
     box-shadow 0.18s;
   -webkit-appearance: none;
+  appearance: none;
 
   &::placeholder {
     color: var(--c-text3);

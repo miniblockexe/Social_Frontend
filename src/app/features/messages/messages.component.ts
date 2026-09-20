@@ -32,7 +32,6 @@ import { UserSearchResult } from '../../core/models/user.models';
 import { GifItem } from '../../core/models/gif.models';
 import { GeminiMessage } from '../../core/models/ai.models';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
-import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
 import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
 import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
@@ -96,7 +95,6 @@ export interface MessageGroup {
     CommonModule,
     FormsModule,
     AvatarComponent,
-    LoadingSpinnerComponent,
     TimeAgoPipe,
     TruncatePipe,
     RouterLink,

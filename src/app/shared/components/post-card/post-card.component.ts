@@ -23,7 +23,6 @@ import { VideoVolumeService } from '../../../core/services/video-volume.service'
 import { VideoPlayerService } from '../../../core/services/video-player.service';
 import { Post, Comment, PostPrivacy } from '../../../core/models/post.models';
 import { AvatarComponent } from '../avatar/avatar.component';
-import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
 import { VideoTimePipe } from '../../pipes/video-time.pipe';
 import { LinkifyPipe } from '../../pipes/linkify.pipe';
@@ -37,7 +36,6 @@ import { ShareToFriendModalComponent } from '../share-to-friend-modal/share-to-f
     DecimalPipe,
     FormsModule,
     AvatarComponent,
-    LoadingSpinnerComponent,
     TimeAgoPipe,
     VideoTimePipe,
     RouterLink,

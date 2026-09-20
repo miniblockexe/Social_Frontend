@@ -7,7 +7,6 @@ import { FormsModule } from '@angular/forms';
 import { GroupService } from '../../core/services/group.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
-import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { InfiniteScrollDirective } from '../../shared/directives/infinite-scroll.directive';
 import { SkeletonCardComponent } from '../../shared/components/skeleton-card/skeleton-card.component';
@@ -18,7 +17,7 @@ import {
 @Component({
   selector: 'app-groups',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, AvatarComponent, LoadingSpinnerComponent, InfiniteScrollDirective, SkeletonCardComponent],
+  imports: [CommonModule, RouterLink, FormsModule, LoadingSpinnerComponent, InfiniteScrollDirective, SkeletonCardComponent],
   templateUrl: './groups.component.html',
   styleUrl: './groups.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
