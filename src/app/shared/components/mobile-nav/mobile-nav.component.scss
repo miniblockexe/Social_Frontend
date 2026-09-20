@@ -274,9 +274,9 @@
   color: #fff;
 
   // Color variants
-  &--teal    { background: #00d4a8; }
+  &--teal    { background: var(--c-accent); }
   &--blue    { background: #1877f2; }
-  &--green   { background: #42b72a; }
+  &--green   { background: var(--c-accent); }
   &--purple  { background: #a855f7; }
   &--gray    { background: var(--c-text3); }
   &--amber   { background: #f5a623; }
