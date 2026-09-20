@@ -9,30 +9,6 @@
     <div class="update-overlay__card">
       <div class="update-overlay__icon-wrap">
         <svg
-          class="update-overlay__ring"
-          viewBox="0 0 44 44"
-          fill="none"
-          aria-hidden="true"
-        >
-          <circle
-            cx="22"
-            cy="22"
-            r="18"
-            stroke="rgba(255,77,61,0.15)"
-            stroke-width="3"
-          />
-          <circle
-            cx="22"
-            cy="22"
-            r="18"
-            stroke="#ff4d3d"
-            stroke-width="3"
-            stroke-linecap="round"
-            stroke-dasharray="28 84"
-            class="update-overlay__arc"
-          />
-        </svg>
-        <svg
           class="update-overlay__icon"
           viewBox="0 0 24 24"
           fill="none"
@@ -54,8 +30,12 @@
       </div>
       <p class="update-overlay__title">Đang cập nhật</p>
       <p class="update-overlay__sub">Vui lòng chờ trong giây lát…</p>
-      <div class="update-overlay__dots" aria-hidden="true">
-        <span></span><span></span><span></span>
+
+      <div class="update-overlay__progress-wrap" aria-hidden="true">
+        <div class="update-overlay__progress-track">
+          <div #progressBar class="update-overlay__progress-bar"></div>
+        </div>
+        <span #progressLabel class="update-overlay__progress-label">0%</span>
       </div>
     </div>
   </div>

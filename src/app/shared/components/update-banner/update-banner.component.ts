@@ -23,9 +23,11 @@ export class UpdateBannerComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('overlayRef') overlayRef!: ElementRef<HTMLElement>;
   @ViewChild('bannerRef') bannerRef!: ElementRef<HTMLElement>;
+  @ViewChild('progressBar') progressBar!: ElementRef<HTMLElement>;
+  @ViewChild('progressLabel') progressLabel!: ElementRef<HTMLElement>;
 
   private ctx!: gsap.Context;
-  private overlayTl?: gsap.core.Timeline;
+  private progressTl?: gsap.core.Timeline;
   private bannerTl?: gsap.core.Timeline;
 
   constructor() {
@@ -52,7 +54,7 @@ export class UpdateBannerComponent implements AfterViewInit, OnDestroy {
     const el = document.querySelector('.update-overlay') as HTMLElement;
     if (!el) return;
 
-    this.overlayTl?.kill();
+    this.progressTl?.kill();
 
     const mm = gsap.matchMedia();
     mm.add({ reduceMotion: '(prefers-reduced-motion: reduce)' }, (ctx) => {
@@ -82,15 +84,34 @@ export class UpdateBannerComponent implements AfterViewInit, OnDestroy {
         },
       );
 
-      // Spinning arc
-      const arc = el.querySelector('.update-overlay__arc') as SVGElement;
-      this.overlayTl = gsap.timeline();
-      this.overlayTl.to(arc, {
-        rotation: 360,
-        duration: 1.1,
-        ease: 'none',
-        repeat: -1,
-        transformOrigin: '50% 50%',
+      const bar = el.querySelector('.update-overlay__progress-bar') as HTMLElement;
+      const label = el.querySelector('.update-overlay__progress-label') as HTMLElement;
+      if (!bar || !label) return;
+
+      const proxy = { value: 0 };
+      this.progressTl = gsap.timeline({ delay: 0.3 });
+
+      this.progressTl.to(proxy, {
+        value: 85,
+        duration: 0.25,
+        ease: 'power2.out',
+        onUpdate: () => {
+          const v = Math.round(proxy.value);
+          bar.style.width = v + '%';
+          label.textContent = v + '%';
+        },
+      });
+
+      this.progressTl.to(proxy, {
+        value: 100,
+        duration: 0.12,
+        ease: 'power3.in',
+        delay: 0.05,
+        onUpdate: () => {
+          const v = Math.round(proxy.value);
+          bar.style.width = v + '%';
+          label.textContent = v + '%';
+        },
       });
 
       // Icon pulse
@@ -101,16 +122,6 @@ export class UpdateBannerComponent implements AfterViewInit, OnDestroy {
         ease: 'sine.inOut',
         repeat: -1,
         yoyo: true,
-      });
-
-      // Dots stagger blink
-      const dots = el.querySelectorAll('.update-overlay__dots span');
-      gsap.to(dots, {
-        autoAlpha: 1,
-        scale: 1.3,
-        duration: 0.4,
-        ease: 'sine.inOut',
-        stagger: { each: 0.2, repeat: -1, yoyo: true },
       });
     });
   }
@@ -135,7 +146,6 @@ export class UpdateBannerComponent implements AfterViewInit, OnDestroy {
           return;
         }
 
-        // Slide up from bottom
         const fromY = isMobile ? 40 : 28;
         gsap.fromTo(
           el,
@@ -149,7 +159,6 @@ export class UpdateBannerComponent implements AfterViewInit, OnDestroy {
           },
         );
 
-        // Glow pulse
         const glow = el.querySelector('.update-banner__glow') as HTMLElement;
         if (glow) {
           gsap.to(glow, {
@@ -161,7 +170,6 @@ export class UpdateBannerComponent implements AfterViewInit, OnDestroy {
           });
         }
 
-        // Badge pop-in
         const badge = el.querySelector('.update-banner__badge') as HTMLElement;
         gsap.fromTo(
           badge,
@@ -175,7 +183,6 @@ export class UpdateBannerComponent implements AfterViewInit, OnDestroy {
           },
         );
 
-        // Text slide in
         const texts = el.querySelectorAll(
           '.update-banner__title, .update-banner__sub',
         );
@@ -192,7 +199,6 @@ export class UpdateBannerComponent implements AfterViewInit, OnDestroy {
           },
         );
 
-        // Actions slide in
         const actions = el.querySelector(
           '.update-banner__actions',
         ) as HTMLElement;
@@ -212,7 +218,7 @@ export class UpdateBannerComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.overlayTl?.kill();
+    this.progressTl?.kill();
     this.bannerTl?.kill();
     this.ctx?.revert();
   }

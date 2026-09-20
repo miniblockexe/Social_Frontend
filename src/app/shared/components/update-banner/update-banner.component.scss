@@ -1,7 +1,7 @@
 /* ─── Tokens ─────────────────────────────────────────────────────── */
-$emerald: #ff4d3d;
-$emerald-dim: rgba(255, 77, 61, 0.15);
-$emerald-glow: rgba(255, 77, 61, 0.25);
+$accent: #ff4d3d;
+$accent-dim: rgba(255, 77, 61, 0.15);
+$accent-glow: rgba(255, 77, 61, 0.25);
 $surface: #111113;
 $surface-2: #1c1c1f;
 $border: rgba(255, 255, 255, 0.08);
@@ -34,40 +34,29 @@ $text-muted: #71717a;
     box-shadow:
       0 0 0 1px rgba(255, 255, 255, 0.04) inset,
       0 24px 64px rgba(0, 0, 0, 0.7);
+    min-width: 240px;
 
-    /* Mobile padding nhỏ hơn */
     @media (max-width: 400px) {
       padding: 28px 28px;
       border-radius: 20px;
+      min-width: 200px;
     }
   }
 
   &__icon-wrap {
-    position: relative;
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: $accent-dim;
+    border: 1px solid rgba(255, 77, 61, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  &__ring {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    /* GSAP controls rotation — no CSS transform needed */
-  }
-
-  &__arc {
-    transform-origin: center;
-    /* GSAP spin handles this */
-  }
-
   &__icon {
-    width: 22px;
-    height: 22px;
-    /* GSAP autoAlpha pulse */
+    width: 24px;
+    height: 24px;
   }
 
   &__title {
@@ -93,19 +82,38 @@ $text-muted: #71717a;
     }
   }
 
-  &__dots {
+  /* ─── Progress bar ── */
+  &__progress-wrap {
+    width: 100%;
     display: flex;
+    flex-direction: column;
+    align-items: flex-end;
     gap: 6px;
     margin-top: 4px;
+  }
 
-    span {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: $emerald;
-      /* opacity/scale controlled by GSAP */
-      opacity: 0.3;
-    }
+  &__progress-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: $accent;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  &__progress-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 77, 61, 0.15);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  &__progress-bar {
+    height: 100%;
+    width: 0%;
+    background: $accent;
+    border-radius: 999px;
+    box-shadow: 0 0 8px rgba(255, 77, 61, 0.5);
   }
 }
 
@@ -127,14 +135,13 @@ $text-muted: #71717a;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,
     0 8px 40px rgba(0, 0, 0, 0.6),
-    0 0 0 1px $emerald-dim;
+    0 0 0 1px $accent-dim;
   white-space: nowrap;
   visibility: hidden;
   opacity: 0;
   overflow: hidden;
   min-width: 280px;
 
-  /* ── Mobile full-width ── */
   @media (max-width: 400px) {
     left: 12px;
     right: 12px;
@@ -147,7 +154,6 @@ $text-muted: #71717a;
     white-space: normal;
   }
 
-  /* ── Nhỏ hơn nữa (320px) ── */
   @media (max-width: 320px) {
     left: 8px;
     right: 8px;
@@ -162,11 +168,10 @@ $text-muted: #71717a;
     transform: translateX(-50%);
     width: 120px;
     height: 80px;
-    background: $emerald-glow;
+    background: $accent-glow;
     filter: blur(28px);
     border-radius: 50%;
     pointer-events: none;
-    /* GSAP handles pulse */
   }
 
   &__left {
@@ -174,14 +179,14 @@ $text-muted: #71717a;
     align-items: center;
     gap: 12px;
     position: relative;
-    min-width: 0; /* allow text truncate on narrow screens */
+    min-width: 0;
   }
 
   &__badge {
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    background: $emerald-dim;
+    background: $accent-dim;
     border: 1px solid rgba(255, 77, 61, 0.2);
     display: flex;
     align-items: center;
@@ -232,7 +237,7 @@ $text-muted: #71717a;
     padding: 8px 16px;
     border-radius: 10px;
     border: none;
-    background: $emerald;
+    background: $accent;
     color: #fff;
     font-size: 0.82rem;
     font-weight: 600;
@@ -263,7 +268,7 @@ $text-muted: #71717a;
     }
 
     &:focus-visible {
-      outline: 2px solid $emerald;
+      outline: 2px solid $accent;
       outline-offset: 2px;
     }
   }
@@ -297,7 +302,7 @@ $text-muted: #71717a;
     }
 
     &:focus-visible {
-      outline: 2px solid $emerald;
+      outline: 2px solid $accent;
       outline-offset: 2px;
     }
   }
