@@ -143,9 +143,42 @@ export class GroupDetailComponent implements OnInit {
   ngOnInit() {
     this.route.paramMap.subscribe((p) => {
       this.groupId.set(p.get('id') ?? '');
+      this.resetGroupState();
       this.loadGroup();
     });
     this.loadSideGroups();
+  }
+
+  private resetGroupState(): void {
+    // Thông tin nhóm
+    this.group.set(null);
+    this.activeTab.set('feed');
+
+    // Feed
+    this.posts.set([]);
+    this.loadingFeed.set(false);
+    this.cursor.set(undefined);
+    this.hasMore.set(true);
+    this.feedErrorCount = 0;
+
+    // Members
+    this.members.set([]);
+    this.loadingMembers.set(false);
+    this.membersPage.set(1);
+    this.hasMoreMembers.set(true);
+
+    // Pending posts / join requests
+    this.pendingPosts.set([]);
+    this.loadingPendingPosts.set(false);
+    this.pendingReqs.set([]);
+    this.loadingPendingReqs.set(false);
+
+    // Form đăng bài
+    this.showCreate.set(false);
+    this.postContent.set('');
+    this.postFiles.set([]);
+    this.postPreviews.set([]);
+    this.submitting.set(false);
   }
 
   loadGroup() {
