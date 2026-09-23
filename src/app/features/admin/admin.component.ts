@@ -26,6 +26,7 @@ import {
 } from '../../core/models/admin.models';
 import { UserRole } from '../../core/models/auth.models';
 import { gsap } from 'gsap';
+import { take } from 'rxjs/operators';
 
 type AdminTab = 'users' | 'posts' | 'reports' | 'stats';
 
@@ -282,58 +283,34 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onToggleBan(user: AdminUser): void {
-    const action$ = user.isBanned
+    const wasBanned = user.isBanned;
+    const action$ = wasBanned
       ? this.adminService.unbanUser(user.id)
       : this.adminService.banUser(user.id, 'Admin action');
 
-    action$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (res) => {
-        if (res.success) {
-          const msg = user.isBanned
-            ? 'Đã mở khóa tài khoản'
-            : 'Đã khóa tài khoản';
-          this.toastService.success(msg);
-          this._users.update((list) =>
-            list.map((u) =>
-              u.id === user.id ? { ...u, isBanned: !u.isBanned } : u,
-            ),
-          );
-        }
+    action$.pipe(take(1)).subscribe({
+      next: () => {
+        this.toastService.success(
+          wasBanned ? 'Đã mở khóa tài khoản' : 'Đã khóa tài khoản',
+        );
+        this._users.update((list) =>
+          list.map((u) =>
+            u.id === user.id ? { ...u, isBanned: !wasBanned } : u,
+          ),
+        );
       },
-      error: () => this.toastService.error('Không thể thực hiện'),
+      error: (err) => {
+        this.toastService.error(err?.error?.message ?? 'Không thể thực hiện');
+        this.loadUsers();
+      },
     });
-  }
-
-  onDeleteUser(user: AdminUser): void {
-    if (
-      !confirm(
-        `Khóa tài khoản "${user.fullName}"? (BE không hỗ trợ xóa vĩnh viễn)`,
-      )
-    )
-      return;
-    this.adminService
-      .banUser(user.id, 'Xóa tài khoản theo yêu cầu quản trị')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          if (res.success) {
-            this.toastService.success('Đã khóa tài khoản người dùng');
-            this._users.update((list) =>
-              list.map((u) =>
-                u.id === user.id ? { ...u, isBanned: true } : u,
-              ),
-            );
-          }
-        },
-        error: () => this.toastService.error('Không thể khóa tài khoản'),
-      });
   }
 
   onDeletePost(post: AdminPost): void {
     if (!confirm('Xóa bài viết này?')) return;
     this.adminService
       .deletePost(post.id, 'Admin action')
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(take(1))
       .subscribe({
         next: (res) => {
           if (res.success) {

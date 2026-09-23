@@ -194,7 +194,10 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!activeId) return;
       const allMessages = this.chatHubService.messages();
       const updated = allMessages.get(activeId) ?? [];
-      untracked(() => this.rawMessages.set([...updated]));
+      untracked(() => {
+        this.rawMessages.set([...updated]);
+        setTimeout(() => this.scrollToBottom(), 60);
+      });
     });
   }
 
@@ -211,6 +214,12 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.runEntranceAnimation();
+
+    if (typeof window !== 'undefined') {
+      window.visualViewport?.addEventListener('resize', () => {
+        this.scrollToBottom();
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -218,6 +227,10 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.newConvSearchTimeout) clearTimeout(this.newConvSearchTimeout);
     if (this.gifSearchTimeout) clearTimeout(this.gifSearchTimeout);
     this.chatHubService.setActiveConversation(null);
+
+    window.visualViewport?.removeEventListener('resize', () => {
+      this.scrollToBottom();
+    });
   }
 
   private runEntranceAnimation(): void {
@@ -649,7 +662,9 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe({
         next: (res) => {
           if (!res.success) return;
-          const aiMsgTime = new Date(new Date(userMsgTime).getTime() + 1).toISOString();
+          const aiMsgTime = new Date(
+            new Date(userMsgTime).getTime() + 1,
+          ).toISOString();
           const aiMsg: Message = {
             id: res.data.aiMessageId,
             conversationId: conv.id,
@@ -737,9 +752,18 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
     return conv.lastMessageAt ?? new Date().toISOString();
   }
 
-  private scrollToBottom(): void {
+  private scrollToBottom(retries = 3): void {
     const el = this.messagesAreaRef?.nativeElement;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+
+      const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 20;
+
+      if (!isAtBottom && retries > 0) {
+        setTimeout(() => this.scrollToBottom(retries - 1), 80);
+      }
+    });
   }
 
   private toVM(msg: Message): MessageVM {
