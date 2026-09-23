@@ -98,28 +98,28 @@ export class ChatHubService {
   }
 
   async resetForNewUser(): Promise<void> {
-  if (this.connection) {
-    this.connection.off('ReceiveMessage');
-    this.connection.off('MessageSeen');
-    this.connection.off('UserTyping');
-    this.connection.off('MessageDeleted');
-    this.connection.off('Error');
-    this.connection.off('IncomingCall');
-    this.connection.off('CallDeclined');
-    await this.connection.stop();
-    this.connection = null;
-  }
+    if (this.connection) {
+      this.connection.off('ReceiveMessage');
+      this.connection.off('MessageSeen');
+      this.connection.off('UserTyping');
+      this.connection.off('MessageDeleted');
+      this.connection.off('Error');
+      this.connection.off('IncomingCall');
+      this.connection.off('CallDeclined');
+      await this.connection.stop();
+      this.connection = null;
+    }
 
-  this.messages.set(new Map());
-  this.typingUsers.set(new Map());
-  this.unreadByConversation.set(new Map());
-  this.incomingMessages.set([]);
-  this.latestMessageByConv.set(new Map());
-  this.activeConversationId.set(null);
-  this.connectionState.set('disconnected');
-  this.incomingCall.set(null);
-  this.callCancelled.set(null);
-}
+    this.messages.set(new Map());
+    this.typingUsers.set(new Map());
+    this.unreadByConversation.set(new Map());
+    this.incomingMessages.set([]);
+    this.latestMessageByConv.set(new Map());
+    this.activeConversationId.set(null);
+    this.connectionState.set('disconnected');
+    this.incomingCall.set(null);
+    this.callCancelled.set(null);
+  }
 
   private registerEventHandlers(): void {
     if (!this.connection) return;
@@ -287,6 +287,12 @@ export class ChatHubService {
       // Caller huỷ hoặc timeout — báo cho WebRtcService cleanup
       console.log('[ChatHub] CallDeclined received', data);
       this.callCancelled.set({ ...data });
+    });
+    this.connection.on('JoinConversationGroup', async () => {
+      await this.connection?.stop();
+      this.connection = null;
+      this.connectionState.set('disconnected');
+      await this.startConnection();
     });
   }
 
