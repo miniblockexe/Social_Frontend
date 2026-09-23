@@ -5,6 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { API_BASE, TOKEN_KEY, REFRESH_KEY } from '../constants/api.constants';
 import { ApiResponse } from '../models/api.models';
 import { AuthResponse, UserBrief, UserRole } from '../models/auth.models';
+import { ChatHubService } from './chat-hub.service';
 
 const USER_KEY = 'current_user';
 
@@ -12,6 +13,7 @@ const USER_KEY = 'current_user';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly chatHubService = inject(ChatHubService);
 
   currentUser = signal<UserBrief | null>(this.readUserFromStorage());
 
@@ -64,8 +66,10 @@ export class AuthService {
         ApiResponse<AuthResponse>
       >(`${API_BASE}/auth/login`, { email, password })
       .pipe(
-        tap((res) => {
+        tap(async (res) => {
           if (res.success) {
+            await this.chatHubService.resetForNewUser();
+
             localStorage.setItem(TOKEN_KEY, res.data.accessToken);
             localStorage.setItem(REFRESH_KEY, res.data.refreshToken);
             this.currentUser.set(res.data.user);
@@ -81,8 +85,10 @@ export class AuthService {
         ApiResponse<AuthResponse>
       >(`${API_BASE}/auth/google-login`, { idToken })
       .pipe(
-        tap((res) => {
+        tap(async (res) => {
           if (res.success) {
+            await this.chatHubService.resetForNewUser(); 
+
             localStorage.setItem(TOKEN_KEY, res.data.accessToken);
             localStorage.setItem(REFRESH_KEY, res.data.refreshToken);
             this.currentUser.set(res.data.user);
