@@ -12,7 +12,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription, Subject, forkJoin, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  catchError,
+} from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationHubService } from '../../../core/services/notification-hub.service';
 import { ChatHubService } from '../../../core/services/chat-hub.service';
@@ -157,30 +162,36 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.loadConversations();
 
     // Search debounce pipeline
-    this.searchSub = this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap((q) => {
-        if (q.length < 2) {
-          this.searchResultUsers.set([]);
-          this.searchResultPosts.set([]);
-          this.showSearchDropdown.set(false);
-          this.isSearching.set(false);
-          return of(null);
-        }
-        this.isSearching.set(true);
-        return forkJoin({
-          users: this.userService.searchUsers(q, 1, 4).pipe(catchError(() => of(null))),
-          posts: this.postService.searchPosts(q, 'all', 1, 3).pipe(catchError(() => of(null))),
-        });
-      }),
-    ).subscribe((res) => {
-      if (!res) return;
-      this.searchResultUsers.set(res.users?.data?.items ?? []);
-      this.searchResultPosts.set(res.posts?.data?.items ?? []);
-      this.showSearchDropdown.set(true);
-      this.isSearching.set(false);
-    });
+    this.searchSub = this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((q) => {
+          if (q.length < 2) {
+            this.searchResultUsers.set([]);
+            this.searchResultPosts.set([]);
+            this.showSearchDropdown.set(false);
+            this.isSearching.set(false);
+            return of(null);
+          }
+          this.isSearching.set(true);
+          return forkJoin({
+            users: this.userService
+              .searchUsers(q, 1, 4)
+              .pipe(catchError(() => of(null))),
+            posts: this.postService
+              .searchPosts(q, 'all', 1, 3)
+              .pipe(catchError(() => of(null))),
+          });
+        }),
+      )
+      .subscribe((res) => {
+        if (!res) return;
+        this.searchResultUsers.set(res.users?.data?.items ?? []);
+        this.searchResultPosts.set(res.posts?.data?.items ?? []);
+        this.showSearchDropdown.set(true);
+        this.isSearching.set(false);
+      });
   }
 
   ngOnDestroy(): void {

@@ -60,7 +60,9 @@ export class AuthService {
     password: string,
   ): Observable<ApiResponse<AuthResponse>> {
     return this.http
-      .post<ApiResponse<AuthResponse>>(`${API_BASE}/auth/login`, { email, password })
+      .post<
+        ApiResponse<AuthResponse>
+      >(`${API_BASE}/auth/login`, { email, password })
       .pipe(
         tap((res) => {
           if (res.success) {
@@ -75,7 +77,9 @@ export class AuthService {
 
   googleLogin(idToken: string): Observable<ApiResponse<AuthResponse>> {
     return this.http
-      .post<ApiResponse<AuthResponse>>(`${API_BASE}/auth/google-login`, { idToken })
+      .post<
+        ApiResponse<AuthResponse>
+      >(`${API_BASE}/auth/google-login`, { idToken })
       .pipe(
         tap((res) => {
           if (res.success) {
@@ -90,9 +94,10 @@ export class AuthService {
 
   logout(): void {
     const refreshToken = localStorage.getItem(REFRESH_KEY);
+
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_KEY);
-    this.writeUserToStorage(null);
+    localStorage.removeItem('current_user');
     this.currentUser.set(null);
 
     if (refreshToken) {
@@ -101,13 +106,15 @@ export class AuthService {
         .subscribe({ error: () => {} });
     }
 
-    this.router.navigate(['/auth/login']);
+    window.location.href = '/auth/login';
   }
 
   refreshToken(): Observable<ApiResponse<AuthResponse>> {
     const refreshToken = localStorage.getItem(REFRESH_KEY);
     return this.http
-      .post<ApiResponse<AuthResponse>>(`${API_BASE}/auth/refresh`, { refreshToken })
+      .post<
+        ApiResponse<AuthResponse>
+      >(`${API_BASE}/auth/refresh`, { refreshToken })
       .pipe(
         tap((res) => {
           if (res.success) {
@@ -160,9 +167,10 @@ export class AuthService {
             const storedRole = this.readUserFromStorage()?.role;
             const user: UserBrief = {
               ...res.data,
-              role: (res.data.role !== undefined && res.data.role !== null)
-                ? res.data.role
-                : (storedRole ?? UserRole.User),
+              role:
+                res.data.role !== undefined && res.data.role !== null
+                  ? res.data.role
+                  : (storedRole ?? UserRole.User),
             };
             this.currentUser.set(user);
             this.writeUserToStorage(user);

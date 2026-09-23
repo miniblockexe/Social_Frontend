@@ -5,7 +5,12 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
+import {
+  RouterLink,
+  RouterLinkActive,
+  Router,
+  NavigationEnd,
+} from '@angular/router';
 import { filter, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../../core/services/auth.service';
@@ -29,7 +34,9 @@ export class MobileNavComponent {
   currentUser = computed(() => this.authService.currentUser());
   isAdmin = computed(() => this.authService.isAdmin());
 
-  unreadNotifications = computed(() => this.notificationHubService.unreadCount());
+  unreadNotifications = computed(() =>
+    this.notificationHubService.unreadCount(),
+  );
   unreadMessages = computed(() => this.chatHubService.totalUnread());
 
   showMore = signal(false);
