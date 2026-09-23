@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
@@ -13,7 +13,11 @@ const USER_KEY = 'current_user';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly chatHubService = inject(ChatHubService);
+  private readonly injector = inject(Injector);
+
+  private get chatHubService(): ChatHubService {
+    return this.injector.get(ChatHubService);
+  }
 
   currentUser = signal<UserBrief | null>(this.readUserFromStorage());
 
@@ -62,9 +66,10 @@ export class AuthService {
     password: string,
   ): Observable<ApiResponse<AuthResponse>> {
     return this.http
-      .post<
-        ApiResponse<AuthResponse>
-      >(`${API_BASE}/auth/login`, { email, password })
+      .post<ApiResponse<AuthResponse>>(`${API_BASE}/auth/login`, {
+        email,
+        password,
+      })
       .pipe(
         tap(async (res) => {
           if (res.success) {
@@ -81,13 +86,13 @@ export class AuthService {
 
   googleLogin(idToken: string): Observable<ApiResponse<AuthResponse>> {
     return this.http
-      .post<
-        ApiResponse<AuthResponse>
-      >(`${API_BASE}/auth/google-login`, { idToken })
+      .post<ApiResponse<AuthResponse>>(`${API_BASE}/auth/google-login`, {
+        idToken,
+      })
       .pipe(
         tap(async (res) => {
           if (res.success) {
-            await this.chatHubService.resetForNewUser(); 
+            await this.chatHubService.resetForNewUser();
 
             localStorage.setItem(TOKEN_KEY, res.data.accessToken);
             localStorage.setItem(REFRESH_KEY, res.data.refreshToken);
@@ -118,9 +123,9 @@ export class AuthService {
   refreshToken(): Observable<ApiResponse<AuthResponse>> {
     const refreshToken = localStorage.getItem(REFRESH_KEY);
     return this.http
-      .post<
-        ApiResponse<AuthResponse>
-      >(`${API_BASE}/auth/refresh`, { refreshToken })
+      .post<ApiResponse<AuthResponse>>(`${API_BASE}/auth/refresh`, {
+        refreshToken,
+      })
       .pipe(
         tap((res) => {
           if (res.success) {
