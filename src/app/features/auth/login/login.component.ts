@@ -28,6 +28,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private gHiddenBtn: HTMLElement | null = null;
 
   /* ── Reactive state ──────────────────────── */
   isLoading = signal(false);
@@ -112,7 +113,9 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
 
   /* ── Google Login ───────────────────────── */
   onGoogleLogin(): void {
-    if (typeof google !== 'undefined' && google?.accounts?.id) {
+    if (this.gHiddenBtn) {
+      this.gHiddenBtn.click();
+    } else if (typeof google !== 'undefined' && google?.accounts?.id) {
       google.accounts.id.prompt();
     } else {
       this.errorMessage.set('Google Sign-In chưa tải xong. Vui lòng thử lại.');
@@ -133,6 +136,18 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
             this.handleGoogleCredential(response.credential);
           },
         });
+
+        const container = document.getElementById('g-btn-hidden');
+        if (container) {
+          google.accounts.id.renderButton(container, {
+            type: 'standard',
+            size: 'large',
+          });
+          setTimeout(() => {
+            this.gHiddenBtn =
+              container.querySelector<HTMLElement>('div[role="button"]');
+          }, 500);
+        }
       } else if (Date.now() - start < maxWait) {
         setTimeout(tryInit, 200);
       }
