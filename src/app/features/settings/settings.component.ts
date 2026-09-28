@@ -4,6 +4,7 @@ import {
   OnInit,
   OnDestroy,
   ViewChild,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -24,6 +25,8 @@ import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
 import { WebRtcService } from '../../core/services/webrtc.service';
 import { RingtoneEditorComponent } from './ringtone-editor/ringtone-editor.component';
+import { OtpInputComponent } from '../../shared/components/otp-input/otp-input.component';
+import { AccountSecurity } from '../../core/models/auth.models';
 import {
   PrivacySettings,
   PrivacyVisibility,
@@ -97,6 +100,7 @@ const STRING_TO_VISIBILITY: Record<string, PrivacyVisibility> = {
     ReactiveFormsModule,
     FormsModule,
     RingtoneEditorComponent,
+    OtpInputComponent,
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
@@ -144,6 +148,28 @@ export class SettingsComponent implements OnInit, OnDestroy {
   appearanceSaving = signal(false);
   profileSaved = signal(false);
   passwordSaved = signal(false);
+
+  // ── Bảo mật: email + hasPassword, luồng OTP đặt mật khẩu ─────────
+  securityInfo = signal<AccountSecurity | null>(null);
+  /** Đã gọi xong /auth/security-info (thành công hay lỗi) — tránh nháy form sai lúc đang tải */
+  securityLoaded = signal(false);
+  /** User đã có mật khẩu nhưng chọn "Quên mật khẩu hiện tại?" */
+  otpFlowOpen = signal(false);
+  /** Tài khoản Google chưa có mật khẩu → luôn dùng luồng OTP */
+  showOtpFlow = computed(() => {
+    const info = this.securityInfo();
+    return !!info && (!info.hasPassword || this.otpFlowOpen());
+  });
+  otpStep = signal<'intro' | 'otp' | 'password'>('intro');
+  otpSending = signal(false);
+  otpVerifying = signal(false);
+  otpResetting = signal(false);
+  otpError = signal<string | null>(null);
+  resendCooldown = signal(0);
+  private otpValue = '';
+  private verifyToken = '';
+  private cooldownTimer: ReturnType<typeof setInterval> | null = null;
+  @ViewChild(OtpInputComponent) otpInput?: OtpInputComponent;
 
   // Password visibility
   showCurrentPw = signal(false);
@@ -277,6 +303,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   profileForm!: FormGroup;
   passwordForm!: FormGroup;
+  setPasswordForm!: FormGroup;
 
   ngOnInit(): void {
     // Sync lại từ service mỗi lần vào trang (phòng trường hợp service đã cập nhật)
@@ -286,6 +313,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     ).matches;
 
     this._buildForms();
+    this._loadSecurityInfo();
     this._loadCurrentBio();
     this._loadPrivacySettings();
     this._loadRingtone();
@@ -294,6 +322,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.gsapCtx?.revert();
+    this._clearCooldown();
   }
 
   private _buildForms(): void {
@@ -314,6 +343,23 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.passwordForm = this.fb.group(
       {
         currentPassword: ['', Validators.required],
+        newPassword: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(8),
+            Validators.pattern(
+              /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$/,
+            ),
+          ],
+        ],
+        confirmPassword: ['', Validators.required],
+      },
+      { validators: passwordMatchValidator },
+    );
+
+    this.setPasswordForm = this.fb.group(
+      {
         newPassword: [
           '',
           [
@@ -457,8 +503,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.toast.show('Đã cập nhật ảnh đại diện', 'success');
   }
 
-  checkPasswordStrength(): void {
-    const pw: string = this.passwordForm.get('newPassword')?.value ?? '';
+  checkPasswordStrength(form: FormGroup = this.passwordForm): void {
+    const pw: string = form.get('newPassword')?.value ?? '';
     let score = 0;
     if (pw.length >= 8) score++;
     if (/[A-Z]/.test(pw)) score++;
@@ -661,6 +707,157 @@ export class SettingsComponent implements OnInit, OnDestroy {
           this.toast.show(msg, 'error');
         },
       });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // OTP: đặt mật khẩu lần đầu (Google) / quên mật khẩu hiện tại
+  // ══════════════════════════════════════════════════════════════
+
+  private _loadSecurityInfo(): void {
+    this.auth.getSecurityInfo().subscribe({
+      next: (res) => {
+        if (res.success) this.securityInfo.set(res.data);
+        this.securityLoaded.set(true);
+      },
+      error: () => {
+        // Không lấy được → giữ form đổi mật khẩu mặc định (securityInfo = null)
+        this.securityLoaded.set(true);
+      },
+    });
+  }
+
+  openOtpFlow(): void {
+    this._resetOtpFlow();
+    this.otpFlowOpen.set(true);
+  }
+
+  closeOtpFlow(): void {
+    this._resetOtpFlow();
+    this.otpFlowOpen.set(false);
+  }
+
+  private _resetOtpFlow(): void {
+    this.otpStep.set('intro');
+    this.otpError.set(null);
+    this.otpValue = '';
+    this.verifyToken = '';
+    this.setPasswordForm.reset();
+    this.passwordStrength.set(0);
+    this._clearCooldown();
+  }
+
+  sendOtp(): void {
+    if (this.otpSending() || this.resendCooldown() > 0) return;
+    this.otpSending.set(true);
+    this.otpError.set(null);
+
+    this.auth.sendSetPasswordOtp().subscribe({
+      next: () => {
+        this.otpSending.set(false);
+        this.otpValue = '';
+        this.otpInput?.reset();
+        this.otpStep.set('otp');
+        this._startCooldown(60);
+        this.toast.show('Đã gửi mã OTP tới email của bạn', 'success');
+      },
+      error: (err) => {
+        this.otpSending.set(false);
+        const msg =
+          err?.status === 429
+            ? 'Bạn yêu cầu quá nhiều lần. Vui lòng thử lại sau ít phút.'
+            : (err?.error?.message ?? 'Không thể gửi mã OTP. Vui lòng thử lại.');
+        this.otpError.set(msg);
+      },
+    });
+  }
+
+  onOtpChange(value: string): void {
+    this.otpValue = value;
+    if (this.otpError()) this.otpError.set(null);
+  }
+
+  verifyOtp(): void {
+    const email = this.securityInfo()?.email;
+    if (!email || this.otpVerifying()) return;
+    if (this.otpValue.length < 6) {
+      this.otpError.set('Vui lòng nhập đủ 6 chữ số.');
+      return;
+    }
+    this.otpVerifying.set(true);
+    this.otpError.set(null);
+
+    this.auth.verifyOtp(email, this.otpValue).subscribe({
+      next: (res) => {
+        this.otpVerifying.set(false);
+        this.verifyToken = res.data.verifyToken;
+        this.otpStep.set('password');
+      },
+      error: (err) => {
+        this.otpVerifying.set(false);
+        this.otpInput?.reset();
+        this.otpError.set(
+          err?.error?.message ?? 'OTP không hợp lệ hoặc đã hết hạn.',
+        );
+      },
+    });
+  }
+
+  saveNewPasswordViaOtp(): void {
+    const email = this.securityInfo()?.email;
+    if (!email || this.otpResetting()) return;
+    if (this.setPasswordForm.invalid) {
+      this.setPasswordForm.markAllAsTouched();
+      return;
+    }
+    this.otpResetting.set(true);
+    this.otpError.set(null);
+
+    const { newPassword, confirmPassword } = this.setPasswordForm.value;
+    this.auth
+      .resetPassword({
+        email,
+        verifyToken: this.verifyToken,
+        newPassword,
+        confirmNewPassword: confirmPassword,
+      })
+      .subscribe({
+        next: () => {
+          this.otpResetting.set(false);
+          this.toast.show(
+            'Đã đặt mật khẩu. Vui lòng đăng nhập lại.',
+            'success',
+          );
+          // BE thu hồi toàn bộ refresh token sau khi đặt mật khẩu → đăng xuất
+          setTimeout(() => this.auth.logout(), 1200);
+        },
+        error: (err) => {
+          this.otpResetting.set(false);
+          this.verifyToken = '';
+          this.otpValue = '';
+          this.otpStep.set('otp');
+          this.otpError.set(
+            err?.error?.message ?? 'Phiên đã hết hạn. Vui lòng nhập OTP mới.',
+          );
+        },
+      });
+  }
+
+  private _startCooldown(seconds: number): void {
+    this._clearCooldown();
+    this.resendCooldown.set(seconds);
+    this.cooldownTimer = setInterval(() => {
+      const next = this.resendCooldown() - 1;
+      this.resendCooldown.set(Math.max(next, 0));
+      if (next <= 0) this._clearCooldown();
+    }, 1000);
+  }
+
+  private _clearCooldown(): void {
+    if (this.cooldownTimer) {
+      clearInterval(this.cooldownTimer);
+      this.cooldownTimer = null;
+    }
+    this.resendCooldown.set(0);
   }
 
   savePrivacy(): void {

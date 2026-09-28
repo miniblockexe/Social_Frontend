@@ -737,6 +737,58 @@
   font-size: 0.8rem;
 }
 
+// ══════════════════════════════════════════════════════════════════
+// OTP FLOW (đặt mật khẩu / quên mật khẩu hiện tại)
+// ══════════════════════════════════════════════════════════════════
+.sp-otp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.25rem;
+
+  &--tight {
+    padding-top: 0.25rem;
+    padding-bottom: 0.875rem;
+  }
+}
+
+.sp-otp-center {
+  text-align: center;
+  justify-content: center;
+}
+
+.sp-otp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sp-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--c-accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
 .sp-visually-hidden {
   position: absolute;
   width: 1px;

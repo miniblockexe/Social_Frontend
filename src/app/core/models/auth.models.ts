@@ -17,3 +17,10 @@ export enum UserRole {
   User = 0,
   Admin = 1,
 }
+
+/** Thông tin bảo mật của chính user đang đăng nhập (GET /auth/security-info). */
+export interface AccountSecurity {
+  email: string;
+  /** False với tài khoản Google chưa từng đặt mật khẩu. */
+  hasPassword: boolean;
+}

@@ -42,7 +42,9 @@ export class ResetPasswordComponent implements OnInit {
         [
           Validators.required,
           Validators.minLength(8),
-          Validators.pattern(/(?=.*[A-Z])(?=.*[0-9])/),
+          Validators.pattern(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$/,
+          ),
         ],
       ],
       confirmPassword: ['', Validators.required],
@@ -74,7 +76,7 @@ export class ResetPasswordComponent implements OnInit {
     if (!c || !c.touched || c.valid) return null;
     if (c.hasError('required')) return 'Trường này không được để trống.';
     if (c.hasError('minlength')) return 'Mật khẩu tối thiểu 8 ký tự.';
-    if (c.hasError('pattern')) return 'Mật khẩu cần ít nhất 1 chữ hoa và 1 số.';
+    if (c.hasError('pattern')) return 'Mật khẩu cần có chữ hoa, chữ thường, số và ký tự đặc biệt.';
     return null;
   }
 

@@ -4,7 +4,12 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { API_BASE, TOKEN_KEY, REFRESH_KEY } from '../constants/api.constants';
 import { ApiResponse } from '../models/api.models';
-import { AuthResponse, UserBrief, UserRole } from '../models/auth.models';
+import {
+  AccountSecurity,
+  AuthResponse,
+  UserBrief,
+  UserRole,
+} from '../models/auth.models';
 import { ChatHubService } from './chat-hub.service';
 
 const USER_KEY = 'current_user';
@@ -168,6 +173,18 @@ export class AuthService {
       `${API_BASE}/auth/change-password`,
       dto,
     );
+  }
+
+  /** Email + hasPassword của chính user (email không nằm trong UserBrief). */
+  getSecurityInfo(): Observable<ApiResponse<AccountSecurity>> {
+    return this.http.get<ApiResponse<AccountSecurity>>(
+      `${API_BASE}/auth/security-info`,
+    );
+  }
+
+  /** Gửi OTP tới email của user đang đăng nhập để đặt/đổi mật khẩu không cần mật khẩu cũ. */
+  sendSetPasswordOtp(): Observable<void> {
+    return this.http.post<void>(`${API_BASE}/auth/send-set-password-otp`, {});
   }
 
   async loadCurrentUser(): Promise<void> {
