@@ -498,9 +498,31 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.avatarInput.nativeElement.click();
   }
 
-  onAvatarChange(_event: Event): void {
-    // Avatar upload gọi service — bạn tích hợp BE ở đây
-    this.toast.show('Đã cập nhật ảnh đại diện', 'success');
+  onAvatarChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.userService.updateAvatar(file).subscribe({
+      next: (res) => {
+        const u = this.currentUser();
+        if (u) this.auth.currentUser.set({ ...u, avatarUrl: res.data });
+        this.toast.show('Đã cập nhật ảnh đại diện', 'success');
+      },
+      error: (err) => {
+        // Hiện đúng message server trả về (sai định dạng, quá dung lượng...)
+        const tooLarge = err?.status === 413 || err?.status === 502;
+        this.toast.show(
+          err?.error?.message ??
+            (tooLarge
+              ? 'Ảnh quá lớn. Vui lòng chọn ảnh tối đa 5MB.'
+              : 'Không thể cập nhật ảnh đại diện'),
+          'error',
+        );
+      },
+    });
+
+    input.value = '';
   }
 
   checkPasswordStrength(form: FormGroup = this.passwordForm): void {

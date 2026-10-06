@@ -315,8 +315,23 @@
 
                 <!-- Bubble + meta -->
                 <div class="msg-bubble-wrap">
-                  <!-- Chỉ hiển thị bubble khi có nội dung thực (text hoặc media) -->
-                  @if (msg.content?.trim() || msg.mediaUrl || msg.isAi) {
+                  <!-- Tin nhắn đã bị xóa: hiển thị thông báo cho cả hai bên -->
+                  @if (msg.isDeleted) {
+                    <div
+                      class="msg-bubble msg-bubble--deleted"
+                      [class.msg-bubble--mine]="
+                        msg.senderId === currentUserId()
+                      "
+                      [class.msg-bubble--theirs]="
+                        msg.senderId !== currentUserId()
+                      "
+                    >
+                      <p class="msg-text">
+                        <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                        Tin nhắn đã bị xóa
+                      </p>
+                    </div>
+                  } @else if (msg.content?.trim() || msg.mediaUrl || msg.isAi) {
                     <div
                       class="msg-bubble"
                       [class.msg-bubble--mine]="

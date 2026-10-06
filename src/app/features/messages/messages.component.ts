@@ -80,6 +80,7 @@ export interface MessageVM {
   createdAt: string;
   isRead: boolean;
   isAi: boolean;
+  isDeleted: boolean;
   sharedPost?: SharedPostPreviewDto;
 }
 
@@ -777,6 +778,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, OnDestroy {
       createdAt: msg.createdAt,
       isRead: msg.seenByUserIds.length > 1,
       isAi: msg.isAI,
+      isDeleted: msg.isDeleted ?? false,
       sharedPost: msg.sharedPost,
     };
   }

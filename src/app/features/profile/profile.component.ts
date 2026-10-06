@@ -452,7 +452,16 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         this.toastService.success('Cập nhật ảnh đại diện thành công');
         this.cdr.markForCheck();
       },
-      error: () => this.toastService.error('Không thể cập nhật ảnh đại diện'),
+      error: (err) => {
+        // Hiện đúng message server trả về (sai định dạng, quá dung lượng...)
+        const tooLarge = err?.status === 413 || err?.status === 502;
+        this.toastService.error(
+          err?.error?.message ??
+            (tooLarge
+              ? 'Ảnh quá lớn. Vui lòng chọn ảnh tối đa 5MB.'
+              : 'Không thể cập nhật ảnh đại diện'),
+        );
+      },
     });
     (event.target as HTMLInputElement).value = '';
   }

@@ -1000,6 +1000,15 @@
     color: var(--msg-text);
     border-bottom-left-radius: 4px;
   }
+
+  // Tin nhắn đã bị xóa (hiển thị cho cả hai bên)
+  &--deleted {
+    background: transparent;
+    border: 1px dashed var(--msg-border-2);
+    color: var(--msg-text);
+    box-shadow: none;
+    opacity: 0.75;
+  }
 }
 
 .msg-ai-tag {
@@ -1028,6 +1037,11 @@
   .msg-bubble--theirs & {
     color: var(--msg-text);
   }
+}
+
+.msg-bubble--deleted .msg-text {
+  color: var(--msg-text);
+  font-style: italic;
 }
 
 .msg-media {
